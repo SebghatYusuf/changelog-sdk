@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
-import { createChangelog, fetchChangelogSettings, runAIEnhance } from '../../actions/changelog-actions'
-import { ChangelogTag } from '../../types/changelog'
+import { createChangelog, fetchChangelogSettings, runAIEnhance, updateChangelog } from '../../actions/changelog-actions'
+import { ChangelogEntry, ChangelogTag } from '../../types/changelog'
 
 /**
  * Create/Edit Changelog Form Component
@@ -23,6 +23,10 @@ const ALL_TAGS: ChangelogTag[] = [
 interface CreateFormState {
   success?: boolean
   error?: string
+}
+
+interface CreateFormProps {
+  initialEntry?: ChangelogEntry
 }
 
 type VersionBumpType = 'patch' | 'minor' | 'major'
@@ -45,7 +49,9 @@ function bumpSemver(version: string, bumpType: VersionBumpType): string | null {
   return `${major}.${minor}.${patch + 1}`
 }
 
-export default function CreateForm() {
+export default function CreateForm({ initialEntry }: CreateFormProps) {
+  const isEditing = Boolean(initialEntry?._id)
+
   const [formState, formAction] = useActionState<CreateFormState, FormData>(
     async (_state, formData) => {
       const title = formData.get('title') as string
@@ -55,13 +61,22 @@ export default function CreateForm() {
       const tagsStr = formData.get('tags') as string
       const tags = tagsStr.split(',').filter(Boolean) as ChangelogTag[]
 
-      const result = await createChangelog({
-        title,
-        content,
-        version,
-        status,
-        tags,
-      })
+      const result = isEditing
+        ? await updateChangelog({
+            id: initialEntry!._id,
+            title,
+            content,
+            version,
+            status,
+            tags,
+          })
+        : await createChangelog({
+            title,
+            content,
+            version,
+            status,
+            tags,
+          })
 
       return result
     },
@@ -69,10 +84,10 @@ export default function CreateForm() {
   )
 
   const formRef = useRef<HTMLFormElement>(null)
-  const [selectedTags, setSelectedTags] = useState<ChangelogTag[]>([])
+  const [selectedTags, setSelectedTags] = useState<ChangelogTag[]>(initialEntry?.tags || [])
   const [aiLoadingField, setAiLoadingField] = useState<'title' | 'content' | null>(null)
   const [aiError, setAiError] = useState<string>('')
-  const [versionValue, setVersionValue] = useState('1.0.0')
+  const [versionValue, setVersionValue] = useState(initialEntry?.version || '1.0.0')
   const [versionError, setVersionError] = useState('')
   const [loadingVersionDefaults, setLoadingVersionDefaults] = useState(true)
 
@@ -83,7 +98,7 @@ export default function CreateForm() {
       const result = await fetchChangelogSettings()
       if (!isMounted) return
 
-      if (result.success && result.data?.currentVersion) {
+      if (!isEditing && result.success && result.data?.currentVersion) {
         setVersionValue(result.data.currentVersion)
       }
 
@@ -93,7 +108,7 @@ export default function CreateForm() {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [isEditing])
 
   const handleToggleTag = (tag: ChangelogTag) => {
     setSelectedTags((prev) =>
@@ -155,8 +170,10 @@ export default function CreateForm() {
   return (
     <form ref={formRef} action={formAction} className="cl-card cl-admin-panel cl-admin-form">
       <div className="cl-card-header">
-        <h3 className="cl-card-title">Create changelog</h3>
-        <p className="cl-card-description">Write clear updates, then publish with confidence.</p>
+        <h3 className="cl-card-title">{isEditing ? 'Edit changelog' : 'Create changelog'}</h3>
+        <p className="cl-card-description">
+          {isEditing ? 'Update your release note and save changes.' : 'Write clear updates, then publish with confidence.'}
+        </p>
       </div>
 
       <div className="cl-card-content cl-admin-form-body">
@@ -180,7 +197,7 @@ export default function CreateForm() {
 
         {formState.success && (
           <div className="cl-alert cl-alert-success">
-            <div className="cl-alert-description">Changelog created successfully!</div>
+            <div className="cl-alert-description">{isEditing ? 'Changelog updated successfully!' : 'Changelog created successfully!'}</div>
           </div>
         )}
 
@@ -202,6 +219,7 @@ export default function CreateForm() {
             type="text"
             placeholder="e.g., Major performance update"
             className="cl-input"
+            defaultValue={initialEntry?.title || ''}
             required
           />
         </div>
@@ -237,7 +255,11 @@ export default function CreateForm() {
             required
           />
           <p className="cl-form-help-text">
-            {loadingVersionDefaults ? 'Loading version defaults...' : 'Default comes from saved changelog settings in DB.'}
+            {isEditing
+              ? 'Edit mode: updating this entry version.'
+              : loadingVersionDefaults
+                ? 'Loading version defaults...'
+                : 'Default comes from saved changelog settings in DB.'}
           </p>
         </div>
 
@@ -258,6 +280,7 @@ export default function CreateForm() {
             name="content"
             placeholder={"## Highlights\n- Improved loading performance\n- Fixed login edge cases"}
             className="cl-textarea"
+            defaultValue={initialEntry?.content || ''}
             rows={9}
             required
           />
@@ -284,13 +307,19 @@ export default function CreateForm() {
           <label className="cl-form-label" htmlFor="status">
             Status
           </label>
-          <select name="status" defaultValue="draft" className="cl-select">
+          <select name="status" defaultValue={initialEntry?.status || 'draft'} className="cl-select">
             <option value="draft">Draft</option>
             <option value="published">Published</option>
           </select>
         </div>
 
-        <SubmitButton />
+        <SubmitButton isEditing={isEditing} />
+
+        {isEditing ? (
+          <a href="/changelog/admin" className="cl-btn cl-btn-secondary cl-admin-cancel-edit">
+            Cancel edit
+          </a>
+        ) : null}
       </div>
     </form>
   )
@@ -329,7 +358,7 @@ function MagicEnhanceButton({ disabled, loading, onClick, label }: MagicEnhanceB
   )
 }
 
-function SubmitButton() {
+function SubmitButton({ isEditing }: { isEditing: boolean }) {
   const { pending } = useFormStatus()
 
   return (
@@ -341,10 +370,10 @@ function SubmitButton() {
       {pending ? (
         <>
           <span className="cl-spinner cl-spinner-sm cl-spinner-inline" />
-          Creating...
+          Saving...
         </>
       ) : (
-        'Create Entry'
+        isEditing ? 'Update Entry' : 'Create Entry'
       )}
     </button>
   )

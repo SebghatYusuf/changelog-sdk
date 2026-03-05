@@ -19,10 +19,11 @@ interface ChangelogManagerProps {
 export default function ChangelogManager({ params }: ChangelogManagerProps) {
   const route = params?.route?.[0] || ''
   const adminSection = params?.route?.[1]
+  const adminEditId = params?.route?.[2]
 
   // Route logic
   if (route === 'admin') {
-    return <AdminPortalRoute section={adminSection} />
+    return <AdminPortalRoute section={adminSection} editId={adminEditId} />
   }
 
   if (route === 'login') {
@@ -76,12 +77,12 @@ function DetailRoute({ slug }: { slug: string }) {
 /**
  * Admin Portal Route
  */
-function AdminPortalRoute({ section }: { section?: string }) {
+function AdminPortalRoute({ section, editId }: { section?: string; editId?: string }) {
   return (
     <main className="cl-root cl-section cl-admin-screen">
       <Suspense fallback={<LoadingFallback />}>
         <AdminAuthWrapper>
-          <AdminPortal section={section} />
+          <AdminPortal section={section} editId={editId} />
         </AdminAuthWrapper>
       </Suspense>
     </main>

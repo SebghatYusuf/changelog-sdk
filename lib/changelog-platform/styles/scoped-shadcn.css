@@ -600,6 +600,24 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
 
+/* Keep markdown section headings readable on dark cards */
+.cl-markdown.cl-markdown-strong h1,
+.cl-markdown.cl-markdown-strong h2,
+.cl-markdown.cl-markdown-strong h3,
+.cl-markdown-strong h1,
+.cl-markdown-strong h2,
+.cl-markdown-strong h3 {
+  color: #eaf3ff;
+  text-shadow: 0 1px 0 rgba(8, 14, 27, 0.45);
+}
+
+.cl-markdown.cl-markdown-strong p,
+.cl-markdown.cl-markdown-strong li,
+.cl-markdown-strong p,
+.cl-markdown-strong li {
+  color: #cbd9ea;
+}
+
 .cl-filter-card {
   border-color: rgba(113, 140, 174, 0.28);
 }
@@ -1097,6 +1115,10 @@
 
 .cl-admin-submit {
   margin-top: 0.35rem;
+}
+
+.cl-admin-cancel-edit {
+  width: 100%;
 }
 
 .cl-admin-settings-panel {

@@ -477,3 +477,30 @@ export async function fetchAdminChangelogs(page: number = 1, limit: number = 20)
     }
   }
 }
+
+export async function fetchAdminChangelogById(id: string): Promise<{ success: boolean; data?: ChangelogEntry; error?: string }> {
+  try {
+    const isAdmin = await checkAdminAuth()
+    if (!isAdmin) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    await connectDB()
+    const entry = await Changelog.findById(id).lean()
+
+    if (!entry) {
+      return { success: false, error: 'Changelog entry not found' }
+    }
+
+    return {
+      success: true,
+      data: toChangelogEntry(entry),
+    }
+  } catch (error) {
+    console.error('Error fetching admin changelog by id:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch changelog entry',
+    }
+  }
+}

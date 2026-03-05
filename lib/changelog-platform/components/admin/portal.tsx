@@ -4,6 +4,8 @@ import CreateForm from './form'
 import LogoutButton from './logout-button'
 import AISettingsPanel from './ai-settings'
 import ChangelogSettingsPanel from './changelog-settings'
+import { fetchAdminChangelogById } from '../../actions/changelog-actions'
+import { ChangelogEntry } from '../../types/changelog'
 
 /**
  * Admin Portal Main Component - Server Component
@@ -13,6 +15,7 @@ type AdminSection = 'publish' | 'ai' | 'changelog-settings' | 'presets'
 
 interface AdminPortalProps {
   section?: string
+  editId?: string
 }
 
 const ADMIN_NAV_ITEMS: Array<{ id: AdminSection; label: string; href: string; description: string }> = [
@@ -27,7 +30,7 @@ function normalizeSection(section?: string): AdminSection {
   return 'publish'
 }
 
-export default function AdminPortal({ section }: AdminPortalProps) {
+export default function AdminPortal({ section, editId }: AdminPortalProps) {
   const activeSection = normalizeSection(section)
 
   return (
@@ -47,6 +50,11 @@ export default function AdminPortal({ section }: AdminPortalProps) {
             <p className="cl-card-description">Navigate admin pages</p>
           </div>
           <div className="cl-card-content cl-admin-sidebar-nav">
+            <a href="/changelog" className="cl-admin-nav-item">
+              <span className="cl-admin-nav-title">Back to Changelog</span>
+              <span className="cl-admin-nav-description">Open the public changelog homepage</span>
+            </a>
+
             {ADMIN_NAV_ITEMS.map((item) => (
               <a
                 key={item.id}
@@ -62,7 +70,7 @@ export default function AdminPortal({ section }: AdminPortalProps) {
 
         <div className="cl-admin-content">
           {activeSection === 'publish' ? (
-            <PublishSection />
+            <PublishSection editId={section === 'edit' ? editId : undefined} />
           ) : activeSection === 'ai' ? (
             <AISection />
           ) : activeSection === 'changelog-settings' ? (
@@ -76,12 +84,21 @@ export default function AdminPortal({ section }: AdminPortalProps) {
   )
 }
 
-function PublishSection() {
+async function PublishSection({ editId }: { editId?: string }) {
+  let initialEntry: ChangelogEntry | undefined
+
+  if (editId) {
+    const result = await fetchAdminChangelogById(editId)
+    if (result.success && result.data) {
+      initialEntry = result.data
+    }
+  }
+
   return (
     <div className="cl-admin-grid">
       <div className="cl-admin-grid-col">
         <Suspense fallback={<FormSkeleton />}>
-          <CreateForm />
+          <CreateForm initialEntry={initialEntry} />
         </Suspense>
       </div>
 

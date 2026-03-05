@@ -72,7 +72,9 @@ function AdminListItem({ entry }: { entry: ChangelogEntry }) {
       </div>
 
       <div className="cl-admin-row-actions">
-        <button className="cl-btn cl-btn-sm cl-btn-secondary cl-btn-compact">Edit</button>
+        <a href={`/changelog/admin/edit/${entry._id}`} className="cl-btn cl-btn-sm cl-btn-secondary cl-btn-compact">
+          Edit
+        </a>
         <DeleteButton id={entry._id} />
       </div>
     </div>
