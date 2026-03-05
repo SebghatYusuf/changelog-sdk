@@ -93,12 +93,11 @@ export default function CreateForm({ initialEntry }: CreateFormProps) {
 
   // Redirect back to admin list after a successful edit
   useEffect(() => {
-    if (isEditing && formState.success) {
-      const t = setTimeout(() => {
-        window.location.href = '/changelog/admin'
-      }, 1200)
-      return () => clearTimeout(t)
-    }
+    if (!isEditing || !formState.success) return
+    const t = setTimeout(() => {
+      window.location.href = '/changelog/admin'
+    }, 1200)
+    return () => clearTimeout(t)
   }, [isEditing, formState.success])
 
   useEffect(() => {

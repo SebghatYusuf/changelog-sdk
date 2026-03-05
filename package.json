@@ -24,6 +24,7 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json && mkdir -p dist/styles && cp lib/changelog-platform/styles/changelog-ui.css dist/styles/changelog-ui.css",
+    "build:sync": "yarn build && bun install --cwd example",
     "prepare": "npm run build",
     "prepack": "npm run build",
     "dev": "yarn --cwd example dev",
