@@ -1,5 +1,6 @@
 import { generateText } from 'ai'
 import AIProviderFactory from './provider'
+import { getRuntimeAIConfig } from './settings'
 import { EnhanceChangelogOutput, ChangelogTag } from '../types/changelog'
 
 /**
@@ -33,7 +34,8 @@ Do not include any other text or markdown formatting outside the JSON.`
 
 export async function enhanceChangelog(rawNotes: string, version?: string): Promise<EnhanceChangelogOutput> {
   try {
-    const model = AIProviderFactory.getProvider()
+    const runtimeConfig = await getRuntimeAIConfig()
+    const model = AIProviderFactory.getProvider(runtimeConfig)
 
     const prompt = ENHANCEMENT_PROMPT.replace('{rawNotes}', rawNotes).replace(
       /{version}/g,

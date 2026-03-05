@@ -20,24 +20,47 @@ if (!cached) {
   cached = global.mongooseCache = { conn: null, promise: null }
 }
 
-export async function connectDB(): Promise<Mongoose> {
-  const mongoUri = process.env.CHANGELOG_MONGODB_URI
+// Disable query buffering globally so disconnected states fail fast.
+mongoose.set('bufferCommands', false)
 
-  if (!mongoUri) {
+function getMongoUri(): string {
+  const uri = process.env.CHANGELOG_MONGODB_URI || process.env.MONGODB_URI
+  if (!uri) {
     throw new Error('CHANGELOG_MONGODB_URI environment variable is not defined')
   }
+  return uri
+}
 
-  // Return cached connection if available
-  if (cached.conn) {
+export async function connectDB(): Promise<Mongoose> {
+  const mongoUri = getMongoUri()
+  const readyState = mongoose.connection.readyState
+
+  // 1 = connected
+  if (readyState === 1 && cached.conn) {
     return cached.conn
   }
 
-  // Return existing promise if connection is in progress
+  // 2 = connecting
+  if (readyState === 2 && cached.promise) {
+    cached.conn = await cached.promise
+    return cached.conn
+  }
+
+  // 0 = disconnected, 3 = disconnecting
+  // Reset stale cache and reconnect.
+  if (readyState === 0 || readyState === 3) {
+    cached.conn = null
+    cached.promise = null
+  }
+
   if (!cached.promise) {
     cached.promise = mongoose.connect(mongoUri, {
       maxPoolSize: 10,
       minPoolSize: 2,
       socketTimeoutMS: 45000,
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000,
+      bufferCommands: false,
     })
   }
 

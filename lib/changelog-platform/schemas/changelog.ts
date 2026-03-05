@@ -7,6 +7,7 @@ import { z } from 'zod'
 export const ChangelogTagEnum = z.enum(['Features', 'Fixes', 'Improvements', 'Breaking', 'Security', 'Performance', 'Docs'])
 
 export const ChangelogStatusEnum = z.enum(['draft', 'published'])
+export const AIProviderEnum = z.enum(['openai', 'gemini', 'ollama'])
 
 export const ChangelogEntrySchema = z.object({
   _id: z.string(),
@@ -59,9 +60,26 @@ export const FeedFiltersSchema = z.object({
   limit: z.number().int().min(1).max(50).default(10),
 })
 
+export const AISettingsSchema = z.object({
+  provider: AIProviderEnum,
+  model: z.string().min(1, 'Model is required'),
+  openaiApiKey: z.string().optional().default(''),
+  geminiApiKey: z.string().optional().default(''),
+  ollamaBaseUrl: z.string().optional().default(''),
+})
+
+export const AIModelListRequestSchema = z.object({
+  provider: AIProviderEnum,
+  openaiApiKey: z.string().optional(),
+  geminiApiKey: z.string().optional(),
+  ollamaBaseUrl: z.string().optional(),
+})
+
 export type ChangelogEntryType = z.infer<typeof ChangelogEntrySchema>
 export type CreateChangelogType = z.infer<typeof CreateChangelogSchema>
 export type UpdateChangelogType = z.infer<typeof UpdateChangelogSchema>
 export type EnhanceChangelogType = z.infer<typeof EnhanceChangelogSchema>
 export type LoginType = z.infer<typeof LoginSchema>
 export type FeedFiltersType = z.infer<typeof FeedFiltersSchema>
+export type AISettingsType = z.infer<typeof AISettingsSchema>
+export type AIModelListRequestType = z.infer<typeof AIModelListRequestSchema>

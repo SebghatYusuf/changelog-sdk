@@ -82,3 +82,18 @@ export interface ApiError {
   message: string
   statusCode: number
 }
+
+export type AIProviderKind = 'openai' | 'gemini' | 'ollama'
+
+export interface AISettingsInput {
+  provider: AIProviderKind
+  model: string
+  openaiApiKey?: string
+  geminiApiKey?: string
+  ollamaBaseUrl?: string
+}
+
+export interface AIModelOption {
+  id: string
+  name: string
+}

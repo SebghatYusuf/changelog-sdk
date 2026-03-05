@@ -5,9 +5,12 @@ import { cookies } from 'next/headers'
 import bcryptjs from 'bcryptjs'
 import connectDB from '../db/mongoose'
 import { Changelog } from '../db/models/Changelog'
-import { CreateChangelogSchema, UpdateChangelogSchema, EnhanceChangelogSchema } from '../schemas/changelog'
+import { CreateChangelogSchema, UpdateChangelogSchema, EnhanceChangelogSchema, AISettingsSchema, AIModelListRequestSchema } from '../schemas/changelog'
 import { enhanceChangelog } from '../ai/enhancer'
-import { ChangelogEntry, EnhanceChangelogOutput } from '../types/changelog'
+import { AIModelOption, ChangelogEntry, EnhanceChangelogOutput } from '../types/changelog'
+import { AIProviderFactory } from '../ai/provider'
+import { DEFAULT_AI_MODELS } from '../ai/constants'
+import { getAISettings, saveAISettings } from '../ai/settings'
 
 /**
  * Server Actions for Changelog CRUD and AI operations
@@ -218,6 +221,85 @@ export async function checkAdminAuth(): Promise<boolean> {
     return !!cookieStore.get('changelog-admin-session')?.value
   } catch {
     return false
+  }
+}
+
+// ===== AI SETTINGS ACTIONS =====
+
+export async function fetchAISettings() {
+  try {
+    const isAdmin = await checkAdminAuth()
+    if (!isAdmin) {
+      return { success: false, error: 'Unauthorized' as const }
+    }
+
+    const settings = await getAISettings()
+    return { success: true, data: settings }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch AI settings',
+    }
+  }
+}
+
+export async function fetchAIProviderModels(input: unknown): Promise<{ success: boolean; data?: AIModelOption[]; error?: string }> {
+  try {
+    const isAdmin = await checkAdminAuth()
+    if (!isAdmin) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    const validated = AIModelListRequestSchema.parse(input)
+
+    const models = await AIProviderFactory.listModels({
+      provider: validated.provider,
+      // OpenAI/Gemini keys are sourced from env vars by design.
+      apiKey: undefined,
+      baseUrl: validated.ollamaBaseUrl,
+    })
+
+    if (models.length === 0) {
+      return {
+        success: true,
+        data: [{ id: DEFAULT_AI_MODELS[validated.provider], name: DEFAULT_AI_MODELS[validated.provider] }],
+      }
+    }
+
+    return { success: true, data: models }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch models',
+    }
+  }
+}
+
+export async function updateAISettings(input: unknown) {
+  try {
+    const isAdmin = await checkAdminAuth()
+    if (!isAdmin) {
+      return { success: false, error: 'Unauthorized' as const }
+    }
+
+    const validated = AISettingsSchema.parse(input)
+    const provider = validated.provider
+
+    const saved = await saveAISettings({
+      provider,
+      model: validated.model || DEFAULT_AI_MODELS[provider],
+      // Provider API keys are expected via environment variables.
+      openaiApiKey: '',
+      geminiApiKey: '',
+      ollamaBaseUrl: validated.ollamaBaseUrl || '',
+    })
+
+    return { success: true, data: saved }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to update AI settings',
+    }
   }
 }
 

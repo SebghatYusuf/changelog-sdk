@@ -17,6 +17,9 @@ export type {
   EnhanceChangelogOutput,
   FeedResponse,
   ApiError,
+  AISettingsInput,
+  AIModelOption,
+  AIProviderKind,
 } from './types/changelog'
 
 // Export actions
@@ -31,6 +34,9 @@ export {
   fetchChangelogBySlug,
   fetchPublishedChangelogs,
   fetchAdminChangelogs,
+  fetchAISettings,
+  fetchAIProviderModels,
+  updateAISettings,
 } from './actions/changelog-actions'
 
 // Export schemas
@@ -43,6 +49,9 @@ export {
   EnhanceChangelogSchema,
   LoginSchema,
   FeedFiltersSchema,
+  AIProviderEnum,
+  AISettingsSchema,
+  AIModelListRequestSchema,
 } from './schemas/changelog'
 
 // Export database
