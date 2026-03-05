@@ -1,6 +1,6 @@
 {
   "name": "changelog-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
   "type": "module",
   "description": "A pluggable Changelog SDK for Next.js 16+ with AI enhancement and multi-provider support",
@@ -12,10 +12,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./styles": "./dist/styles/scoped-shadcn.css"
+    "./styles": "./dist/styles/changelog-ui.css"
   },
   "sideEffects": [
-    "./dist/styles/scoped-shadcn.css"
+    "./dist/styles/changelog-ui.css"
   ],
   "files": [
     "dist",
@@ -23,7 +23,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.build.json && mkdir -p dist/styles && cp lib/changelog-platform/styles/scoped-shadcn.css dist/styles/scoped-shadcn.css",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && mkdir -p dist/styles && cp lib/changelog-platform/styles/changelog-ui.css dist/styles/changelog-ui.css",
     "prepare": "npm run build",
     "prepack": "npm run build",
     "dev": "yarn --cwd example dev",

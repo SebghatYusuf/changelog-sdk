@@ -70,4 +70,4 @@ export { default as enhanceChangelog } from './ai/enhancer'
 export { authMiddleware } from './middleware/auth'
 
 // Styles
-import './styles/scoped-shadcn.css'
+import './styles/changelog-ui.css'

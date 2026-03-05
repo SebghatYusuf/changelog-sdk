@@ -91,6 +91,16 @@ export default function CreateForm({ initialEntry }: CreateFormProps) {
   const [versionError, setVersionError] = useState('')
   const [loadingVersionDefaults, setLoadingVersionDefaults] = useState(true)
 
+  // Redirect back to admin list after a successful edit
+  useEffect(() => {
+    if (isEditing && formState.success) {
+      const t = setTimeout(() => {
+        window.location.href = '/changelog/admin'
+      }, 1200)
+      return () => clearTimeout(t)
+    }
+  }, [isEditing, formState.success])
+
   useEffect(() => {
     let isMounted = true
 
@@ -170,9 +180,9 @@ export default function CreateForm({ initialEntry }: CreateFormProps) {
   return (
     <form ref={formRef} action={formAction} className="cl-card cl-admin-panel cl-admin-form">
       <div className="cl-card-header">
-        <h3 className="cl-card-title">{isEditing ? 'Edit changelog' : 'Create changelog'}</h3>
+        <h3 className="cl-card-title">{isEditing ? 'Edit entry' : 'New entry'}</h3>
         <p className="cl-card-description">
-          {isEditing ? 'Update your release note and save changes.' : 'Write clear updates, then publish with confidence.'}
+          {isEditing ? 'Update this release note and save changes.' : 'Write clear updates, then publish with confidence.'}
         </p>
       </div>
 
@@ -201,66 +211,68 @@ export default function CreateForm({ initialEntry }: CreateFormProps) {
           </div>
         )}
 
-        <div className="cl-form-group">
-          <div className="cl-field-label-row">
-            <label className="cl-form-label" htmlFor="title">
-              Title *
-            </label>
-            <MagicEnhanceButton
-              disabled={aiLoadingField !== null}
-              loading={aiLoadingField === 'title'}
-              onClick={() => handleAIEnhanceField('title')}
-              label="Enhance title"
+        <div className="cl-form-row-2">
+          <div className="cl-form-group">
+            <div className="cl-field-label-row">
+              <label className="cl-form-label" htmlFor="title">
+                Title *
+              </label>
+              <MagicEnhanceButton
+                disabled={aiLoadingField !== null}
+                loading={aiLoadingField === 'title'}
+                onClick={() => handleAIEnhanceField('title')}
+                label="Enhance title"
+              />
+            </div>
+            <input
+              id="title"
+              name="title"
+              type="text"
+              placeholder="e.g., Major performance update"
+              className="cl-input"
+              defaultValue={initialEntry?.title || ''}
+              required
             />
           </div>
-          <input
-            id="title"
-            name="title"
-            type="text"
-            placeholder="e.g., Major performance update"
-            className="cl-input"
-            defaultValue={initialEntry?.title || ''}
-            required
-          />
-        </div>
 
-        <div className="cl-form-group">
-          <div className="cl-field-label-row cl-version-field-row">
-            <label className="cl-form-label" htmlFor="version">
-              Version *
-            </label>
-            <div className="cl-version-bump-group">
-              <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('patch')}>
-                + Patch
-              </button>
-              <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('minor')}>
-                + Minor
-              </button>
-              <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('major')}>
-                + Major
-              </button>
+          <div className="cl-form-group">
+            <div className="cl-field-label-row cl-version-field-row">
+              <label className="cl-form-label" htmlFor="version">
+                Version *
+              </label>
+              <div className="cl-version-bump-group">
+                <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('patch')}>
+                  +patch
+                </button>
+                <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('minor')}>
+                  +minor
+                </button>
+                <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('major')}>
+                  +major
+                </button>
+              </div>
             </div>
+            <input
+              id="version"
+              name="version"
+              type="text"
+              placeholder="e.g., 1.2.3"
+              className="cl-input"
+              value={versionValue}
+              onChange={(e) => {
+                setVersionError('')
+                setVersionValue(e.target.value)
+              }}
+              required
+            />
+            <p className="cl-form-help-text">
+              {isEditing
+                ? 'Edit mode: version will be updated.'
+                : loadingVersionDefaults
+                  ? 'Loading version defaults...'
+                  : 'Default comes from changelog settings.'}
+            </p>
           </div>
-          <input
-            id="version"
-            name="version"
-            type="text"
-            placeholder="e.g., 1.2.3"
-            className="cl-input"
-            value={versionValue}
-            onChange={(e) => {
-              setVersionError('')
-              setVersionValue(e.target.value)
-            }}
-            required
-          />
-          <p className="cl-form-help-text">
-            {isEditing
-              ? 'Edit mode: updating this entry version.'
-              : loadingVersionDefaults
-                ? 'Loading version defaults...'
-                : 'Default comes from saved changelog settings in DB.'}
-          </p>
         </div>
 
         <div className="cl-form-group">
@@ -313,13 +325,14 @@ export default function CreateForm({ initialEntry }: CreateFormProps) {
           </select>
         </div>
 
-        <SubmitButton isEditing={isEditing} />
-
-        {isEditing ? (
-          <a href="/changelog/admin" className="cl-btn cl-btn-secondary cl-admin-cancel-edit">
-            Cancel edit
-          </a>
-        ) : null}
+        <div className="cl-form-actions">
+          <SubmitButton isEditing={isEditing} />
+          {isEditing ? (
+            <a href="/changelog/admin" className="cl-btn cl-btn-secondary cl-admin-cancel-edit">
+              Cancel
+            </a>
+          ) : null}
+        </div>
       </div>
     </form>
   )
