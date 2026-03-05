@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "outDir": "dist",
+    "rootDir": "lib/changelog-platform",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": ["lib/changelog-platform/**/*.ts", "lib/changelog-platform/**/*.tsx"],
+  "exclude": ["node_modules", "example", "dist"]
+}

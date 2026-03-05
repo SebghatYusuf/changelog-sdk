@@ -4,7 +4,7 @@ A pluggable, production-ready Changelog management SDK for Next.js 16+ with AI-p
 
 ## Features
 
-✅ **Zero-Style Pollution** - Uses `cl-` prefix for all Tailwind utilities
+✅ **Zero-Style Pollution** - Uses scoped `cl-` CSS classes with no Tailwind/PostCSS requirement
 ✅ **Public Feed** - Beautiful, responsive changelog timeline at `/changelog`
 ✅ **Admin Portal** - Protected admin interface at `/changelog/admin` with editor
 ✅ **AI Enhancement** - Generate professional changelogs from raw notes using OpenAI, Gemini, or Ollama
@@ -28,28 +28,25 @@ Continue reading below for installation and usage instructions.
 
 ## Installation
 
-### 1. Add SDK to Package Dependencies
+### 1. Add SDK from GitHub
 
-Add the changelog-sdk as a git dependency in your Next.js project's `package.json`:
+Add the SDK as a GitHub dependency in your Next.js project's `package.json`:
 
 ```json
 {
   "dependencies": {
-    "changelog-sdk": "git+https://bitbucket.org/your-workspace/changelog-sdk.git#main"
+    "changelog-sdk": "github:empirepixel/changelog-sdk#main"
   }
 }
 ```
 
-Or using bun CLI:
+Or with package managers:
 
 ```bash
-bun add git+https://bitbucket.org/your-workspace/changelog-sdk.git
-```
-
-Or using npm:
-
-```bash
-npm install git+https://bitbucket.org/your-workspace/changelog-sdk.git
+bun add github:empirepixel/changelog-sdk#main
+npm install github:empirepixel/changelog-sdk#main
+yarn add github:empirepixel/changelog-sdk#main
+pnpm add github:empirepixel/changelog-sdk#main
 ```
 
 ### 2. Install Dependencies
@@ -66,37 +63,9 @@ Alternatively with npm:
 npm install
 ```
 
-The SDK will be installed in `node_modules/changelog-sdk` and you can import its components directly.
+The SDK will be installed in `node_modules/changelog-sdk` and you can import it directly. No Tailwind/PostCSS setup is required.
 
-### 3. Setup Tailwind Config
-
-Update your `tailwind.config.ts` to include SDK files:
-
-```typescript
-import type { Config } from 'tailwindcss'
-
-const config: Config = {
-  content: [
-    './app/**/*.{js,ts,jsx,tsx}',
-    './node_modules/changelog-sdk/**/*.{js,ts,jsx,tsx}', // Include SDK from node_modules
-  ],
-  theme: {
-    extend: {
-      colors: {
-        // Your host app colors here
-      },
-    },
-  },
-  plugins: [],
-  corePlugins: {
-    preflight: true,
-  },
-}
-
-export default config
-```
-
-### 4. Create Routing Structure
+### 3. Create Routing Structure
 
 In your Next.js app, create the catch-all route:
 
@@ -121,7 +90,7 @@ export default function ChangelogPage({ params }: ChangelogPageProps) {
 }
 ```
 
-### 5. Environment Variables
+### 4. Environment Variables
 
 Create a `.env.local` file in your project root:
 
@@ -148,7 +117,7 @@ OLLAMA_BASE_URL=http://localhost:11434
 CHANGELOG_RATE_LIMIT=10 # Max AI calls per minute (default: 10)
 ```
 
-### 6. CI/CD Deployment
+### 5. CI/CD Deployment
 
 The SDK will be automatically installed in your CI/CD pipeline because it's specified in `package.json`:
 
@@ -156,7 +125,7 @@ The SDK will be automatically installed in your CI/CD pipeline because it's spec
 # In your CI/CD (GitHub Actions, GitLab CI, Bitbucket Pipelines, etc.)
 bun install  # or npm install
 
-# The changelog-sdk will be pulled from Bitbucket automatically
+# The changelog-sdk will be pulled from GitHub automatically
 bun run build
 ```
 
