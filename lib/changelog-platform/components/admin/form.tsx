@@ -210,68 +210,66 @@ export default function CreateForm({ initialEntry }: CreateFormProps) {
           </div>
         )}
 
-        <div className="cl-form-row-2">
-          <div className="cl-form-group">
-            <div className="cl-field-label-row">
-              <label className="cl-form-label" htmlFor="title">
-                Title *
-              </label>
-              <MagicEnhanceButton
-                disabled={aiLoadingField !== null}
-                loading={aiLoadingField === 'title'}
-                onClick={() => handleAIEnhanceField('title')}
-                label="Enhance title"
-              />
-            </div>
-            <input
-              id="title"
-              name="title"
-              type="text"
-              placeholder="e.g., Major performance update"
-              className="cl-input"
-              defaultValue={initialEntry?.title || ''}
-              required
+        <div className="cl-form-group">
+          <div className="cl-field-label-row">
+            <label className="cl-form-label" htmlFor="title">
+              Title *
+            </label>
+            <MagicEnhanceButton
+              disabled={aiLoadingField !== null}
+              loading={aiLoadingField === 'title'}
+              onClick={() => handleAIEnhanceField('title')}
+              label="Enhance title"
             />
           </div>
+          <input
+            id="title"
+            name="title"
+            type="text"
+            placeholder="e.g., Major performance update"
+            className="cl-input"
+            defaultValue={initialEntry?.title || ''}
+            required
+          />
+        </div>
 
-          <div className="cl-form-group">
-            <div className="cl-field-label-row cl-version-field-row">
-              <label className="cl-form-label" htmlFor="version">
-                Version *
-              </label>
-              <div className="cl-version-bump-group">
-                <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('patch')}>
-                  +patch
-                </button>
-                <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('minor')}>
-                  +minor
-                </button>
-                <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('major')}>
-                  +major
-                </button>
-              </div>
+        <div className="cl-form-group">
+          <div className="cl-field-label-row cl-version-field-row">
+            <label className="cl-form-label" htmlFor="version">
+              Version *
+            </label>
+            <div className="cl-version-bump-group">
+              <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('patch')}>
+                +patch
+              </button>
+              <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('minor')}>
+                +minor
+              </button>
+              <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('major')}>
+                +major
+              </button>
             </div>
-            <input
-              id="version"
-              name="version"
-              type="text"
-              placeholder="e.g., 1.2.3"
-              className="cl-input"
-              value={versionValue}
-              onChange={(e) => {
-                setVersionError('')
-                setVersionValue(e.target.value)
-              }}
-              required
-            />
-            <p className="cl-form-help-text">
-              {isEditing
-                ? 'Edit mode: version will be updated.'
-                : loadingVersionDefaults
-                  ? 'Loading version defaults...'
-                  : 'Default comes from changelog settings.'}
-            </p>
           </div>
+          <input
+            id="version"
+            name="version"
+            type="text"
+            placeholder="e.g., 1.2.3"
+            className="cl-input"
+            value={versionValue}
+            onChange={(e) => {
+              setVersionError('')
+              setVersionValue(e.target.value)
+            }}
+            required
+          />
+          <p className="cl-form-help-text">
+            {isEditing
+              ? 'Edit mode: version will be updated.'
+              : loadingVersionDefaults
+                ? 'Loading version defaults...'
+                : 'Default comes from changelog settings.'}
+          </p>
         </div>
 
         <div className="cl-form-group">
