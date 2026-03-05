@@ -35,7 +35,7 @@ Add the SDK as a GitHub dependency in your Next.js project's `package.json`:
 ```json
 {
   "dependencies": {
-    "changelog-sdk": "github:SebghatYusuf/changelog-sdk#main"
+    "changelog-sdk": "github:SebghatYusuf/changelog-sdk#master"
   }
 }
 ```
@@ -43,10 +43,10 @@ Add the SDK as a GitHub dependency in your Next.js project's `package.json`:
 Or with package managers:
 
 ```bash
-bun add github:SebghatYusuf/changelog-sdk#main
-npm install github:SebghatYusuf/changelog-sdk#main
-yarn add github:SebghatYusuf/changelog-sdk#main
-pnpm add github:SebghatYusuf/changelog-sdk#main
+bun add github:SebghatYusuf/changelog-sdk#master
+npm install github:SebghatYusuf/changelog-sdk#master
+yarn add github:SebghatYusuf/changelog-sdk#master
+pnpm add github:SebghatYusuf/changelog-sdk#master
 ```
 
 ### 2. Install Dependencies
