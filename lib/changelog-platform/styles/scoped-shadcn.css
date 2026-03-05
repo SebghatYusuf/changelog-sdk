@@ -357,6 +357,126 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
 
+.cl-filter-card {
+  border-color: rgba(113, 140, 174, 0.28);
+}
+
+.cl-filter-body {
+  padding: clamp(1rem, 1.8vw, 1.45rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.cl-filter-search-row {
+  position: relative;
+}
+
+.cl-filter-search-icon-wrap {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 1rem;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.cl-filter-search-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  color: #7f95b1;
+}
+
+.cl-filter-search-input {
+  padding-left: 3rem;
+}
+
+.cl-filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.cl-filter-label {
+  display: block;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #c8d4e3;
+}
+
+.cl-filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.cl-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(120, 144, 174, 0.55);
+  background: rgba(12, 20, 34, 0.75);
+  color: #bdd0e6;
+  padding: 0.42rem 0.95rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.cl-filter-chip:hover {
+  border-color: rgba(155, 185, 222, 0.82);
+  background: rgba(24, 35, 58, 0.92);
+  color: #e4edf8;
+}
+
+.cl-filter-chip.is-selected {
+  border-color: rgba(88, 165, 255, 0.95);
+  background: linear-gradient(135deg, rgba(41, 121, 238, 0.92), rgba(28, 98, 214, 0.92));
+  color: #f5f9ff;
+  box-shadow: 0 0 0 1px rgba(88, 165, 255, 0.2), 0 6px 18px rgba(10, 80, 180, 0.25);
+}
+
+.cl-filter-check {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.cl-filter-active {
+  border-top: 1px solid rgba(113, 140, 174, 0.2);
+  padding-top: 0.7rem;
+}
+
+.cl-filter-active-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.cl-filter-active-info {
+  font-size: 0.83rem;
+  color: #93a8c2;
+}
+
+.cl-filter-clear {
+  border: 0;
+  background: transparent;
+  color: #7fb5ff;
+  cursor: pointer;
+  font-size: 0.83rem;
+  font-weight: 600;
+  padding: 0;
+}
+
+.cl-filter-clear:hover {
+  color: #b7d5ff;
+}
+
 .cl-form-group > * + * { margin-top: 0.5rem; }
 .cl-form-label {
   display: inline-block;

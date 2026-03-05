@@ -42,13 +42,13 @@ export default function Filters({ initialSearch = '', initialTags = [] }: Filter
   if (selectedTags.length > 0) queryParams.set('tags', selectedTags.join(','))
 
   return (
-    <div className="cl-card">
-      <div className="p-6 space-y-6">
+    <div className="cl-card cl-filter-card">
+      <div className="cl-filter-body">
         {/* Search with icon */}
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+        <div className="cl-filter-search-row">
+          <div className="cl-filter-search-icon-wrap">
             <svg
-              className="h-5 w-5 text-slate-400"
+              className="cl-filter-search-icon"
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -64,30 +64,26 @@ export default function Filters({ initialSearch = '', initialTags = [] }: Filter
             placeholder="Search updates and features..."
             value={search}
             onChange={handleSearch}
-            className="cl-input pl-12 w-full"
+            className="cl-input cl-filter-search-input"
           />
         </div>
 
         {/* Tags */}
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-3">Filter by Category</label>
-          <div className="flex flex-wrap gap-2">
+        <div className="cl-filter-section">
+          <label className="cl-filter-label">Filter by Category</label>
+          <div className="cl-filter-tags">
             {ALL_TAGS.map((tag) => {
               const isSelected = selectedTags.includes(tag)
               return (
                 <button
                   key={tag}
                   onClick={() => handleToggleTag(tag)}
-                  className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
-                    isSelected
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105'
-                      : 'bg-white text-slate-600 border-2 border-slate-200 hover:border-blue-300 hover:text-blue-600 hover:shadow-md'
-                  }`}
+                  className={`cl-filter-chip ${isSelected ? 'is-selected' : ''}`}
                 >
                   {tag}
                   {isSelected && (
                     <svg
-                      className="ml-1.5 h-3.5 w-3.5"
+                      className="cl-filter-check"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -106,9 +102,9 @@ export default function Filters({ initialSearch = '', initialTags = [] }: Filter
 
         {/* Active filters count */}
         {(search || selectedTags.length > 0) && (
-          <div className="pt-2 border-t border-slate-100">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-600">
+          <div className="cl-filter-active">
+            <div className="cl-filter-active-row">
+              <span className="cl-filter-active-info">
                 {selectedTags.length > 0 && `${selectedTags.length} ${selectedTags.length === 1 ? 'filter' : 'filters'} active`}
                 {search && selectedTags.length > 0 && ' • '}
                 {search && 'Searching...'}
@@ -118,7 +114,7 @@ export default function Filters({ initialSearch = '', initialTags = [] }: Filter
                   setSearch('')
                   setSelectedTags([])
                 }}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                className="cl-filter-clear"
               >
                 Clear all
               </button>
