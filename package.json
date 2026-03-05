@@ -1,0 +1,53 @@
+{
+  "name": "changelog-sdk",
+  "version": "1.0.0",
+  "private": false,
+  "description": "A pluggable Changelog SDK for Next.js 16+ with AI enhancement and multi-provider support",
+  "main": "lib/changelog-platform/index.ts",
+  "types": "lib/changelog-platform/index.ts",
+  "exports": {
+    ".": "./lib/changelog-platform/index.ts",
+    "./styles": "./lib/changelog-platform/styles/scoped-shadcn.css"
+  },
+  "files": [
+    "lib/changelog-platform"
+  ],
+  "scripts": {
+    "dev": "yarn --cwd example dev",
+    "type-check": "tsc --noEmit",
+    "check:mongo": "node scripts/check-mongodb.js",
+    "hash:password": "node scripts/hash-password.js",
+    "example:install": "bun --cwd example install",
+    "example:dev": "bun --cwd example run dev",
+    "example:build": "bun --cwd example run build"
+  },
+  "keywords": ["changelog", "next.js", "sdk", "ai", "typescript", "react"],
+  "author": "Empirepixel",
+  "license": "MIT",
+  "peerDependencies": {
+    "next": ">=15.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "dependencies": {
+    "mongoose": "^9.1.0",
+    "zod": "^4.3.6",
+    "bcryptjs": "^3.0.3",
+    "react-markdown": "^10.1.0",
+    "rehype-sanitize": "^6.0.0",
+    "ai": "^6.0.116",
+    "@ai-sdk/openai": "^3.0.41",
+    "@ai-sdk/google": "^3.0.43",
+    "ollama-ai-provider-v2": "^3.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@types/node": "^25.3.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/bcryptjs": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
