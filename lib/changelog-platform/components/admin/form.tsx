@@ -1,9 +1,9 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
-import { createChangelog, runAIEnhance } from '../../actions/changelog-actions'
+import { createChangelog, fetchChangelogSettings, runAIEnhance } from '../../actions/changelog-actions'
 import { ChangelogTag } from '../../types/changelog'
 
 /**
@@ -23,6 +23,26 @@ const ALL_TAGS: ChangelogTag[] = [
 interface CreateFormState {
   success?: boolean
   error?: string
+}
+
+type VersionBumpType = 'patch' | 'minor' | 'major'
+
+function normalizeSemver(value: string): string {
+  return value.trim().replace(/^v/i, '')
+}
+
+function bumpSemver(version: string, bumpType: VersionBumpType): string | null {
+  const normalized = normalizeSemver(version)
+  const match = normalized.match(/^(\d+)\.(\d+)\.(\d+)$/)
+  if (!match) return null
+
+  const major = Number(match[1])
+  const minor = Number(match[2])
+  const patch = Number(match[3])
+
+  if (bumpType === 'major') return `${major + 1}.0.0`
+  if (bumpType === 'minor') return `${major}.${minor + 1}.0`
+  return `${major}.${minor}.${patch + 1}`
 }
 
 export default function CreateForm() {
@@ -52,6 +72,28 @@ export default function CreateForm() {
   const [selectedTags, setSelectedTags] = useState<ChangelogTag[]>([])
   const [aiLoadingField, setAiLoadingField] = useState<'title' | 'content' | null>(null)
   const [aiError, setAiError] = useState<string>('')
+  const [versionValue, setVersionValue] = useState('1.0.0')
+  const [versionError, setVersionError] = useState('')
+  const [loadingVersionDefaults, setLoadingVersionDefaults] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    ;(async () => {
+      const result = await fetchChangelogSettings()
+      if (!isMounted) return
+
+      if (result.success && result.data?.currentVersion) {
+        setVersionValue(result.data.currentVersion)
+      }
+
+      setLoadingVersionDefaults(false)
+    })()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleToggleTag = (tag: ChangelogTag) => {
     setSelectedTags((prev) =>
@@ -99,6 +141,17 @@ export default function CreateForm() {
     setAiLoadingField(null)
   }
 
+  const handleVersionBump = (bumpType: VersionBumpType) => {
+    const nextVersion = bumpSemver(versionValue, bumpType)
+    if (!nextVersion) {
+      setVersionError('Use semantic version format (e.g. 1.2.3) to apply bump actions.')
+      return
+    }
+
+    setVersionError('')
+    setVersionValue(nextVersion)
+  }
+
   return (
     <form ref={formRef} action={formAction} className="cl-card cl-admin-panel cl-admin-form">
       <div className="cl-card-header">
@@ -116,6 +169,12 @@ export default function CreateForm() {
         {formState.error && (
           <div className="cl-alert cl-alert-error">
             <div className="cl-alert-description">{formState.error}</div>
+          </div>
+        )}
+
+        {versionError && (
+          <div className="cl-alert cl-alert-error">
+            <div className="cl-alert-description">{versionError}</div>
           </div>
         )}
 
@@ -148,17 +207,38 @@ export default function CreateForm() {
         </div>
 
         <div className="cl-form-group">
-          <label className="cl-form-label" htmlFor="version">
-            Version *
-          </label>
+          <div className="cl-field-label-row cl-version-field-row">
+            <label className="cl-form-label" htmlFor="version">
+              Version *
+            </label>
+            <div className="cl-version-bump-group">
+              <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('patch')}>
+                + Patch
+              </button>
+              <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('minor')}>
+                + Minor
+              </button>
+              <button type="button" className="cl-version-bump-btn" onClick={() => handleVersionBump('major')}>
+                + Major
+              </button>
+            </div>
+          </div>
           <input
             id="version"
             name="version"
             type="text"
             placeholder="e.g., 1.2.3"
             className="cl-input"
+            value={versionValue}
+            onChange={(e) => {
+              setVersionError('')
+              setVersionValue(e.target.value)
+            }}
             required
           />
+          <p className="cl-form-help-text">
+            {loadingVersionDefaults ? 'Loading version defaults...' : 'Default comes from saved changelog settings in DB.'}
+          </p>
         </div>
 
         <div className="cl-form-group">

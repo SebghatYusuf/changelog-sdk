@@ -23,31 +23,28 @@ export default async function ChangelogFeed({
   const { entries, total, page, hasMore } = result.data
 
   return (
-    <div className="cl-root min-h-screen py-12 px-4">
-      {/* Hero Header */}
-      <div className="mb-16 text-center max-w-4xl mx-auto">
-        <div className="inline-flex items-center justify-center px-4 py-1.5 mb-6 rounded-full bg-blue-50 border border-blue-200">
-          <span className="text-xs font-semibold text-blue-600 tracking-wide uppercase">Product Updates</span>
+    <div className="cl-root cl-feed-wrap">
+      <div className="cl-feed-hero">
+        <div className="cl-feed-kicker">
+          <span>Product Updates</span>
         </div>
-        <h1 className="cl-h1 mb-6">What's New</h1>
-        <p className="cl-p text-lg max-w-2xl mx-auto text-slate-500">
+        <h1 className="cl-h1 cl-feed-title">What's New</h1>
+        <p className="cl-p cl-feed-subtitle">
           Stay up to date with the latest features, improvements, and updates to our platform.
         </p>
       </div>
 
-      {/* Filters */}
-      <div className="max-w-4xl mx-auto mb-12">
+      <div className="cl-feed-filters">
         <Filters initialSearch={initialSearch} initialTags={initialTags} />
       </div>
 
-      {/* Timeline */}
-      <div className="cl-timeline max-w-4xl mx-auto">
+      <div className="cl-timeline cl-feed-timeline">
         {entries.length === 0 ? (
-          <div className="cl-card">
-            <div className="cl-card-content text-center py-12">
-              <div className="text-6xl mb-4 opacity-20">📝</div>
-              <p className="cl-p text-slate-500 font-medium">No changelog entries found.</p>
-              <p className="text-sm text-slate-400 mt-2">Try adjusting your search or filters.</p>
+          <div className="cl-card cl-feed-empty-card">
+            <div className="cl-card-content cl-feed-empty-content">
+              <div className="cl-feed-empty-icon">📝</div>
+              <p className="cl-p cl-feed-empty-title">No changelog entries found.</p>
+              <p className="cl-feed-empty-subtitle">Try adjusting your search or filters.</p>
             </div>
           </div>
         ) : (
@@ -59,7 +56,6 @@ export default async function ChangelogFeed({
         )}
       </div>
 
-      {/* Pagination */}
       <Pagination currentPage={page} hasMore={hasMore} total={total} />
     </div>
   )

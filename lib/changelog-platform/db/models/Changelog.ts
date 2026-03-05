@@ -74,14 +74,19 @@ changelogSchema.index({ slug: 1 })
 changelogSchema.index({ status: 1, date: -1 })
 changelogSchema.index({ tags: 1 })
 
-// Auto-slugify before saving
-changelogSchema.pre('save', function () {
-  if (!this.slug) {
-    this.slug = this.title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_]+/g, '-')
-      .replace(/^-+|-+$/g, '')
+function slugifyTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+// Generate slug before validation so `required: true` passes.
+changelogSchema.pre('validate', function () {
+  if (!this.slug && this.title) {
+    const slug = slugifyTitle(this.title)
+    this.slug = slug || `release-${Date.now()}`
   }
 })
 

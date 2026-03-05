@@ -32,6 +32,35 @@ RESPOND IN JSON FORMAT ONLY:
 
 Do not include any other text or markdown formatting outside the JSON.`
 
+function stripMarkdownCodeFence(text: string): string {
+  const trimmed = text.trim()
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i)
+  if (fenced?.[1]) {
+    return fenced[1].trim()
+  }
+  return trimmed
+}
+
+function extractJSONObject(text: string): string {
+  const start = text.indexOf('{')
+  const end = text.lastIndexOf('}')
+  if (start >= 0 && end > start) {
+    return text.slice(start, end + 1)
+  }
+  return text
+}
+
+function parseEnhancementResponse(text: string): { title: string; content: string; tags: unknown[] } {
+  const direct = stripMarkdownCodeFence(text)
+
+  try {
+    return JSON.parse(direct)
+  } catch {
+    const extracted = extractJSONObject(direct)
+    return JSON.parse(extracted)
+  }
+}
+
 export async function enhanceChangelog(rawNotes: string, version?: string): Promise<EnhanceChangelogOutput> {
   try {
     const runtimeConfig = await getRuntimeAIConfig()
@@ -49,8 +78,8 @@ export async function enhanceChangelog(rawNotes: string, version?: string): Prom
       maxOutputTokens: 1000,
     })
 
-    // Parse JSON response
-    const parsed = JSON.parse(response.text)
+    // Parse JSON response (models sometimes wrap JSON in markdown fences)
+    const parsed = parseEnhancementResponse(response.text)
 
     // Validate response
     if (!parsed.title || !parsed.content || !Array.isArray(parsed.tags)) {

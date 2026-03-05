@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from 'react'
 import { checkAdminAuth } from '../actions/changelog-actions'
 import ChangelogFeed from './feed/timeline'
+import ChangelogDetail from './feed/detail'
 import AdminPortal from './admin/portal'
 import LoginForm from './auth/login'
 
@@ -28,6 +29,10 @@ export default function ChangelogManager({ params }: ChangelogManagerProps) {
     return <LoginRoute />
   }
 
+  if (route) {
+    return <DetailRoute slug={route} />
+  }
+
   // Default: public feed
   return <PublicFeedRoute />
 }
@@ -53,6 +58,16 @@ function LoginRoute() {
     <main className="cl-root cl-section cl-login-screen">
       <Suspense fallback={<LoadingFallback />}>
         <LoginForm />
+      </Suspense>
+    </main>
+  )
+}
+
+function DetailRoute({ slug }: { slug: string }) {
+  return (
+    <main className="cl-root cl-section cl-feed-screen">
+      <Suspense fallback={<LoadingFallback />}>
+        <ChangelogDetail slug={slug} />
       </Suspense>
     </main>
   )

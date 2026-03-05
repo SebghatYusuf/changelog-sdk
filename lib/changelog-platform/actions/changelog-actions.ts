@@ -5,12 +5,20 @@ import { cookies } from 'next/headers'
 import bcryptjs from 'bcryptjs'
 import connectDB from '../db/mongoose'
 import { Changelog } from '../db/models/Changelog'
-import { CreateChangelogSchema, UpdateChangelogSchema, EnhanceChangelogSchema, AISettingsSchema, AIModelListRequestSchema } from '../schemas/changelog'
+import {
+  CreateChangelogSchema,
+  UpdateChangelogSchema,
+  EnhanceChangelogSchema,
+  AISettingsSchema,
+  AIModelListRequestSchema,
+  ChangelogSettingsSchema,
+} from '../schemas/changelog'
 import { enhanceChangelog } from '../ai/enhancer'
-import { AIModelOption, ChangelogEntry, EnhanceChangelogOutput } from '../types/changelog'
+import { AIModelOption, ChangelogEntry, ChangelogSettingsInput, EnhanceChangelogOutput } from '../types/changelog'
 import { AIProviderFactory } from '../ai/provider'
 import { DEFAULT_AI_MODELS } from '../ai/constants'
 import { getAISettings, saveAISettings } from '../ai/settings'
+import { getChangelogSettings, saveChangelogSettings } from '../changelog/settings'
 
 /**
  * Server Actions for Changelog CRUD and AI operations
@@ -41,19 +49,26 @@ export async function createChangelog(input: unknown): Promise<{ success: boolea
 
     // Validate input
     const validated = CreateChangelogSchema.parse(input)
+    const normalizedVersion = validated.version.trim().replace(/^v/i, '')
+
+    const currentSettings = await getChangelogSettings()
 
     // Create entry
     const changelog = new Changelog({
       title: validated.title,
       content: validated.content,
-      version: validated.version,
-      status: validated.status,
+      version: normalizedVersion,
+      status: currentSettings.autoPublish ? 'published' : validated.status,
       tags: validated.tags,
       aiGenerated: validated.aiGenerated,
       rawNotes: validated.rawNotes,
     })
 
     await changelog.save()
+    await saveChangelogSettings({
+      ...currentSettings,
+      currentVersion: normalizedVersion,
+    })
 
     revalidatePath('/changelog')
 
@@ -76,6 +91,7 @@ export async function updateChangelog(input: unknown): Promise<{ success: boolea
 
     // Validate input
     const validated = UpdateChangelogSchema.parse(input)
+    const normalizedVersion = validated.version?.trim().replace(/^v/i, '')
 
     // Update entry
     const changelog = await Changelog.findByIdAndUpdate(
@@ -83,7 +99,7 @@ export async function updateChangelog(input: unknown): Promise<{ success: boolea
       {
         ...(validated.title && { title: validated.title }),
         ...(validated.content && { content: validated.content }),
-        ...(validated.version && { version: validated.version }),
+        ...(normalizedVersion && { version: normalizedVersion }),
         ...(validated.status && { status: validated.status }),
         ...(validated.tags && { tags: validated.tags }),
       },
@@ -299,6 +315,48 @@ export async function updateAISettings(input: unknown) {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to update AI settings',
+    }
+  }
+}
+
+// ===== CHANGELOG SETTINGS ACTIONS =====
+
+export async function fetchChangelogSettings() {
+  try {
+    const isAdmin = await checkAdminAuth()
+    if (!isAdmin) {
+      return { success: false, error: 'Unauthorized' as const }
+    }
+
+    const settings = await getChangelogSettings()
+    return { success: true, data: settings }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch changelog settings',
+    }
+  }
+}
+
+export async function updateChangelogSettings(input: unknown) {
+  try {
+    const isAdmin = await checkAdminAuth()
+    if (!isAdmin) {
+      return { success: false, error: 'Unauthorized' as const }
+    }
+
+    const validated = ChangelogSettingsSchema.parse(input)
+    const normalized: ChangelogSettingsInput = {
+      currentVersion: validated.currentVersion.replace(/^v/, ''),
+      defaultFeedPageSize: validated.defaultFeedPageSize,
+      autoPublish: validated.autoPublish,
+    }
+    const saved = await saveChangelogSettings(normalized)
+    return { success: true, data: saved }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to update changelog settings',
     }
   }
 }

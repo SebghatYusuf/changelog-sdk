@@ -18,47 +18,33 @@ export default function ChangelogCard({ entry }: ChangelogCardProps) {
   })
 
   return (
-    <div className="cl-card group">
-      <div className="cl-card-header">
-        {/* Version & Date Badge */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-600 text-white text-xs font-bold shadow-sm">
-            v{entry.version}
+    <article className="cl-card cl-entry-card">
+      <a href={`/changelog/${entry.slug}`} className="cl-entry-link" aria-label={`Open changelog entry ${entry.title}`}>
+        <div className="cl-card-header cl-entry-header">
+          <div className="cl-entry-meta">
+            <span className="cl-entry-version">v{entry.version}</span>
+            <time className="cl-entry-date">{dateFormatter.format(new Date(entry.date))}</time>
+            {entry.aiGenerated && <span className="cl-badge cl-badge-secondary cl-entry-ai">AI Enhanced</span>}
           </div>
-          <time className="text-sm text-slate-500 font-medium">
-            {dateFormatter.format(new Date(entry.date))}
-          </time>
-          {entry.aiGenerated && (
-            <span className="cl-badge cl-badge-secondary text-[10px] uppercase tracking-wider">
-              ✨ AI Enhanced
-            </span>
-          )}
+
+          <h3 className="cl-card-title cl-entry-title">{entry.title}</h3>
+
+          <div className="cl-entry-tags">
+            {entry.tags.map((tag) => (
+              <span key={tag} className="cl-entry-tag">
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
 
-        {/* Title */}
-        <h3 className="cl-card-title text-xl sm:text-2xl mb-4 group-hover:text-blue-600 transition-colors duration-300">
-          {entry.title}
-        </h3>
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2">
-          {entry.tags.map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-700 border border-slate-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 cursor-default"
-            >
-              {tag}
-            </span>
-          ))}
+        <div className="cl-card-content cl-entry-content">
+          <div className="cl-markdown cl-markdown-preview cl-markdown-strong">
+            <Markdown rehypePlugins={[rehypeSanitize]}>{entry.content}</Markdown>
+          </div>
+          <span className="cl-entry-readmore">Read full update →</span>
         </div>
-      </div>
-
-      {/* Content */}
-      <div className="px-6 pb-6">
-        <div className="cl-markdown">
-          <Markdown rehypePlugins={[rehypeSanitize]}>{entry.content}</Markdown>
-        </div>
-      </div>
-    </div>
+      </a>
+    </article>
   )
 }

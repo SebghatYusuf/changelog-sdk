@@ -3,6 +3,7 @@ import AdminList from './list'
 import CreateForm from './form'
 import LogoutButton from './logout-button'
 import AISettingsPanel from './ai-settings'
+import ChangelogSettingsPanel from './changelog-settings'
 
 /**
  * Admin Portal Main Component - Server Component
@@ -107,24 +108,11 @@ function AISection() {
 
 function ChangelogSettingsSection() {
   return (
-    <div className="cl-card cl-admin-panel cl-admin-settings-panel">
-      <div className="cl-card-header">
-        <h3 className="cl-card-title">Changelog settings</h3>
-        <p className="cl-card-description">Set defaults for feed behavior and publishing flow.</p>
-      </div>
-      <div className="cl-card-content cl-admin-form-body">
-        <div className="cl-form-group">
-          <label className="cl-form-label">Default feed page size</label>
-          <input className="cl-input" value="10" readOnly />
-        </div>
-        <div className="cl-form-group">
-          <label className="cl-form-label">Auto-publish new entries</label>
-          <select className="cl-select" defaultValue="disabled">
-            <option value="disabled">Disabled</option>
-            <option value="enabled">Enabled</option>
-          </select>
-        </div>
-        <p className="cl-card-description">Saved settings panel is scaffolded and ready for backend persistence.</p>
+    <div className="cl-admin-grid cl-admin-grid-single">
+      <div className="cl-admin-grid-col">
+        <Suspense fallback={<FormSkeleton />}>
+          <ChangelogSettingsPanel />
+        </Suspense>
       </div>
     </div>
   )

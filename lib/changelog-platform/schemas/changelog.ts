@@ -75,6 +75,15 @@ export const AIModelListRequestSchema = z.object({
   ollamaBaseUrl: z.string().optional(),
 })
 
+export const ChangelogSettingsSchema = z.object({
+  currentVersion: z
+    .string()
+    .trim()
+    .regex(/^v?\d+\.\d+\.\d+$/, 'Current version must be semantic version format (e.g. 1.2.3)'),
+  defaultFeedPageSize: z.number().int().min(1).max(50),
+  autoPublish: z.boolean(),
+})
+
 export type ChangelogEntryType = z.infer<typeof ChangelogEntrySchema>
 export type CreateChangelogType = z.infer<typeof CreateChangelogSchema>
 export type UpdateChangelogType = z.infer<typeof UpdateChangelogSchema>
@@ -83,3 +92,4 @@ export type LoginType = z.infer<typeof LoginSchema>
 export type FeedFiltersType = z.infer<typeof FeedFiltersSchema>
 export type AISettingsType = z.infer<typeof AISettingsSchema>
 export type AIModelListRequestType = z.infer<typeof AIModelListRequestSchema>
+export type ChangelogSettingsType = z.infer<typeof ChangelogSettingsSchema>

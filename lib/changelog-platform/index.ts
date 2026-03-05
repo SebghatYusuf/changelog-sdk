@@ -20,6 +20,7 @@ export type {
   AISettingsInput,
   AIModelOption,
   AIProviderKind,
+  ChangelogSettingsInput,
 } from './types/changelog'
 
 // Export actions
@@ -37,6 +38,8 @@ export {
   fetchAISettings,
   fetchAIProviderModels,
   updateAISettings,
+  fetchChangelogSettings,
+  updateChangelogSettings,
 } from './actions/changelog-actions'
 
 // Export schemas
@@ -52,6 +55,7 @@ export {
   AIProviderEnum,
   AISettingsSchema,
   AIModelListRequestSchema,
+  ChangelogSettingsSchema,
 } from './schemas/changelog'
 
 // Export database
