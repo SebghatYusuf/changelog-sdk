@@ -14,9 +14,14 @@ interface ChangelogManagerProps {
   params?: {
     route?: string[]
   }
+  searchParams?: {
+    page?: string
+    tags?: string
+    search?: string
+  }
 }
 
-export default function ChangelogManager({ params }: ChangelogManagerProps) {
+export default function ChangelogManager({ params, searchParams }: ChangelogManagerProps) {
   const route = params?.route?.[0] || ''
   const adminSection = params?.route?.[1]
   const adminEditId = params?.route?.[2]
@@ -35,17 +40,21 @@ export default function ChangelogManager({ params }: ChangelogManagerProps) {
   }
 
   // Default: public feed
-  return <PublicFeedRoute />
+  return <PublicFeedRoute searchParams={searchParams} />
 }
 
 /**
  * Public Feed Route
  */
-function PublicFeedRoute() {
+function PublicFeedRoute({ searchParams }: { searchParams?: { page?: string; tags?: string; search?: string } }) {
+  const page = Math.max(1, Number(searchParams?.page ?? 1))
+  const tags = (searchParams?.tags ?? '').split(',').filter(Boolean) as import('../types/changelog').ChangelogTag[]
+  const search = searchParams?.search ?? ''
+
   return (
     <main className="cl-root cl-section cl-feed-screen">
       <Suspense fallback={<LoadingFallback />}>
-        <ChangelogFeed />
+        <ChangelogFeed initialPage={page} initialTags={tags} initialSearch={search} />
       </Suspense>
     </main>
   )

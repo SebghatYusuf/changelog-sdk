@@ -26,12 +26,19 @@ export default async function ChangelogFeed({
     <div className="cl-root cl-feed-wrap">
       <div className="cl-feed-hero">
         <div className="cl-feed-kicker">
-          <span>Product Updates</span>
+          <span className="cl-feed-kicker-dot" />
+          Product Updates
         </div>
-        <h1 className="cl-h1 cl-feed-title">What's New</h1>
+        <h1 className="cl-h1 cl-feed-title">What&rsquo;s New</h1>
         <p className="cl-p cl-feed-subtitle">
           Stay up to date with the latest features, improvements, and updates to our platform.
         </p>
+        <div className="cl-feed-hero-stats">
+          <span className="cl-feed-stat">
+            <span className="cl-feed-stat-value">{total}</span>
+            <span className="cl-feed-stat-label">{total === 1 ? 'release' : 'releases'}</span>
+          </span>
+        </div>
       </div>
 
       <div className="cl-feed-filters">
