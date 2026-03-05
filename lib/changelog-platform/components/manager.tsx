@@ -36,7 +36,7 @@ export default function ChangelogManager({ params }: ChangelogManagerProps) {
  */
 function PublicFeedRoute() {
   return (
-    <main className="cl-root cl-container cl-section">
+    <main className="cl-root cl-section cl-feed-screen">
       <Suspense fallback={<LoadingFallback />}>
         <ChangelogFeed />
       </Suspense>
@@ -49,7 +49,7 @@ function PublicFeedRoute() {
  */
 function LoginRoute() {
   return (
-    <main className="cl-root cl-container cl-section cl-login-screen">
+    <main className="cl-root cl-section cl-login-screen">
       <Suspense fallback={<LoadingFallback />}>
         <LoginForm />
       </Suspense>
@@ -62,7 +62,7 @@ function LoginRoute() {
  */
 function AdminPortalRoute() {
   return (
-    <main className="cl-root cl-container cl-section cl-admin-screen">
+    <main className="cl-root cl-section cl-admin-screen">
       <Suspense fallback={<LoadingFallback />}>
         <AdminAuthWrapper>
           <AdminPortal />

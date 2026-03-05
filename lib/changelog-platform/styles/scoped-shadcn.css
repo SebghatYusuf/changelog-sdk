@@ -383,6 +383,14 @@
   min-height: 100vh;
   padding-top: clamp(1rem, 2vw, 1.75rem);
   padding-bottom: clamp(2.5rem, 4vw, 4rem);
+  padding-left: clamp(0.9rem, 2.2vw, 2.5rem);
+  padding-right: clamp(0.9rem, 2.2vw, 2.5rem);
+}
+
+.cl-feed-screen {
+  min-height: 100vh;
+  padding-left: clamp(0.9rem, 2.2vw, 2.5rem);
+  padding-right: clamp(0.9rem, 2.2vw, 2.5rem);
 }
 
 .cl-login-screen {
@@ -392,6 +400,8 @@
   justify-content: center;
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
+  padding-left: clamp(0.9rem, 2.2vw, 2.5rem);
+  padding-right: clamp(0.9rem, 2.2vw, 2.5rem);
 }
 
 .cl-grid { display: grid; gap: 1.5rem; }
@@ -414,8 +424,7 @@
 /* GitHub-like admin surface */
 .cl-admin-shell {
   width: 100%;
-  max-width: 1380px;
-  margin: 0 auto;
+  max-width: none;
   display: flex;
   flex-direction: column;
   gap: clamp(1rem, 1.6vw, 1.4rem);
@@ -706,6 +715,36 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
+}
+
+.cl-pagination {
+  margin: 2rem auto 0;
+  width: 100%;
+  max-width: 56rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(113, 140, 174, 0.24);
+  border-radius: 0.8rem;
+  background: rgba(8, 14, 27, 0.66);
+}
+
+.cl-pagination-info {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #93a8c2;
+}
+
+.cl-pagination-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cl-pagination-btn {
+  min-width: 6.5rem;
 }
 
 .cl-admin-list-panel {

@@ -12,36 +12,42 @@ interface PaginationProps {
 }
 
 export default function Pagination({ currentPage, hasMore, total }: PaginationProps) {
-  const handleNextPage = () => {
-    const params = new URLSearchParams()
-    params.set('page', String(currentPage + 1))
+  const pageSize = 10
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages)
+
+  const navigateToPage = (nextPage: number) => {
+    const params = new URLSearchParams(window.location.search)
+    params.set('page', String(nextPage))
     window.location.href = `/changelog?${params.toString()}`
+  }
+
+  const handleNextPage = () => {
+    navigateToPage(Math.min(totalPages, safeCurrentPage + 1))
   }
 
   const handlePrevPage = () => {
-    const params = new URLSearchParams()
-    params.set('page', String(Math.max(1, currentPage - 1)))
-    window.location.href = `/changelog?${params.toString()}`
+    navigateToPage(Math.max(1, safeCurrentPage - 1))
   }
 
   return (
-    <div className="cl-flex items-center justify-between py-4">
-      <p className="text-sm text-muted-foreground">
-        Page {currentPage} of {Math.ceil(total / 10)}
+    <div className="cl-pagination">
+      <p className="cl-pagination-info">
+        Page {safeCurrentPage} of {totalPages}
       </p>
 
-      <div className="flex gap-2">
+      <div className="cl-pagination-actions">
         <button
           onClick={handlePrevPage}
-          disabled={currentPage === 1}
-          className="cl-btn cl-btn-secondary cl-transition disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={safeCurrentPage <= 1}
+          className="cl-btn cl-btn-secondary cl-btn-compact cl-pagination-btn"
         >
           Previous
         </button>
         <button
           onClick={handleNextPage}
-          disabled={!hasMore}
-          className="cl-btn cl-btn-secondary cl-transition disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={!hasMore || safeCurrentPage >= totalPages}
+          className="cl-btn cl-btn-secondary cl-btn-compact cl-pagination-btn"
         >
           Next
         </button>
