@@ -11,20 +11,39 @@ Production-ready Changelog SDK for Next.js applications with a public changelog 
 
 ## Table of Contents
 
-- [Why Changelog SDK](#why-changelog-sdk)
-- [Features](#features)
-- [Requirements](#requirements)
-- [Quick Start](#quick-start)
-- [Routing Setup](#routing-setup)
-- [Environment Variables](#environment-variables)
-- [Usage](#usage)
-- [API and Server Actions](#api-and-server-actions)
-- [TypeScript Types](#typescript-types)
-- [Styling and CSS Isolation](#styling-and-css-isolation)
-- [Security](#security)
-- [Troubleshooting](#troubleshooting)
-- [Development (SDK Contributors)](#development-sdk-contributors)
-- [License](#license)
+- [Changelog SDK for Next.js (AI-Powered Changelog Management)](#changelog-sdk-for-nextjs-ai-powered-changelog-management)
+  - [Table of Contents](#table-of-contents)
+  - [Why Changelog SDK](#why-changelog-sdk)
+  - [Features](#features)
+  - [Requirements](#requirements)
+  - [Quick Start](#quick-start)
+    - [1) Install the package](#1-install-the-package)
+    - [2) Add the catch-all changelog route](#2-add-the-catch-all-changelog-route)
+    - [3) Configure environment variables](#3-configure-environment-variables)
+    - [4) Run your app](#4-run-your-app)
+  - [Routing Setup](#routing-setup)
+  - [Environment Variables](#environment-variables)
+  - [Usage](#usage)
+    - [Public Feed](#public-feed)
+    - [Admin Portal](#admin-portal)
+    - [AI Enhancement Workflow](#ai-enhancement-workflow)
+  - [API and Server Actions](#api-and-server-actions)
+    - [Create changelog](#create-changelog)
+    - [Fetch published changelogs](#fetch-published-changelogs)
+    - [Run AI enhancement](#run-ai-enhancement)
+    - [Authentication helpers](#authentication-helpers)
+  - [TypeScript Types](#typescript-types)
+  - [Styling and CSS Isolation](#styling-and-css-isolation)
+  - [Security](#security)
+  - [Troubleshooting](#troubleshooting)
+    - [Too many MongoDB connections](#too-many-mongodb-connections)
+    - [Admin login fails](#admin-login-fails)
+    - [AI enhancement fails](#ai-enhancement-fails)
+    - [Unexpected host app styles](#unexpected-host-app-styles)
+  - [Development (SDK Contributors)](#development-sdk-contributors)
+  - [Landing Page (GitHub Pages)](#landing-page-github-pages)
+    - [Enable GitHub Pages](#enable-github-pages)
+  - [License](#license)
 
 ## Why Changelog SDK
 
@@ -67,6 +86,21 @@ pnpm add github:SebghatYusuf/changelog-sdk#master
 
 SDK styles are automatically included when importing from `changelog-sdk`.
 
+**Optional: AI Enhancement**
+
+If you want AI-powered changelog enhancement, install one or more AI providers:
+
+```bash
+# For OpenAI
+bun add ai @ai-sdk/openai
+
+# For Google Gemini
+bun add ai @ai-sdk/google
+
+# For Ollama (local)
+bun add ai ollama-ai-provider-v2
+```
+
 ### 2) Add the catch-all changelog route
 
 Create `app/changelog/[[...route]]/page.tsx`:
@@ -88,6 +122,12 @@ export const metadata = {
 export default function ChangelogPage({ params }: ChangelogPageProps) {
   return <ChangelogManager params={params} />
 }
+```
+
+**Important:** Import SDK styles in your root layout (`app/layout.tsx`):
+
+```tsx
+import 'changelog-sdk/styles'
 ```
 
 ### 3) Configure environment variables

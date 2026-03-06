@@ -1,12 +1,10 @@
-import { LanguageModel } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
-import { createGoogleGenerativeAI } from '@ai-sdk/google'
-import { createOllama } from 'ollama-ai-provider-v2'
+import type { LanguageModel } from 'ai'
 import { AIProvider, DEFAULT_AI_MODELS } from './constants'
 
 /**
  * AI Provider Factory
  * Supports OpenAI, Google Gemini, and Ollama
+ * Uses dynamic imports to only load installed AI providers
  */
 
 export interface AIProviderConfig {
@@ -22,7 +20,7 @@ export interface AIProviderModelOption {
 }
 
 export class AIProviderFactory {
-  static getProvider(config?: AIProviderConfig): LanguageModel {
+  static async getProvider(config?: AIProviderConfig): Promise<LanguageModel> {
     const provider = config?.provider || (process.env.CHANGELOG_AI_PROVIDER as AIProvider) || 'openai'
 
     switch (provider) {
@@ -40,40 +38,52 @@ export class AIProviderFactory {
     }
   }
 
-  private static getOpenAIProvider(apiKeyFromConfig?: string, modelFromConfig?: string): LanguageModel {
+  private static async getOpenAIProvider(apiKeyFromConfig?: string, modelFromConfig?: string): Promise<LanguageModel> {
     const apiKey = apiKeyFromConfig || process.env.OPENAI_API_KEY
     if (!apiKey) {
       throw new Error('OPENAI_API_KEY environment variable is not defined')
     }
 
-    const openai = createOpenAI({
-      apiKey,
-    })
-
-    return openai(modelFromConfig || DEFAULT_AI_MODELS.openai)
+    try {
+      const { createOpenAI } = await import('@ai-sdk/openai')
+      const openai = createOpenAI({ apiKey })
+      return openai(modelFromConfig || DEFAULT_AI_MODELS.openai)
+    } catch (error) {
+      throw new Error(
+        'OpenAI SDK not installed. Install it with: npm install ai @ai-sdk/openai'
+      )
+    }
   }
 
-  private static getGeminiProvider(apiKeyFromConfig?: string, modelFromConfig?: string): LanguageModel {
+  private static async getGeminiProvider(apiKeyFromConfig?: string, modelFromConfig?: string): Promise<LanguageModel> {
     const apiKey = apiKeyFromConfig || process.env.GOOGLE_GENERATIVE_AI_API_KEY
     if (!apiKey) {
       throw new Error('GOOGLE_GENERATIVE_AI_API_KEY environment variable is not defined')
     }
 
-    const google = createGoogleGenerativeAI({
-      apiKey,
-    })
-
-    return google(modelFromConfig || DEFAULT_AI_MODELS.gemini)
+    try {
+      const { createGoogleGenerativeAI } = await import('@ai-sdk/google')
+      const google = createGoogleGenerativeAI({ apiKey })
+      return google(modelFromConfig || DEFAULT_AI_MODELS.gemini)
+    } catch (error) {
+      throw new Error(
+        'Google Gemini SDK not installed. Install it with: npm install ai @ai-sdk/google'
+      )
+    }
   }
 
-  private static getOllamaProvider(baseUrl?: string, modelFromConfig?: string): LanguageModel {
+  private static async getOllamaProvider(baseUrl?: string, modelFromConfig?: string): Promise<LanguageModel> {
     const ollamaBaseUrl = baseUrl || process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
 
-    const ollama = createOllama({
-      baseURL: ollamaBaseUrl,
-    })
-
-    return ollama(modelFromConfig || DEFAULT_AI_MODELS.ollama)
+    try {
+      const { createOllama } = await import('ollama-ai-provider-v2')
+      const ollama = createOllama({ baseURL: ollamaBaseUrl })
+      return ollama(modelFromConfig || DEFAULT_AI_MODELS.ollama)
+    } catch (error) {
+      throw new Error(
+        'Ollama SDK not installed. Install it with: npm install ai ollama-ai-provider-v2'
+      )
+    }
   }
 
   static async listModels(config: Pick<AIProviderConfig, 'provider' | 'apiKey' | 'baseUrl'>): Promise<AIProviderModelOption[]> {

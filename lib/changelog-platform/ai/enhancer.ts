@@ -64,7 +64,7 @@ function parseEnhancementResponse(text: string): { title: string; content: strin
 export async function enhanceChangelog(rawNotes: string, version?: string): Promise<EnhanceChangelogOutput> {
   try {
     const runtimeConfig = await getRuntimeAIConfig()
-    const model = AIProviderFactory.getProvider(runtimeConfig)
+    const model = await AIProviderFactory.getProvider(runtimeConfig)
 
     const prompt = ENHANCEMENT_PROMPT.replace('{rawNotes}', rawNotes).replace(
       /{version}/g,
