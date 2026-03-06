@@ -12,6 +12,25 @@
   --cl-muted-foreground: #64748b;
   --cl-border: #e2e8f0;
   --cl-danger: #ef4444;
+  --cl-grid-size: 80px;
+}
+
+@keyframes cl-grid-line-horizontal {
+  0% {
+    background-position: 0% 0%, 0 0;
+  }
+  100% {
+    background-position: 100% 0%, 0 0;
+  }
+}
+
+@keyframes cl-grid-line-vertical {
+  0% {
+    background-position: 0% 0%, 0 0;
+  }
+  100% {
+    background-position: 0% 100%, 0 0;
+  }
 }
 
 .cl-root {
@@ -21,6 +40,34 @@
   -webkit-font-smoothing: antialiased;
   color: var(--cl-foreground);
   background: linear-gradient(135deg, #fafbfc 0%, #f0f4f8 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.cl-root::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(
+      to right,
+      transparent,
+      transparent calc(var(--cl-grid-size) - 1px),
+      rgba(100, 140, 200, 0.08) calc(var(--cl-grid-size) - 1px),
+      rgba(100, 140, 200, 0.08) var(--cl-grid-size)
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent calc(var(--cl-grid-size) - 1px),
+      rgba(100, 140, 200, 0.08) calc(var(--cl-grid-size) - 1px),
+      rgba(100, 140, 200, 0.08) var(--cl-grid-size)
+    );
+  pointer-events: none;
+  z-index: 0;
 }
 
 .cl-h1,
@@ -33,7 +80,7 @@
 }
 
 .cl-h1 {
-  font-size: clamp(2.25rem, 4vw, 3.75rem);
+  font-size: clamp(1.875rem, 4vw, 2.75rem);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.02em;
@@ -327,13 +374,17 @@
   width: 100%;
   max-width: 68rem;
   margin: 0 auto;
-  padding: clamp(2.5rem, 5vw, 5rem) clamp(1rem, 2.5vw, 2rem) clamp(3rem, 5vw, 5rem);
+  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 2.5vw, 2rem) clamp(2rem, 3vw, 3rem);
+  position: relative;
+  z-index: 1;
 }
 
 .cl-feed-hero {
   max-width: 54rem;
-  margin: 0 auto clamp(2.5rem, 4vw, 4rem);
+  margin: 0 auto clamp(1.25rem, 2.5vw, 2rem);
   text-align: center;
+  position: relative;
+  z-index: 2;
 }
 
 .cl-feed-kicker {
@@ -342,15 +393,15 @@
   gap: 0.5rem;
   justify-content: center;
   border-radius: 9999px;
-  padding: 0.42rem 1rem;
+  padding: 0.35rem 0.875rem;
   border: 1px solid rgba(88, 165, 255, 0.3);
   background: rgba(29, 78, 163, 0.18);
   color: #93c5fd;
-  font-size: 0.72rem;
+  font-size: 0.69rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.625rem;
 }
 
 .cl-feed-kicker-dot {
@@ -368,9 +419,9 @@
 
 .cl-feed-subtitle {
   max-width: 42rem;
-  margin: 1.1rem auto 0;
-  font-size: clamp(1rem, 1.5vw, 1.2rem);
-  line-height: 1.75;
+  margin: 0.5rem auto 0;
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  line-height: 1.5;
   color: #8faabf;
 }
 
@@ -379,8 +430,8 @@
   align-items: center;
   justify-content: center;
   gap: 2rem;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
+  margin-top: 1rem;
+  padding-top: 0.875rem;
   border-top: 1px solid rgba(113, 140, 174, 0.15);
 }
 
@@ -393,7 +444,7 @@
 
 .cl-feed-stat-value {
   font-family: 'Outfit', sans-serif;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #f0f6ff;
   line-height: 1;
