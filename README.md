@@ -1,53 +1,58 @@
-# Changelog SDK for Next.js (AI-Powered Changelog Management)
+<div align="center">
+  <img src="./images/changelog-sdk-icon.svg" alt="Changelog SDK Logo" width="128" height="128" />
+  <h1>Changelog SDK for Next.js</h1>
+  <p><strong>AI-Powered Changelog Management</strong></p>
 
-[![Next.js](https://img.shields.io/badge/Next.js-16%2B-black)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19%2B-149eca)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5%2B-3178c6)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+  [![Next.js](https://img.shields.io/badge/Next.js-16%2B-black)](https://nextjs.org/)
+  [![React](https://img.shields.io/badge/React-19%2B-149eca)](https://react.dev/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5%2B-3178c6)](https://www.typescriptlang.org/)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+</div>
+
+<br />
 
 Production-ready Changelog SDK for Next.js applications with a public changelog feed, secure admin portal, MongoDB persistence, and AI-assisted changelog writing.
 
 `changelog-sdk` is designed for teams that want to ship updates faster while keeping changelog UX clean, searchable, and isolated from host app styles.
 
-<img src="./images/changelog-sdk-icon.svg" alt="Changelog SDK Logo" width="72" height="72" />
-
-![Public Changelog Feed](./site/images/changelog.png)
+<div align="center">
+  <img src="./site/images/changelog.png" alt="Public Changelog Feed" width="800" style="border-radius: 8px; border: 1px solid #e5e7eb;" />
+</div>
 
 ## Table of Contents
 
-- [Changelog SDK for Next.js (AI-Powered Changelog Management)](#changelog-sdk-for-nextjs-ai-powered-changelog-management)
-  - [Table of Contents](#table-of-contents)
-  - [Why Changelog SDK](#why-changelog-sdk)
-  - [Features](#features)
-  - [Requirements](#requirements)
-  - [Quick Start](#quick-start)
-    - [1) Install the package](#1-install-the-package)
-    - [2) Add the catch-all changelog route](#2-add-the-catch-all-changelog-route)
-    - [3) Configure environment variables](#3-configure-environment-variables)
-    - [4) Run your app](#4-run-your-app)
-  - [Routing Setup](#routing-setup)
-  - [Environment Variables](#environment-variables)
-  - [Usage](#usage)
-    - [Public Feed](#public-feed)
-    - [Admin Portal](#admin-portal)
-    - [AI Enhancement Workflow](#ai-enhancement-workflow)
-  - [API and Server Actions](#api-and-server-actions)
-    - [Create changelog](#create-changelog)
-    - [Fetch published changelogs](#fetch-published-changelogs)
-    - [Run AI enhancement](#run-ai-enhancement)
-    - [Authentication helpers](#authentication-helpers)
-  - [TypeScript Types](#typescript-types)
-  - [Styling and CSS Isolation](#styling-and-css-isolation)
-  - [Security](#security)
-  - [Troubleshooting](#troubleshooting)
-    - [Too many MongoDB connections](#too-many-mongodb-connections)
-    - [Admin login fails](#admin-login-fails)
-    - [AI enhancement fails](#ai-enhancement-fails)
-    - [Unexpected host app styles](#unexpected-host-app-styles)
-  - [Development (SDK Contributors)](#development-sdk-contributors)
-  - [Landing Page (GitHub Pages)](#landing-page-github-pages)
-    - [Enable GitHub Pages](#enable-github-pages)
-  - [License](#license)
+- [Table of Contents](#table-of-contents)
+- [Why Changelog SDK](#why-changelog-sdk)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Quick Start](#quick-start)
+  - [1) Install the package](#1-install-the-package)
+  - [2) Add the catch-all changelog route](#2-add-the-catch-all-changelog-route)
+  - [3) Configure environment variables](#3-configure-environment-variables)
+  - [4) Run your app](#4-run-your-app)
+- [Routing Setup](#routing-setup)
+- [Environment Variables](#environment-variables)
+- [Usage](#usage)
+  - [Public Feed](#public-feed)
+  - [Admin Portal](#admin-portal)
+  - [AI Enhancement Workflow](#ai-enhancement-workflow)
+- [API and Server Actions](#api-and-server-actions)
+  - [Create changelog](#create-changelog)
+  - [Fetch published changelogs](#fetch-published-changelogs)
+  - [Run AI enhancement](#run-ai-enhancement)
+  - [Authentication helpers](#authentication-helpers)
+- [TypeScript Types](#typescript-types)
+- [Styling and CSS Isolation](#styling-and-css-isolation)
+- [Security](#security)
+- [Troubleshooting](#troubleshooting)
+  - [Too many MongoDB connections](#too-many-mongodb-connections)
+  - [Admin login fails](#admin-login-fails)
+  - [AI enhancement fails](#ai-enhancement-fails)
+  - [Unexpected host app styles](#unexpected-host-app-styles)
+- [Development (SDK Contributors)](#development-sdk-contributors)
+- [Landing Page (GitHub Pages)](#landing-page-github-pages)
+  - [Enable GitHub Pages](#enable-github-pages)
+- [License](#license)
 
 ## Why Changelog SDK
 
