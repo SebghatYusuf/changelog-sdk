@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import 'changelog-sdk/styles'
 
 export const metadata: Metadata = {
   title: 'My App - Changelog',
