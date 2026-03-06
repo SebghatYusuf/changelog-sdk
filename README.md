@@ -108,12 +108,12 @@ bun add ai ollama-ai-provider-v2
 Create `app/changelog/[[...route]]/page.tsx`:
 
 ```tsx
+import { Suspense } from 'react'
 import { ChangelogManager } from 'changelog-sdk'
 
 interface ChangelogPageProps {
-  params: {
-    route?: string[]
-  }
+  params: Promise<{ route?: string[] }>
+  searchParams: Promise<{ page?: string; tags?: string; search?: string }>
 }
 
 export const metadata = {
@@ -121,16 +121,21 @@ export const metadata = {
   description: 'View our latest updates and improvements',
 }
 
-export default function ChangelogPage({ params }: ChangelogPageProps) {
-  return <ChangelogManager params={params} />
+export default function ChangelogPage(props: ChangelogPageProps) {
+  return (
+    <Suspense>
+      <ChangelogPageContent {...props} />
+    </Suspense>
+  )
+}
+
+async function ChangelogPageContent({ params, searchParams }: ChangelogPageProps) {
+  const [resolvedParams, resolvedSearchParams] = await Promise.all([params, searchParams])
+  return <ChangelogManager params={resolvedParams} searchParams={resolvedSearchParams} />
 }
 ```
 
-**Important:** Import SDK styles in your root layout (`app/layout.tsx`):
-
-```tsx
-import 'changelog-sdk/styles'
-```
+SDK styles are automatically included when importing from `changelog-sdk` — no manual import needed.
 
 ### 3) Configure environment variables
 
@@ -191,10 +196,14 @@ Once configured, these routes are available:
 - Search by title/content
 - Filter by tags: `Features`, `Fixes`, `Improvements`, `Breaking`, `Security`, `Performance`, `Docs`
 
+![Public Changelog Feed](./images/changelog.png)
+
 ### Admin Portal
 
-- Log in at `/changelog/login`
+- Log in at `/changelog//login`
 - Manage entries at `/changelog/admin`
+
+![Admin — New Entry Form](./images/admin-new-entry.png)
 
 Generate a hashed password for `CHANGELOG_ADMIN_PASSWORD`:
 
@@ -208,6 +217,8 @@ bun -e "console.log(require('bcryptjs').hashSync('your-admin-password', 10))"
 2. Click **Enhance with AI**
 3. Review generated title, markdown body, and tags
 4. Edit if needed and publish
+
+![AI Provider Settings](./images/ai-settings.png)
 
 ## API and Server Actions
 

@@ -6,56 +6,78 @@
     <title>Changelog SDK — AI-Powered Changelog for Next.js</title>
     <meta
       name="description"
-      content="Changelog SDK for Next.js: add a public changelog feed, secure admin portal, and AI-powered changelog writing with OpenAI, Gemini, or Ollama."
+      content="Add a public changelog feed, secure admin portal, and AI-assisted release writing to any Next.js app. One SDK. Zero friction."
     />
     <meta
       name="keywords"
-      content="changelog sdk,next.js changelog,ai changelog,product updates,mongodb changelog,react changelog"
+      content="changelog sdk,next.js changelog,ai changelog,product updates,mongodb changelog,react changelog,openai,gemini,ollama"
     />
     <meta name="robots" content="index, follow" />
     <meta name="author" content="Sebghat Yusuf" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Changelog SDK for Next.js" />
+    <meta property="og:title" content="Changelog SDK — AI-Powered Changelog for Next.js" />
     <meta
       property="og:description"
-      content="Production-ready changelog management SDK with AI enhancement, secure admin auth, and isolated styles."
+      content="Production-ready changelog SDK with AI enhancement, secure admin auth, and isolated styles."
     />
-    <meta property="og:image" content="https://sebghatyusuf.github.io/changelog-sdk/og-image.png" />
+    <meta property="og:image" content="https://sebghatyusuf.github.io/changelog-sdk/images/changelog.png" />
     <meta property="og:url" content="https://sebghatyusuf.github.io/changelog-sdk/" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Changelog SDK for Next.js" />
+    <meta name="twitter:title" content="Changelog SDK — AI-Powered Changelog for Next.js" />
     <meta
       name="twitter:description"
-      content="Ship release notes faster with an AI-powered changelog feed and admin portal for Next.js apps."
+      content="Ship release notes faster with an AI-powered changelog feed and admin portal for Next.js."
     />
-    <meta name="twitter:image" content="https://sebghatyusuf.github.io/changelog-sdk/og-image.png" />
+    <meta name="twitter:image" content="https://sebghatyusuf.github.io/changelog-sdk/images/changelog.png" />
     <link rel="canonical" href="https://sebghatyusuf.github.io/changelog-sdk/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
-        --bg: #05070f;
-        --panel: #0f1424;
-        --panel-border: #1b2440;
-        --text: #e6ecff;
-        --muted: #a2b0d6;
-        --primary: #6ea8ff;
-        --primary-strong: #4f8ef7;
-        --accent: #55e6b9;
-        --max: 1100px;
+        --bg: #040812;
+        --bg2: #070d1c;
+        --panel: #0c1326;
+        --panel-2: #0f1830;
+        --border: rgba(255, 255, 255, 0.07);
+        --border-glow: rgba(100, 160, 255, 0.18);
+        --text: #dde7ff;
+        --muted: #7a8cba;
+        --dim: #3a4870;
+        --blue: #5b9bff;
+        --blue-soft: #88bbff;
+        --teal: #3dedc4;
+        --teal-dim: rgba(61, 237, 196, 0.12);
+        --max: 1120px;
+        --radius: 16px;
+        --font-head: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          'Liberation Mono', 'Courier New', monospace;
+        --font-body: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          'Liberation Mono', 'Courier New', monospace;
       }
 
-      * {
+      *,
+      *::before,
+      *::after {
         box-sizing: border-box;
-      }
-
-      html,
-      body {
         margin: 0;
         padding: 0;
-        background: radial-gradient(circle at 20% 10%, #111a30, var(--bg) 42%);
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
         color: var(--text);
-        font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu,
-          'Helvetica Neue', Arial, sans-serif;
-        line-height: 1.55;
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        overflow-x: hidden;
       }
 
       a {
@@ -63,184 +85,741 @@
         text-decoration: none;
       }
 
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+        opacity: 0.022;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .blob {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(120px);
+        pointer-events: none;
+        z-index: 0;
+        animation: drift 18s ease-in-out infinite alternate;
+      }
+
+      .blob-1 {
+        width: 600px;
+        height: 600px;
+        background: rgba(40, 80, 200, 0.13);
+        top: -200px;
+        left: -180px;
+        animation-duration: 22s;
+      }
+
+      .blob-2 {
+        width: 500px;
+        height: 500px;
+        background: rgba(30, 200, 140, 0.08);
+        top: 400px;
+        right: -200px;
+        animation-duration: 27s;
+        animation-delay: -8s;
+      }
+
+      .blob-3 {
+        width: 400px;
+        height: 400px;
+        background: rgba(60, 100, 240, 0.09);
+        bottom: 0;
+        left: 30%;
+        animation-duration: 20s;
+        animation-delay: -4s;
+      }
+
+      @keyframes drift {
+        0% {
+          transform: translate(0, 0) scale(1);
+        }
+        50% {
+          transform: translate(30px, -20px) scale(1.05);
+        }
+        100% {
+          transform: translate(-20px, 30px) scale(0.97);
+        }
+      }
+
+      .wrap {
+        position: relative;
+        z-index: 1;
+      }
+
       .container {
-        width: min(100% - 2rem, var(--max));
+        width: min(100% - 2.5rem, var(--max));
         margin: 0 auto;
       }
 
       .topbar {
         position: sticky;
         top: 0;
-        backdrop-filter: blur(8px);
-        background: rgb(5 7 15 / 75%);
-        border-bottom: 1px solid rgb(255 255 255 / 0.08);
-        z-index: 20;
+        z-index: 50;
+        backdrop-filter: blur(16px) saturate(180%);
+        -webkit-backdrop-filter: blur(16px) saturate(180%);
+        background: rgba(4, 8, 18, 0.72);
+        border-bottom: 1px solid var(--border);
+        animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      @keyframes slideDown {
+        from {
+          transform: translateY(-100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
       }
 
       .topbar-inner {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        min-height: 64px;
+        height: 62px;
       }
 
       .brand {
-        font-weight: 700;
-        letter-spacing: 0.2px;
+        font-family: var(--font-head);
+        font-weight: 800;
+        font-size: 1.05rem;
+        letter-spacing: -0.01em;
+        background: linear-gradient(135deg, #fff 30%, var(--blue-soft));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
 
-      .hero {
-        padding: 5rem 0 3.5rem;
-      }
-
-      .badge {
-        display: inline-flex;
+      .nav-links {
+        display: flex;
         align-items: center;
         gap: 0.5rem;
-        background: rgb(110 168 255 / 0.15);
-        color: #cfe2ff;
-        border: 1px solid rgb(110 168 255 / 0.32);
-        border-radius: 999px;
-        padding: 0.35rem 0.8rem;
-        font-size: 0.84rem;
-        margin-bottom: 1rem;
-      }
-
-      h1 {
-        margin: 0;
-        font-size: clamp(2rem, 6vw, 3.5rem);
-        letter-spacing: -0.02em;
-        line-height: 1.1;
-      }
-
-      .lead {
-        max-width: 760px;
-        color: var(--muted);
-        font-size: clamp(1rem, 2.2vw, 1.16rem);
-        margin: 1rem 0 1.8rem;
-      }
-
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
       }
 
       .btn {
         display: inline-flex;
         align-items: center;
-        justify-content: center;
+        gap: 0.4rem;
         border-radius: 10px;
         border: 1px solid transparent;
-        padding: 0.72rem 1rem;
-        font-weight: 600;
-        font-size: 0.95rem;
-        transition: 0.2s ease;
+        padding: 0.6rem 1.1rem;
+        font-family: var(--font-body);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(rgba(255, 255, 255, 0.06), transparent);
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      .btn:hover::after {
+        opacity: 1;
       }
 
       .btn-primary {
-        background: var(--primary);
-        color: #071127;
+        background: linear-gradient(135deg, var(--blue) 0%, #4488e8 100%);
+        color: #fff;
+        box-shadow: 0 0 0 1px rgba(100, 160, 255, 0.3), 0 4px 20px rgba(60, 120, 220, 0.35);
       }
 
       .btn-primary:hover {
-        background: var(--primary-strong);
+        box-shadow: 0 0 0 1px rgba(100, 160, 255, 0.5), 0 6px 28px rgba(60, 120, 220, 0.5);
+        transform: translateY(-1px);
       }
 
-      .btn-secondary {
-        border-color: var(--panel-border);
-        background: rgb(255 255 255 / 0.02);
+      .btn-ghost {
+        border-color: var(--border);
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--muted);
       }
 
-      .btn-secondary:hover {
-        border-color: #4f8ef7;
+      .btn-ghost:hover {
+        border-color: var(--border-glow);
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .hero {
+        padding: 8rem 0 5rem;
+        position: relative;
+      }
+
+      .hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        background: linear-gradient(90deg, rgba(91, 155, 255, 0.12), rgba(61, 237, 196, 0.08));
+        border: 1px solid rgba(91, 155, 255, 0.22);
+        border-radius: 999px;
+        padding: 0.3rem 0.85rem;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--blue-soft);
+        letter-spacing: 0.01em;
+        margin-bottom: 1.6rem;
+        animation: fadeUp 0.7s 0.1s both;
+      }
+
+      .eyebrow-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--teal);
+        box-shadow: 0 0 8px var(--teal);
+        animation: pulse 2.5s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.5;
+          transform: scale(0.8);
+        }
+      }
+
+      .hero h1 {
+        font-family: var(--font-head);
+        font-weight: 800;
+        font-size: clamp(2.4rem, 6.5vw, 4.2rem);
+        letter-spacing: -0.035em;
+        line-height: 1.05;
+        max-width: 820px;
+        animation: fadeUp 0.7s 0.2s both;
+      }
+
+      .hero h1 em {
+        font-style: normal;
+        background: linear-gradient(135deg, var(--blue-soft) 10%, var(--teal) 90%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .hero-lead {
+        max-width: 620px;
+        color: var(--muted);
+        font-size: clamp(1rem, 2vw, 1.13rem);
+        font-weight: 300;
+        margin: 1.4rem 0 2.2rem;
+        animation: fadeUp 0.7s 0.3s both;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.9rem;
+        animation: fadeUp 0.7s 0.4s both;
+      }
+
+      .hero-meta {
+        margin-top: 1.4rem;
+        font-size: 0.83rem;
+        color: var(--dim);
+        animation: fadeUp 0.7s 0.5s both;
+      }
+
+      .hero-screenshot {
+        margin-top: 4.5rem;
+        animation: fadeUp 0.9s 0.5s both;
+      }
+
+      .screenshot-frame {
+        position: relative;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border-glow);
+        box-shadow: 0 0 0 1px rgba(91, 155, 255, 0.08), 0 30px 80px rgba(0, 0, 0, 0.7), 0 0
+          120px rgba(50, 100, 220, 0.12);
+        transition: box-shadow 0.4s ease, transform 0.4s ease;
+      }
+
+      .screenshot-frame:hover {
+        box-shadow: 0 0 0 1px rgba(91, 155, 255, 0.18), 0 40px 100px rgba(0, 0, 0, 0.8), 0 0
+          160px rgba(50, 100, 220, 0.2);
+        transform: translateY(-4px) scale(1.005);
+      }
+
+      .screenshot-bar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      .dot-r {
+        background: #ff5f56;
+      }
+
+      .dot-y {
+        background: #ffbd2e;
+      }
+
+      .dot-g {
+        background: #27c93f;
+      }
+
+      .screenshot-url {
+        flex: 1;
+        text-align: center;
+        font-size: 0.77rem;
+        color: var(--dim);
+        font-family: ui-monospace, monospace;
+        letter-spacing: 0.01em;
+      }
+
+      .screenshot-frame img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(22px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(28px);
+        transition: opacity 0.65s ease, transform 0.65s ease;
+      }
+
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .reveal-delay-1 {
+        transition-delay: 0.08s;
+      }
+
+      .reveal-delay-2 {
+        transition-delay: 0.16s;
+      }
+
+      .reveal-delay-3 {
+        transition-delay: 0.24s;
+      }
+
+      .reveal-delay-4 {
+        transition-delay: 0.32s;
+      }
+
+      .reveal-delay-5 {
+        transition-delay: 0.4s;
+      }
+
+      .reveal-delay-6 {
+        transition-delay: 0.48s;
       }
 
       section {
-        padding: 2rem 0;
+        padding: 5rem 0;
       }
 
-      .section-title {
-        margin: 0 0 0.8rem;
-        font-size: 1.5rem;
+      .section-header {
+        margin-bottom: 3rem;
       }
 
-      .section-sub {
-        margin: 0 0 1.5rem;
+      .section-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--teal);
+        margin-bottom: 0.6rem;
+      }
+
+      .section-header h2 {
+        font-family: var(--font-head);
+        font-weight: 700;
+        font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+        letter-spacing: -0.025em;
+        line-height: 1.15;
+      }
+
+      .section-header p {
         color: var(--muted);
+        font-size: 1.05rem;
+        font-weight: 300;
+        margin-top: 0.7rem;
+        max-width: 560px;
       }
 
-      .grid {
+      .feature-grid {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
       }
 
-      .card {
-        background: linear-gradient(180deg, rgb(255 255 255 / 0.02), rgb(255 255 255 / 0.01));
-        border: 1px solid var(--panel-border);
-        border-radius: 14px;
-        padding: 1rem;
+      .feature-card {
+        background: var(--bg2);
+        padding: 1.8rem 1.6rem;
+        transition: background 0.25s ease;
+        position: relative;
       }
 
-      .card h3 {
-        margin: 0 0 0.4rem;
-        font-size: 1.03rem;
+      .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(91, 155, 255, 0.25), transparent);
+        opacity: 0;
+        transition: opacity 0.3s;
       }
 
-      .card p {
-        margin: 0;
+      .feature-card:hover {
+        background: var(--panel);
+      }
+
+      .feature-card:hover::before {
+        opacity: 1;
+      }
+
+      .feature-icon {
+        width: 2rem;
+        height: 2rem;
+        margin-bottom: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        border: 1px solid rgba(91, 155, 255, 0.24);
+        background: rgba(91, 155, 255, 0.08);
+        transition: all 0.25s ease;
+      }
+
+      .feature-icon svg {
+        width: 1.1rem;
+        height: 1.1rem;
+        stroke: var(--blue-soft);
+        stroke-width: 1.8;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transition: stroke 0.25s ease;
+      }
+
+      .feature-card:hover .feature-icon {
+        transform: translateY(-1px);
+        border-color: rgba(61, 237, 196, 0.4);
+        background: rgba(61, 237, 196, 0.1);
+      }
+
+      .feature-card:hover .feature-icon svg {
+        stroke: var(--teal);
+      }
+
+      .feature-card h3 {
+        font-family: var(--font-head);
+        font-weight: 700;
+        font-size: 1rem;
+        letter-spacing: -0.01em;
+        margin-bottom: 0.45rem;
+      }
+
+      .feature-card p {
         color: var(--muted);
-        font-size: 0.95rem;
+        font-size: 0.91rem;
+        line-height: 1.6;
+        font-weight: 300;
       }
 
-      .code-wrap {
-        background: #090e1c;
-        border: 1px solid var(--panel-border);
-        border-radius: 14px;
-        padding: 1rem;
+      .showcase {
+        display: flex;
+        flex-direction: column;
+        gap: 5rem;
+      }
+
+      .showcase-item {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+      }
+
+      .showcase-item.reverse {
+        direction: rtl;
+      }
+
+      .showcase-item.reverse > * {
+        direction: ltr;
+      }
+
+      .showcase-text .tag {
+        display: inline-block;
+        padding: 0.25rem 0.7rem;
+        background: var(--teal-dim);
+        border: 1px solid rgba(61, 237, 196, 0.2);
+        border-radius: 6px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--teal);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 1rem;
+      }
+
+      .showcase-text h3 {
+        font-family: var(--font-head);
+        font-weight: 700;
+        font-size: clamp(1.4rem, 3vw, 1.9rem);
+        letter-spacing: -0.025em;
+        line-height: 1.15;
+        margin-bottom: 0.8rem;
+      }
+
+      .showcase-text p {
+        color: var(--muted);
+        font-size: 0.97rem;
+        font-weight: 300;
+        line-height: 1.7;
+        margin-bottom: 1.2rem;
+      }
+
+      .features-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .features-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.55rem;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .features-list li::before {
+        content: '→';
+        color: var(--teal);
+        flex-shrink: 0;
+        margin-top: 0.05em;
+        font-size: 0.85rem;
+      }
+
+      .install-wrap {
+        background: linear-gradient(180deg, rgba(12, 19, 38, 0.95), rgba(10, 18, 35, 0.95));
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 20px 50px rgba(0, 0, 0, 0.45);
+      }
+
+      .install-tabs {
+        display: flex;
+        gap: 0.4rem;
+        padding: 0.55rem;
+        background: rgba(7, 12, 27, 0.9);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .install-tab {
+        padding: 0.58rem 1rem;
+        border-radius: 9px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.02);
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: lowercase;
+        letter-spacing: 0.02em;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.22s ease;
+      }
+
+      .install-tab.active {
+        color: #d9e8ff;
+        border-color: rgba(91, 155, 255, 0.5);
+        background: linear-gradient(180deg, rgba(91, 155, 255, 0.24), rgba(91, 155, 255, 0.08));
+        box-shadow: 0 0 0 1px rgba(91, 155, 255, 0.24) inset;
+      }
+
+      .install-tab:hover:not(.active) {
+        color: var(--text);
+        border-color: var(--border-glow);
+        background: rgba(91, 155, 255, 0.07);
+      }
+
+      .install-body {
+        padding: 1.3rem;
         overflow-x: auto;
       }
 
+      .install-cmd {
+        display: none;
+        align-items: center;
+        gap: 0.6rem;
+        border: 1px solid rgba(91, 155, 255, 0.15);
+        background: rgba(7, 12, 27, 0.75);
+        border-radius: 12px;
+        padding: 0.8rem;
+      }
+
+      .install-cmd.active {
+        display: flex;
+      }
+
       pre {
-        margin: 0;
-        color: #cfe2ff;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-          'Courier New', monospace;
+        font-family: var(--font-body);
         font-size: 0.9rem;
+        color: #cfe2ff;
+        flex: 1;
+        white-space: pre;
+        tab-size: 2;
       }
 
-      .list {
+      .install-prefix {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.6rem;
+        height: 1.6rem;
+        border-radius: 8px;
+        border: 1px solid rgba(61, 237, 196, 0.35);
+        background: rgba(61, 237, 196, 0.08);
+        color: var(--teal);
+        font-size: 0.88rem;
+        font-weight: 700;
+      }
+
+      .copy-btn {
+        flex-shrink: 0;
+        padding: 0.48rem 0.82rem;
+        border: 1px solid rgba(91, 155, 255, 0.22);
+        border-radius: 8px;
+        background: rgba(91, 155, 255, 0.1);
+        color: #bfd7ff;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .copy-btn:hover {
+        border-color: rgba(91, 155, 255, 0.45);
+        color: #fff;
+        background: rgba(91, 155, 255, 0.2);
+      }
+
+      .copy-btn.copied {
+        border-color: rgba(61, 237, 196, 0.4);
+        color: var(--teal);
+      }
+
+      .divider {
+        border: none;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          var(--border) 20%,
+          var(--border) 80%,
+          transparent 100%
+        );
         margin: 0;
-        padding-left: 1.1rem;
-        color: var(--muted);
       }
 
-      .list li + li {
-        margin-top: 0.45rem;
+      footer {
+        padding: 2.5rem 0;
+        color: var(--dim);
+        font-size: 0.85rem;
       }
 
-      .footer {
-        border-top: 1px solid rgb(255 255 255 / 0.08);
-        margin-top: 2rem;
-        padding: 1.4rem 0 2rem;
-        color: var(--muted);
-        font-size: 0.92rem;
+      .footer-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
       }
 
-      @media (max-width: 900px) {
-        .grid {
+      .footer-links {
+        display: flex;
+        gap: 1.2rem;
+      }
+
+      .footer-links a {
+        transition: color 0.2s;
+      }
+
+      .footer-links a:hover {
+        color: var(--text);
+      }
+
+      @media (max-width: 1024px) {
+        .showcase-item {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+
+        .showcase-item.reverse {
+          direction: ltr;
+        }
+      }
+
+      @media (max-width: 840px) {
+        .feature-grid {
           grid-template-columns: 1fr 1fr;
         }
+
+        .hero {
+          padding: 5.5rem 0 3.5rem;
+        }
       }
 
-      @media (max-width: 640px) {
-        .hero {
-          padding-top: 3.2rem;
+      @media (max-width: 540px) {
+        .feature-grid {
+          grid-template-columns: 1fr;
         }
 
-        .grid {
-          grid-template-columns: 1fr;
+        section {
+          padding: 3.5rem 0;
+        }
+
+        .install-tabs {
+          overflow-x: auto;
         }
       }
     </style>
@@ -251,103 +830,395 @@
         "name": "Changelog SDK",
         "applicationCategory": "DeveloperApplication",
         "operatingSystem": "Cross-platform",
-        "description": "Production-ready changelog management SDK for Next.js with AI-powered release note enhancement.",
+        "description": "Production-ready changelog SDK for Next.js with AI-powered release note enhancement, secure admin portal, and MongoDB persistence.",
         "programmingLanguage": ["TypeScript", "JavaScript"],
         "license": "https://opensource.org/licenses/MIT",
         "url": "https://sebghatyusuf.github.io/changelog-sdk/",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        }
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
       }
     </script>
   </head>
   <body>
+    <div aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
     <header class="topbar">
       <div class="container topbar-inner">
         <div class="brand">changelog-sdk</div>
-        <a class="btn btn-secondary" href="https://github.com/SebghatYusuf/changelog-sdk" target="_blank" rel="noreferrer">View on GitHub</a>
+        <nav class="nav-links">
+          <a
+            class="btn btn-ghost"
+            href="https://github.com/SebghatYusuf/changelog-sdk#readme"
+            target="_blank"
+            rel="noreferrer"
+            >Docs</a
+          >
+          <a
+            class="btn btn-primary"
+            href="https://github.com/SebghatYusuf/changelog-sdk"
+            target="_blank"
+            rel="noreferrer"
+            >GitHub</a
+          >
+        </nav>
       </div>
     </header>
 
-    <main>
-      <section class="hero">
-        <div class="container">
-          <span class="badge">Next.js 16+ • React 19 • TypeScript</span>
-          <h1>AI-Powered Changelog SDK for Next.js Apps</h1>
-          <p class="lead">
-            Add a public changelog feed, secure admin portal, and AI-assisted release writing in one SDK. Built for fast shipping teams that care about quality updates and clean integration.
-          </p>
-          <div class="actions">
-            <a class="btn btn-primary" href="https://github.com/SebghatYusuf/changelog-sdk#quick-start" target="_blank" rel="noreferrer">Get Started</a>
-            <a class="btn btn-secondary" href="https://github.com/SebghatYusuf/changelog-sdk" target="_blank" rel="noreferrer">Repository</a>
+    <div class="wrap">
+      <main>
+        <section class="hero">
+          <div class="container">
+            <div class="hero-eyebrow">
+              <span class="eyebrow-dot" aria-hidden="true"></span>
+              Next.js 16+ &nbsp;·&nbsp; React 19 &nbsp;·&nbsp; TypeScript
+            </div>
+            <h1>The changelog your<br /><em>users will actually read.</em></h1>
+            <p class="hero-lead">
+              Add a public changelog feed, secure admin portal, and AI-assisted release writing to
+              any Next.js app — in under 10 minutes.
+            </p>
+            <div class="hero-actions">
+              <a
+                class="btn btn-primary"
+                href="https://github.com/SebghatYusuf/changelog-sdk#quick-start"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Quick Start →
+              </a>
+              <a
+                class="btn btn-ghost"
+                href="https://github.com/SebghatYusuf/changelog-sdk"
+                target="_blank"
+                rel="noreferrer"
+              >
+                View on GitHub
+              </a>
+            </div>
+            <p class="hero-meta">
+              MIT License &nbsp;·&nbsp; Zero vendor lock-in &nbsp;·&nbsp; MongoDB + your AI provider
+            </p>
+
+            <div class="hero-screenshot">
+              <div class="screenshot-frame">
+                <div class="screenshot-bar" aria-hidden="true">
+                  <span class="dot dot-r"></span>
+                  <span class="dot dot-y"></span>
+                  <span class="dot dot-g"></span>
+                  <span class="screenshot-url">yourapp.com/changelog</span>
+                </div>
+                <img
+                  src="./images/changelog.png"
+                  alt="Public changelog feed showing a searchable list of release notes with tag filters and pagination"
+                  loading="eager"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <hr class="divider" />
+
+        <section id="features">
+          <div class="container">
+            <div class="section-header reveal">
+              <div class="section-label">Features</div>
+              <h2>Everything you need.<br />Nothing you don't.</h2>
+              <p>
+                A complete, opinionated changelog system that integrates cleanly into any Next.js app
+                without fighting your existing setup.
+              </p>
+            </div>
+
+            <div class="feature-grid">
+              <article class="feature-card reveal">
+                <span class="feature-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20v15H6.5A2.5 2.5 0 0 0 4 21z" />
+                    <path d="M8 8h8" />
+                    <path d="M8 12h8" />
+                    <path d="M8 16h5" />
+                  </svg>
+                </span>
+                <h3>Public Feed</h3>
+                <p>
+                  Searchable changelog timeline at <code>/changelog</code> with tag filters,
+                  pagination, and deep-link entries.
+                </p>
+              </article>
+              <article class="feature-card reveal reveal-delay-1">
+                <span class="feature-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12 3l7 3v5c0 5-3.4 8.7-7 10-3.6-1.3-7-5-7-10V6z" />
+                    <rect x="9" y="11" width="6" height="5" rx="1" />
+                    <path d="M10.5 11V9.8a1.5 1.5 0 1 1 3 0V11" />
+                  </svg>
+                </span>
+                <h3>Admin Portal</h3>
+                <p>
+                  Manage entries at <code>/changelog/admin</code> with secure cookie-based auth. No
+                  separate dashboard to host.
+                </p>
+              </article>
+              <article class="feature-card reveal reveal-delay-2">
+                <span class="feature-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8z" />
+                    <path d="M18.5 14.5l.8 1.8 1.8.8-1.8.8-.8 1.8-.8-1.8-1.8-.8 1.8-.8z" />
+                    <path d="M5.5 14l.6 1.3 1.3.6-1.3.6-.6 1.3-.6-1.3-1.3-.6 1.3-.6z" />
+                  </svg>
+                </span>
+                <h3>AI Enhancement</h3>
+                <p>
+                  Transform rough release notes into polished updates using OpenAI, Gemini, or a
+                  local Ollama model.
+                </p>
+              </article>
+              <article class="feature-card reveal reveal-delay-3">
+                <span class="feature-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M9 4H5v4h4" />
+                    <path d="M15 4h4v4h-4" />
+                    <path d="M9 20H5v-4h4" />
+                    <path d="M15 20h4v-4h-4" />
+                    <path d="M10 12l1.5 1.5L15 10" />
+                  </svg>
+                </span>
+                <h3>Type-Safe Actions</h3>
+                <p>
+                  Fully typed server actions with Zod validation. No runtime surprises when
+                  publishing entries.
+                </p>
+              </article>
+              <article class="feature-card reveal reveal-delay-4">
+                <span class="feature-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <ellipse cx="12" cy="6" rx="7" ry="3" />
+                    <path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6" />
+                    <path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" />
+                  </svg>
+                </span>
+                <h3>MongoDB Backed</h3>
+                <p>Mongoose models and a singleton connection pattern. Works with Atlas free tier.</p>
+              </article>
+              <article class="feature-card reveal reveal-delay-5">
+                <span class="feature-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M3 14.5A8.5 8.5 0 1 1 12 23h-1.5a2.5 2.5 0 0 1 0-5H12a1.5 1.5 0 0 0 0-3z" />
+                    <circle cx="7.5" cy="10" r="1" />
+                    <circle cx="11" cy="7.5" r="1" />
+                    <circle cx="15" cy="8.5" r="1" />
+                  </svg>
+                </span>
+                <h3>Style Isolation</h3>
+                <p>Scoped <code>cl-</code> CSS classes. SDK styles never leak into your app.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <hr class="divider" />
+
+        <section id="admin">
+          <div class="container">
+            <div class="showcase">
+              <div class="showcase-item reveal">
+                <div class="showcase-text">
+                  <span class="tag">Admin portal</span>
+                  <h3>Write and publish entries in seconds</h3>
+                  <p>
+                    The built-in admin dashboard gives you a full rich-text editor, tag selector,
+                    and version field — all behind secure password-based authentication.
+                  </p>
+                  <ul class="features-list">
+                    <li>Create, edit, and delete changelog entries</li>
+                    <li>Publish or keep entries as drafts</li>
+                    <li>Tag entries for filtering on the public feed</li>
+                    <li>bcrypt-hashed admin password, no accounts to manage</li>
+                  </ul>
+                </div>
+                <div>
+                  <div class="screenshot-frame">
+                    <div class="screenshot-bar" aria-hidden="true">
+                      <span class="dot dot-r"></span>
+                      <span class="dot dot-y"></span>
+                      <span class="dot dot-g"></span>
+                      <span class="screenshot-url">yourapp.com/changelog/admin</span>
+                    </div>
+                    <img
+                      src="./images/admin-new-entry.png"
+                      alt="Admin portal showing a new changelog entry form with title, body, version, and tag fields"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="showcase-item reverse reveal">
+                <div class="showcase-text">
+                  <span class="tag">AI Enhancement</span>
+                  <h3>From rough notes to polished release copy</h3>
+                  <p>
+                    Paste raw commit messages or bullet points. Let GPT-5, Gemini, or a local
+                    Ollama model rewrite them into compelling changelog entries.
+                  </p>
+                  <ul class="features-list">
+                    <li>Supports OpenAI, Google Gemini, and Ollama</li>
+                    <li>Rate-limiting built in to prevent accidental API spend</li>
+                    <li>Review and edit before publishing</li>
+                  </ul>
+                </div>
+                <div>
+                  <div class="screenshot-frame">
+                    <div class="screenshot-bar" aria-hidden="true">
+                      <span class="dot dot-r"></span>
+                      <span class="dot dot-y"></span>
+                      <span class="dot dot-g"></span>
+                      <span class="screenshot-url">yourapp.com/changelog/admin/ai-settings</span>
+                    </div>
+                    <img
+                      src="./images/ai-settings.png"
+                      alt="AI settings panel showing provider selection, model configuration, and API key fields"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <hr class="divider" />
+
+        <section id="install">
+          <div class="container">
+            <div class="section-header reveal">
+              <div class="section-label">Install</div>
+              <h2>Up in under 10 minutes.</h2>
+              <p>Install the SDK, add one route file, set env vars, and ship.</p>
+            </div>
+
+            <div class="install-wrap reveal">
+              <div class="install-tabs" role="tablist" aria-label="Package manager selector">
+                <button class="install-tab active" role="tab" aria-selected="true" data-tab="bun" onclick="switchTab(this)">
+                  bun
+                </button>
+                <button class="install-tab" role="tab" aria-selected="false" data-tab="npm" onclick="switchTab(this)">
+                  npm
+                </button>
+                <button class="install-tab" role="tab" aria-selected="false" data-tab="yarn" onclick="switchTab(this)">
+                  yarn
+                </button>
+                <button class="install-tab" role="tab" aria-selected="false" data-tab="pnpm" onclick="switchTab(this)">
+                  pnpm
+                </button>
+              </div>
+              <div class="install-body">
+                <div class="install-cmd active" id="cmd-bun" role="tabpanel">
+                  <span class="install-prefix" aria-hidden="true">$</span>
+                  <pre>bun add github:SebghatYusuf/changelog-sdk#master</pre>
+                  <button
+                    class="copy-btn"
+                    onclick="copyCode(this, 'bun add github:SebghatYusuf/changelog-sdk#master')"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <div class="install-cmd" id="cmd-npm" role="tabpanel">
+                  <span class="install-prefix" aria-hidden="true">$</span>
+                  <pre>npm install github:SebghatYusuf/changelog-sdk#master</pre>
+                  <button
+                    class="copy-btn"
+                    onclick="copyCode(this, 'npm install github:SebghatYusuf/changelog-sdk#master')"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <div class="install-cmd" id="cmd-yarn" role="tabpanel">
+                  <span class="install-prefix" aria-hidden="true">$</span>
+                  <pre>yarn add github:SebghatYusuf/changelog-sdk#master</pre>
+                  <button
+                    class="copy-btn"
+                    onclick="copyCode(this, 'yarn add github:SebghatYusuf/changelog-sdk#master')"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <div class="install-cmd" id="cmd-pnpm" role="tabpanel">
+                  <span class="install-prefix" aria-hidden="true">$</span>
+                  <pre>pnpm add github:SebghatYusuf/changelog-sdk#master</pre>
+                  <button
+                    class="copy-btn"
+                    onclick="copyCode(this, 'pnpm add github:SebghatYusuf/changelog-sdk#master')"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <div class="container footer-inner">
+          <span
+            >Built by
+            <a href="https://github.com/SebghatYusuf" target="_blank" rel="noreferrer" style="color: var(--muted)"
+              >Sebghat Yusuf</a
+            >
+            · MIT License</span
+          >
+          <div class="footer-links">
+            <a href="https://github.com/SebghatYusuf/changelog-sdk#readme" target="_blank" rel="noreferrer">Docs</a>
+            <a href="https://github.com/SebghatYusuf/changelog-sdk/issues" target="_blank" rel="noreferrer">Issues</a>
+            <a href="https://github.com/SebghatYusuf/changelog-sdk" target="_blank" rel="noreferrer">GitHub</a>
           </div>
         </div>
-      </section>
+      </footer>
+    </div>
 
-      <section>
-        <div class="container">
-          <h2 class="section-title">Why teams use Changelog SDK</h2>
-          <p class="section-sub">A complete changelog system for product updates, release notes, and customer-facing announcements.</p>
-          <div class="grid">
-            <article class="card">
-              <h3>Public Feed</h3>
-              <p>Ship a searchable changelog timeline at <code>/changelog</code> with filters and pagination.</p>
-            </article>
-            <article class="card">
-              <h3>Admin Portal</h3>
-              <p>Manage changelog entries at <code>/changelog/admin</code> with secure cookie-based authentication.</p>
-            </article>
-            <article class="card">
-              <h3>AI Enhancement</h3>
-              <p>Convert rough notes into polished release updates using OpenAI, Gemini, or Ollama.</p>
-            </article>
-            <article class="card">
-              <h3>Type-Safe Actions</h3>
-              <p>Use typed server actions and Zod-validated inputs to keep publishing reliable.</p>
-            </article>
-            <article class="card">
-              <h3>MongoDB Backed</h3>
-              <p>Persist updates with Mongoose and a singleton DB connection pattern.</p>
-            </article>
-            <article class="card">
-              <h3>Style Isolation</h3>
-              <p>Uses scoped <code>cl-</code> classes to avoid leaking styles into your host app.</p>
-            </article>
-          </div>
-        </div>
-      </section>
+    <script>
+      const revealEls = document.querySelectorAll('.reveal')
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible')
+              observer.unobserve(entry.target)
+            }
+          })
+        },
+        { threshold: 0.12 }
+      )
 
-      <section>
-        <div class="container">
-          <h2 class="section-title">Install</h2>
-          <p class="section-sub">Add the SDK directly from GitHub.</p>
-          <div class="code-wrap">
-            <pre>bun add github:SebghatYusuf/changelog-sdk#master
-# or
-npm install github:SebghatYusuf/changelog-sdk#master</pre>
-          </div>
-        </div>
-      </section>
+      revealEls.forEach((el) => observer.observe(el))
 
-      <section>
-        <div class="container">
-          <h2 class="section-title">What you get</h2>
-          <ul class="list">
-            <li>Route-ready changelog manager with public and admin flows</li>
-            <li>AI writing support for release notes and changelog summaries</li>
-            <li>Secure admin login helpers and auth checks</li>
-            <li>Sanitized markdown rendering and typed APIs</li>
-          </ul>
-        </div>
-      </section>
-    </main>
+      function switchTab(button) {
+        const tab = button.dataset.tab
+        document.querySelectorAll('.install-tab').forEach((t) => {
+          t.classList.remove('active')
+          t.setAttribute('aria-selected', 'false')
+        })
+        document.querySelectorAll('.install-cmd').forEach((c) => c.classList.remove('active'))
+        button.classList.add('active')
+        button.setAttribute('aria-selected', 'true')
+        document.getElementById('cmd-' + tab).classList.add('active')
+      }
 
-    <footer class="footer">
-      <div class="container">
-        Built by Sebghat Yusuf • MIT License • <a href="https://github.com/SebghatYusuf/changelog-sdk" target="_blank" rel="noreferrer">GitHub Repository</a>
-      </div>
-    </footer>
+      function copyCode(button, text) {
+        navigator.clipboard.writeText(text).then(() => {
+          button.textContent = 'Copied!'
+          button.classList.add('copied')
+          setTimeout(() => {
+            button.textContent = 'Copy'
+            button.classList.remove('copied')
+          }, 2000)
+        })
+      }
+    </script>
   </body>
 </html>
