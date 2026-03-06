@@ -27,9 +27,10 @@ Production-ready Changelog SDK for Next.js applications with a public changelog 
 - [Requirements](#requirements)
 - [Quick Start](#quick-start)
   - [1) Install the package](#1-install-the-package)
-  - [2) Add the catch-all changelog route](#2-add-the-catch-all-changelog-route)
-  - [3) Configure environment variables](#3-configure-environment-variables)
-  - [4) Run your app](#4-run-your-app)
+  - [2) Add changelog layout (required)](#2-add-changelog-layout-required)
+  - [3) Add the catch-all changelog route](#3-add-the-catch-all-changelog-route)
+  - [4) Configure environment variables](#4-configure-environment-variables)
+  - [5) Run your app](#5-run-your-app)
 - [Routing Setup](#routing-setup)
 - [Environment Variables](#environment-variables)
 - [Usage](#usage)
@@ -93,7 +94,7 @@ yarn add github:SebghatYusuf/changelog-sdk#master
 pnpm add github:SebghatYusuf/changelog-sdk#master
 ```
 
-SDK styles are automatically included when importing from `changelog-sdk`.
+SDK styles are loaded through the changelog route layout.
 
 **Optional: AI Enhancement**
 
@@ -110,7 +111,19 @@ bun add ai @ai-sdk/google
 bun add ai ollama-ai-provider-v2
 ```
 
-### 2) Add the catch-all changelog route
+### 2) Add changelog layout (required)
+
+Create `app/changelog/layout.tsx` (same directory as your `[[...route]]` page):
+
+```tsx
+import 'changelog-sdk/styles'
+
+export default function ChangelogLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}
+```
+
+### 3) Add the catch-all changelog route
 
 Create `app/changelog/[[...route]]/page.tsx`:
 
@@ -142,9 +155,9 @@ async function ChangelogPageContent({ params, searchParams }: ChangelogPageProps
 }
 ```
 
-SDK styles are automatically included when importing from `changelog-sdk` — no manual import needed.
+This page should live in the same `app/changelog` directory as the required layout.
 
-### 3) Configure environment variables
+### 4) Configure environment variables
 
 Create `.env.local` in your project root:
 
@@ -167,7 +180,7 @@ OLLAMA_BASE_URL=http://localhost:11434
 CHANGELOG_RATE_LIMIT=10
 ```
 
-### 4) Run your app
+### 5) Run your app
 
 ```bash
 bun run dev

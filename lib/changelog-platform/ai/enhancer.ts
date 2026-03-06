@@ -1,4 +1,5 @@
-import { generateText } from 'ai'
+import { generateObject, generateText } from 'ai'
+import { z } from 'zod'
 import AIProviderFactory from './provider'
 import { getRuntimeAIConfig } from './settings'
 import { EnhanceChangelogOutput, ChangelogTag } from '../types/changelog'
@@ -31,6 +32,12 @@ RESPOND IN JSON FORMAT ONLY:
 }
 
 Do not include any other text or markdown formatting outside the JSON.`
+
+const EnhancementResponseSchema = z.object({
+  title: z.string().min(1),
+  content: z.string().min(1),
+  tags: z.array(z.string()).default([]),
+})
 
 function stripMarkdownCodeFence(text: string): string {
   const trimmed = text.trim()
@@ -186,15 +193,31 @@ export async function enhanceChangelog(rawNotes: string, version?: string): Prom
       version || ''
     )
 
-    const response = await generateText({
-      model,
-      prompt,
-      temperature: 0.7,
-      maxOutputTokens: 1000,
-    })
+    let parsed: { title: string; content: string; tags: unknown[] }
 
-    // Parse JSON response (models sometimes wrap JSON in markdown fences)
-    const parsed = parseEnhancementResponse(response.text)
+    try {
+      const objectResponse = await generateObject({
+        model,
+        schema: EnhancementResponseSchema,
+        prompt,
+        temperature: 0.7,
+      })
+
+      parsed = {
+        title: objectResponse.object.title,
+        content: objectResponse.object.content,
+        tags: objectResponse.object.tags,
+      }
+    } catch {
+      const response = await generateText({
+        model,
+        prompt,
+        temperature: 0.7,
+        maxOutputTokens: 1000,
+      })
+
+      parsed = parseEnhancementResponse(response.text)
+    }
 
     // Validate response
     if (!parsed.title || !parsed.content || !Array.isArray(parsed.tags)) {

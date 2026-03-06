@@ -28,10 +28,13 @@ export default async function ChangelogDetail({ slug }: ChangelogDetailProps) {
   }
 
   const entry = result.data
+  const entryDate = new Date(entry.date)
   const dateFormatter = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
   })
 
   return (
@@ -44,7 +47,7 @@ export default async function ChangelogDetail({ slug }: ChangelogDetailProps) {
         <header className="cl-card-header cl-detail-header">
           <div className="cl-entry-meta">
             <span className="cl-entry-version">v{entry.version}</span>
-            <time className="cl-entry-date">{dateFormatter.format(new Date(entry.date))}</time>
+            <time className="cl-entry-date" dateTime={entryDate.toISOString()}>{dateFormatter.format(entryDate)}</time>
             {entry.aiGenerated ? <span className="cl-badge cl-badge-secondary cl-entry-ai">AI Enhanced</span> : null}
           </div>
 

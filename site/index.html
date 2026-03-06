@@ -763,6 +763,88 @@
         color: var(--teal);
       }
 
+      .setup-grid {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .setup-step {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(12, 19, 38, 0.88), rgba(10, 18, 35, 0.9));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        overflow: hidden;
+      }
+
+      .setup-step-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.8rem;
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid var(--border);
+        background: rgba(7, 12, 27, 0.8);
+      }
+
+      .setup-step-title {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        min-width: 0;
+      }
+
+      .setup-step-num {
+        width: 1.4rem;
+        height: 1.4rem;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        border: 1px solid rgba(91, 155, 255, 0.45);
+        background: rgba(91, 155, 255, 0.14);
+        color: var(--blue-soft);
+        flex-shrink: 0;
+      }
+
+      .setup-step h3 {
+        font-family: var(--font-head);
+        font-size: 0.95rem;
+        letter-spacing: -0.01em;
+      }
+
+      .setup-step-body {
+        padding: 1rem;
+      }
+
+      .setup-step-body p {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 0.65rem;
+      }
+
+      .setup-step-body code {
+        color: #cfe2ff;
+        background: rgba(91, 155, 255, 0.08);
+        border: 1px solid rgba(91, 155, 255, 0.2);
+        border-radius: 6px;
+        padding: 0.05rem 0.35rem;
+      }
+
+      .setup-code {
+        border: 1px solid rgba(91, 155, 255, 0.15);
+        background: rgba(7, 12, 27, 0.75);
+        border-radius: 12px;
+        padding: 0.9rem;
+        overflow-x: auto;
+      }
+
+      .setup-code pre {
+        margin: 0;
+        white-space: pre;
+      }
+
       .divider {
         border: none;
         height: 1px;
@@ -899,12 +981,7 @@
               any Next.js app — in under 10 minutes.
             </p>
             <div class="hero-actions">
-              <a
-                class="btn btn-primary"
-                href="https://github.com/SebghatYusuf/changelog-sdk#quick-start"
-                target="_blank"
-                rel="noreferrer"
-              >
+              <a class="btn btn-primary" href="#install" onclick="scrollToSection(event, 'install')">
                 Quick Start →
               </a>
               <a
@@ -1115,7 +1192,7 @@
           <div class="container">
             <div class="section-header reveal">
               <div class="section-label">Install</div>
-              <h2>Up in under 10 minutes.</h2>
+              <h2>Up in under 5 minutes.</h2>
               <p>Install the SDK, add one route file, set env vars, and ship.</p>
             </div>
 
@@ -1179,6 +1256,144 @@
             </div>
           </div>
         </section>
+
+        <hr class="divider" />
+
+        <section id="setup">
+          <div class="container">
+            <div class="section-header reveal">
+              <div class="section-label">Setup Example</div>
+              <h2>Route + config, ready to paste.</h2>
+              <p>
+                Use this exact starter setup in your Next.js app to mount the full changelog feed,
+                login, and admin portal routes.
+              </p>
+            </div>
+
+            <div class="setup-grid">
+              <article class="setup-step reveal">
+                <div class="setup-step-head">
+                  <div class="setup-step-title">
+                    <span class="setup-step-num">1</span>
+                    <h3>Create <code>app/changelog/layout.tsx</code> (required)</h3>
+                  </div>
+                  <button class="copy-btn" onclick="copyCode(this, document.getElementById('layout-example').innerText)">
+                    Copy
+                  </button>
+                </div>
+                <div class="setup-step-body">
+                  <p>
+                    Add this layout in the same <code>app/changelog</code> directory so SDK styles
+                    are applied correctly.
+                  </p>
+                  <div class="setup-code">
+                    <pre id="layout-example">import 'changelog-sdk/styles'
+
+export default function ChangelogLayout({ children }: { children: React.ReactNode }) {
+  return &lt;&gt;{children}&lt;/&gt;
+}</pre>
+                  </div>
+                </div>
+              </article>
+
+              <article class="setup-step reveal reveal-delay-1">
+                <div class="setup-step-head">
+                  <div class="setup-step-title">
+                    <span class="setup-step-num">2</span>
+                    <h3>Create <code>app/changelog/[[...route]]/page.tsx</code></h3>
+                  </div>
+                  <button class="copy-btn" onclick="copyCode(this, document.getElementById('route-example').innerText)">
+                    Copy
+                  </button>
+                </div>
+                <div class="setup-step-body">
+                  <p>This route enables <code>/changelog</code>, <code>/changelog/login</code>, and <code>/changelog/admin</code>.</p>
+                  <div class="setup-code">
+                    <pre id="route-example">import { Suspense } from 'react'
+import { ChangelogManager } from 'changelog-sdk'
+
+interface ChangelogPageProps {
+  params: Promise&lt;{
+    route?: string[]
+  }&gt;
+  searchParams: Promise&lt;{
+    page?: string
+    tags?: string
+    search?: string
+  }&gt;
+}
+
+export default function ChangelogPage(props: ChangelogPageProps) {
+  return (
+    &lt;Suspense fallback={&lt;ChangelogPageFallback /&gt;}&gt;
+      &lt;ChangelogPageContent {...props} /&gt;
+    &lt;/Suspense&gt;
+  )
+}
+
+async function ChangelogPageContent({ params, searchParams }: ChangelogPageProps) {
+  const [resolvedParams, resolvedSearchParams] = await Promise.all([params, searchParams])
+
+  return &lt;ChangelogManager params={resolvedParams} searchParams={resolvedSearchParams} /&gt;
+}
+
+function ChangelogPageFallback() {
+  return (
+    &lt;main className="cl-root cl-section cl-feed-screen"&gt;
+      &lt;div className="cl-loading-screen"&gt;
+        &lt;div className="cl-spinner" /&gt;
+        &lt;span className="cl-loading-label"&gt;Loading...&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/main&gt;
+  )
+}</pre>
+                  </div>
+                </div>
+              </article>
+
+              <article class="setup-step reveal reveal-delay-2">
+                <div class="setup-step-head">
+                  <div class="setup-step-title">
+                    <span class="setup-step-num">3</span>
+                    <h3>Add environment variables</h3>
+                  </div>
+                  <button class="copy-btn" onclick="copyCode(this, document.getElementById('env-example').innerText)">
+                    Copy
+                  </button>
+                </div>
+                <div class="setup-step-body">
+                  <p>Create <code>.env.local</code> in your app root:</p>
+                  <div class="setup-code">
+                    <pre id="env-example">CHANGELOG_MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/changelog
+CHANGELOG_ADMIN_PASSWORD=$2a$10$...your_bcrypt_hash...
+
+# AI provider: openai | gemini | ollama
+CHANGELOG_AI_PROVIDER=openai
+OPENAI_API_KEY=sk-...
+GOOGLE_GENERATIVE_AI_API_KEY=...
+OLLAMA_BASE_URL=http://localhost:11434</pre>
+                  </div>
+                </div>
+              </article>
+
+              <article class="setup-step reveal reveal-delay-3">
+                <div class="setup-step-head">
+                  <div class="setup-step-title">
+                    <span class="setup-step-num">4</span>
+                    <h3>Run your app</h3>
+                  </div>
+                  <button class="copy-btn" onclick="copyCode(this, 'bun run dev')">Copy</button>
+                </div>
+                <div class="setup-step-body">
+                  <p>Start development server and open <code>/changelog</code>.</p>
+                  <div class="setup-code">
+                    <pre>bun run dev</pre>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
       </main>
 
       <footer>
@@ -1228,14 +1443,45 @@
       }
 
       function copyCode(button, text) {
-        navigator.clipboard.writeText(text).then(() => {
+        const done = () => {
           button.textContent = 'Copied!'
           button.classList.add('copied')
           setTimeout(() => {
             button.textContent = 'Copy'
             button.classList.remove('copied')
           }, 2000)
-        })
+        }
+
+        const fallbackCopy = () => {
+          const textArea = document.createElement('textarea')
+          textArea.value = text
+          textArea.setAttribute('readonly', '')
+          textArea.style.position = 'fixed'
+          textArea.style.left = '-9999px'
+          document.body.appendChild(textArea)
+          textArea.select()
+          document.execCommand('copy')
+          document.body.removeChild(textArea)
+          done()
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(done).catch(fallbackCopy)
+          return
+        }
+
+        fallbackCopy()
+      }
+
+      function scrollToSection(event, id) {
+        if (event) {
+          event.preventDefault()
+        }
+
+        const target = document.getElementById(id)
+        if (!target) return
+
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
     </script>
   </body>

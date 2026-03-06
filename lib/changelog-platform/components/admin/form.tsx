@@ -293,6 +293,7 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
             return
           }
           contentEl.value = result.data.content
+          showToast('Content generated successfully.', 'success')
         }
 
         setSelectedTags(result.data.tags)
