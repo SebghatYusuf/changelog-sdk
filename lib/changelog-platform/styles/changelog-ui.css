@@ -596,7 +596,10 @@
 }
 
 .cl-feed-empty-icon {
-  font-size: 3rem;
+  display: inline-flex;
+  width: 3rem;
+  height: 3rem;
+  margin-inline: auto;
   opacity: 0.45;
 }
 
@@ -991,10 +994,9 @@
 
 .cl-admin-nav-icon {
   flex-shrink: 0;
-  font-size: 0.9rem;
   opacity: 0.75;
   width: 1.1rem;
-  text-align: center;
+  height: 1.1rem;
 }
 
 .cl-admin-nav-body {
@@ -1331,7 +1333,8 @@
 }
 
 .cl-admin-empty-icon {
-  font-size: 2.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
   opacity: 0.4;
   margin-bottom: 0.75rem;
 }

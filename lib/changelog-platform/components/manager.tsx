@@ -18,6 +18,7 @@ interface SearchParams {
   page?: string
   tags?: string
   search?: string
+  preset?: string
 }
 
 interface ChangelogManagerProps {
@@ -32,7 +33,7 @@ export default function ChangelogManager({ params, searchParams }: ChangelogMana
 
   // Route logic
   if (route === 'admin') {
-    return <AdminPortalRoute section={adminSection} editId={adminEditId} />
+    return <AdminPortalRoute section={adminSection} editId={adminEditId} preset={searchParams?.preset} />
   }
 
   if (route === 'login') {
@@ -90,12 +91,12 @@ function DetailRoute({ slug }: { slug: string }) {
 /**
  * Admin Portal Route
  */
-function AdminPortalRoute({ section, editId }: { section?: string; editId?: string }) {
+function AdminPortalRoute({ section, editId, preset }: { section?: string; editId?: string; preset?: string }) {
   return (
     <main className="cl-root cl-section cl-admin-screen">
       <Suspense fallback={<LoadingFallback />}>
         <AdminAuthWrapper>
-          <AdminPortal section={section} editId={editId} />
+          <AdminPortal section={section} editId={editId} preset={preset} />
         </AdminAuthWrapper>
       </Suspense>
     </main>

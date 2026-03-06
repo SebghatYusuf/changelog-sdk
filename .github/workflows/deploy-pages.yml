@@ -28,6 +28,9 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Copy images into site
+        run: cp -r images site/images
+
       - name: Upload static site artifact
         uses: actions/upload-pages-artifact@v3
         with:

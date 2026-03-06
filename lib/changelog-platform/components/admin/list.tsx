@@ -1,4 +1,5 @@
 import { fetchAdminChangelogs } from '../../actions/changelog-actions'
+import { ClipboardList } from 'lucide-react'
 import { ChangelogEntry } from '../../types/changelog'
 import DeleteButton from './delete-button'
 
@@ -38,7 +39,7 @@ export default async function AdminList() {
       <div className="cl-card-content cl-admin-list-wrap">
         {entries.length === 0 ? (
           <div className="cl-admin-empty-state">
-            <div className="cl-admin-empty-icon">📋</div>
+            <ClipboardList className="cl-admin-empty-icon" aria-hidden="true" />
             <p className="cl-admin-empty-title">No entries yet</p>
             <p className="cl-admin-empty-text">Create your first changelog entry using the form.</p>
           </div>

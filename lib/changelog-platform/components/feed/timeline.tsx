@@ -1,4 +1,5 @@
 import { fetchPublishedChangelogs } from '../../actions/changelog-actions'
+import { FileText } from 'lucide-react'
 import { ChangelogEntry, ChangelogTag } from '../../types/changelog'
 import ChangelogCard from './card'
 import Filters from './filters'
@@ -49,7 +50,7 @@ export default async function ChangelogFeed({
         {entries.length === 0 ? (
           <div className="cl-card cl-feed-empty-card">
             <div className="cl-card-content cl-feed-empty-content">
-              <div className="cl-feed-empty-icon">📝</div>
+              <FileText className="cl-feed-empty-icon" aria-hidden="true" />
               <p className="cl-p cl-feed-empty-title">No changelog entries found.</p>
               <p className="cl-feed-empty-subtitle">Try adjusting your search or filters.</p>
             </div>

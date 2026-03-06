@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { fetchAIProviderModels, fetchAISettings, updateAISettings } from '../../actions/changelog-actions'
 import type { AIModelOption, AIProviderKind } from '../../types/changelog'
 import { DEFAULT_AI_MODELS } from '../../ai/constants'
@@ -24,8 +24,16 @@ export default function AISettingsPanel() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const stateRef = useRef<SettingsState>(INITIAL_STATE)
+  const userChangedProviderRef = useRef(false)
+  const loadRequestIdRef = useRef(0)
+
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
 
   const loadModels = async (nextState: SettingsState) => {
+    const requestId = ++loadRequestIdRef.current
     setLoadingModels(true)
     setError('')
 
@@ -33,6 +41,10 @@ export default function AISettingsPanel() {
       provider: nextState.provider,
       ollamaBaseUrl: nextState.ollamaBaseUrl || undefined,
     })
+
+    if (requestId !== loadRequestIdRef.current) {
+      return
+    }
 
     if (!result.success || !result.data) {
       setLoadingModels(false)
@@ -44,7 +56,10 @@ export default function AISettingsPanel() {
     setModels(modelOptions)
 
     if (!modelOptions.some((m) => m.id === nextState.model)) {
-      setState((prev) => ({ ...prev, model: modelOptions[0]?.id || DEFAULT_AI_MODELS[nextState.provider] }))
+      setState((prev) => {
+        const fallbackModel = modelOptions[0]?.id || DEFAULT_AI_MODELS[prev.provider]
+        return { ...prev, model: fallbackModel }
+      })
     }
 
     setLoadingModels(false)
@@ -68,8 +83,10 @@ export default function AISettingsPanel() {
         ollamaBaseUrl: result.data.ollamaBaseUrl || 'http://localhost:11434',
       }
 
-      setState(loaded)
-      await loadModels(loaded)
+      if (!userChangedProviderRef.current) {
+        setState(loaded)
+        await loadModels(loaded)
+      }
     })()
 
     return () => {
@@ -78,8 +95,9 @@ export default function AISettingsPanel() {
   }, [])
 
   const onProviderChange = async (provider: AIProviderKind) => {
+    userChangedProviderRef.current = true
     const nextState: SettingsState = {
-      ...state,
+      ...stateRef.current,
       provider,
       model: DEFAULT_AI_MODELS[provider],
     }
@@ -92,7 +110,7 @@ export default function AISettingsPanel() {
     setSuccess('')
     setError('')
 
-    const result = await updateAISettings(state)
+    const result = await updateAISettings(stateRef.current)
 
     if (!result.success) {
       setError(result.error || 'Failed to save settings')

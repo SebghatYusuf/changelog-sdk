@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
+import { Sparkles } from 'lucide-react'
 import { createChangelog, fetchChangelogSettings, runAIEnhance, updateChangelog } from '../../actions/changelog-actions'
 import { ChangelogEntry, ChangelogTag } from '../../types/changelog'
 
@@ -27,6 +28,27 @@ interface CreateFormState {
 
 interface CreateFormProps {
   initialEntry?: ChangelogEntry
+  preset?: string
+}
+
+type PresetType = 'feature-release' | 'hotfix' | 'maintenance'
+
+const PRESETS: Record<PresetType, { title: string; content: string; tags: ChangelogTag[] }> = {
+  'feature-release': {
+    title: 'Feature release highlights',
+    content: '## Features\n- Added major product capabilities\n\n## Improvements\n- Improved usability and workflows\n\n## Docs\n- Updated guides and examples',
+    tags: ['Features', 'Improvements', 'Docs'],
+  },
+  hotfix: {
+    title: 'Critical hotfix update',
+    content: '## Fixes\n- Resolved a high-impact production issue\n\n## Performance\n- Stabilized runtime behavior under load\n\n## Security\n- Applied targeted hardening updates',
+    tags: ['Fixes', 'Performance', 'Security'],
+  },
+  maintenance: {
+    title: 'Maintenance and reliability update',
+    content: '## Improvements\n- Refactored internal modules for maintainability\n\n## Performance\n- Optimized key execution paths\n\n## Fixes\n- Addressed lower-priority defects',
+    tags: ['Improvements', 'Performance', 'Fixes'],
+  },
 }
 
 type VersionBumpType = 'patch' | 'minor' | 'major'
@@ -49,7 +71,7 @@ function bumpSemver(version: string, bumpType: VersionBumpType): string | null {
   return `${major}.${minor}.${patch + 1}`
 }
 
-export default function CreateForm({ initialEntry }: CreateFormProps) {
+export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
   const isEditing = Boolean(initialEntry?._id)
 
   const [formState, formAction] = useActionState<CreateFormState, FormData>(
@@ -118,6 +140,28 @@ export default function CreateForm({ initialEntry }: CreateFormProps) {
       isMounted = false
     }
   }, [isEditing])
+
+  useEffect(() => {
+    if (isEditing) return
+    if (!preset || !(preset in PRESETS)) return
+
+    const selectedPreset = PRESETS[preset as PresetType]
+    const formElement = formRef.current
+    if (!formElement) return
+
+    const titleEl = formElement.querySelector('input[name="title"]') as HTMLInputElement | null
+    const contentEl = formElement.querySelector('textarea[name="content"]') as HTMLTextAreaElement | null
+
+    if (titleEl) {
+      titleEl.value = selectedPreset.title
+    }
+
+    if (contentEl) {
+      contentEl.value = selectedPreset.content
+    }
+
+    setSelectedTags(selectedPreset.tags)
+  }, [isEditing, preset])
 
   const handleToggleTag = (tag: ChangelogTag) => {
     setSelectedTags((prev) =>
@@ -355,13 +399,7 @@ function MagicEnhanceButton({ disabled, loading, onClick, label }: MagicEnhanceB
       {loading ? (
         <span className="cl-spinner cl-spinner-sm" />
       ) : (
-        <svg viewBox="0 0 24 24" className="cl-ai-icon" fill="none" aria-hidden="true">
-          <path
-            d="M12 2l1.6 4.4L18 8l-4.4 1.6L12 14l-1.6-4.4L6 8l4.4-1.6L12 2zM19 13l.9 2.1L22 16l-2.1.9L19 19l-.9-2.1L16 16l2.1-.9L19 13zM5 14l1 2.5L8.5 18 6 19l-1 2.5L4 19l-2.5-1L4 16.5 5 14z"
-            stroke="currentColor"
-            strokeWidth="1.4"
-          />
-        </svg>
+        <Sparkles className="cl-ai-icon" strokeWidth={1.9} aria-hidden="true" />
       )}
       <span>Enhance</span>
     </button>

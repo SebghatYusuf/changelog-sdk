@@ -1,13 +1,15 @@
 # Changelog SDK for Next.js (AI-Powered Changelog Management)
 
 [![Next.js](https://img.shields.io/badge/Next.js-16%2B-black)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-18%2B-149eca)](https://react.dev/)
+[![React](https://img.shields.io/badge/React-19%2B-149eca)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5%2B-3178c6)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
 Production-ready Changelog SDK for Next.js applications with a public changelog feed, secure admin portal, MongoDB persistence, and AI-assisted changelog writing.
 
 `changelog-sdk` is designed for teams that want to ship updates faster while keeping changelog UX clean, searchable, and isolated from host app styles.
+
+![Public Changelog Feed](./images/changelog.png)
 
 ## Table of Contents
 
