@@ -281,6 +281,20 @@ bun run example:install
 bun run example:dev
 ```
 
+## Landing Page (GitHub Pages)
+
+This repository includes a static landing page at `site/index.html` and an automated deployment workflow at `.github/workflows/deploy-pages.yml`.
+
+### Enable GitHub Pages
+
+1. Open your repository **Settings** → **Pages**
+2. Under **Build and deployment**, choose **Source: GitHub Actions**
+3. Push to `main` branch
+
+After deployment, your landing page will be available at:
+
+`https://<your-github-username>.github.io/changelog-sdk/`
+
 ## License
 
 MIT

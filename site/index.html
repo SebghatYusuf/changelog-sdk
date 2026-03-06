@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Changelog SDK for Next.js | AI-Powered Product Changelog</title>
+    <meta
+      name="description"
+      content="Changelog SDK for Next.js: add a public changelog feed, secure admin portal, and AI-powered changelog writing with OpenAI, Gemini, or Ollama."
+    />
+    <meta
+      name="keywords"
+      content="changelog sdk,next.js changelog,ai changelog,product updates,mongodb changelog,react changelog"
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Sebghat Yusuf" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Changelog SDK for Next.js" />
+    <meta
+      property="og:description"
+      content="Production-ready changelog management SDK with AI enhancement, secure admin auth, and isolated styles."
+    />
+    <meta property="og:image" content="https://sebghatyusuf.github.io/changelog-sdk/og-image.png" />
+    <meta property="og:url" content="https://sebghatyusuf.github.io/changelog-sdk/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Changelog SDK for Next.js" />
+    <meta
+      name="twitter:description"
+      content="Ship release notes faster with an AI-powered changelog feed and admin portal for Next.js apps."
+    />
+    <meta name="twitter:image" content="https://sebghatyusuf.github.io/changelog-sdk/og-image.png" />
+    <link rel="canonical" href="https://sebghatyusuf.github.io/changelog-sdk/" />
+    <style>
+      :root {
+        --bg: #05070f;
+        --panel: #0f1424;
+        --panel-border: #1b2440;
+        --text: #e6ecff;
+        --muted: #a2b0d6;
+        --primary: #6ea8ff;
+        --primary-strong: #4f8ef7;
+        --accent: #55e6b9;
+        --max: 1100px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: radial-gradient(circle at 20% 10%, #111a30, var(--bg) 42%);
+        color: var(--text);
+        font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu,
+          'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.55;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .container {
+        width: min(100% - 2rem, var(--max));
+        margin: 0 auto;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        backdrop-filter: blur(8px);
+        background: rgb(5 7 15 / 75%);
+        border-bottom: 1px solid rgb(255 255 255 / 0.08);
+        z-index: 20;
+      }
+
+      .topbar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+      }
+
+      .brand {
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+
+      .hero {
+        padding: 5rem 0 3.5rem;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgb(110 168 255 / 0.15);
+        color: #cfe2ff;
+        border: 1px solid rgb(110 168 255 / 0.32);
+        border-radius: 999px;
+        padding: 0.35rem 0.8rem;
+        font-size: 0.84rem;
+        margin-bottom: 1rem;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 6vw, 3.5rem);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+
+      .lead {
+        max-width: 760px;
+        color: var(--muted);
+        font-size: clamp(1rem, 2.2vw, 1.16rem);
+        margin: 1rem 0 1.8rem;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        padding: 0.72rem 1rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: 0.2s ease;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: #071127;
+      }
+
+      .btn-primary:hover {
+        background: var(--primary-strong);
+      }
+
+      .btn-secondary {
+        border-color: var(--panel-border);
+        background: rgb(255 255 255 / 0.02);
+      }
+
+      .btn-secondary:hover {
+        border-color: #4f8ef7;
+      }
+
+      section {
+        padding: 2rem 0;
+      }
+
+      .section-title {
+        margin: 0 0 0.8rem;
+        font-size: 1.5rem;
+      }
+
+      .section-sub {
+        margin: 0 0 1.5rem;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .card {
+        background: linear-gradient(180deg, rgb(255 255 255 / 0.02), rgb(255 255 255 / 0.01));
+        border: 1px solid var(--panel-border);
+        border-radius: 14px;
+        padding: 1rem;
+      }
+
+      .card h3 {
+        margin: 0 0 0.4rem;
+        font-size: 1.03rem;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .code-wrap {
+        background: #090e1c;
+        border: 1px solid var(--panel-border);
+        border-radius: 14px;
+        padding: 1rem;
+        overflow-x: auto;
+      }
+
+      pre {
+        margin: 0;
+        color: #cfe2ff;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+          'Courier New', monospace;
+        font-size: 0.9rem;
+      }
+
+      .list {
+        margin: 0;
+        padding-left: 1.1rem;
+        color: var(--muted);
+      }
+
+      .list li + li {
+        margin-top: 0.45rem;
+      }
+
+      .footer {
+        border-top: 1px solid rgb(255 255 255 / 0.08);
+        margin-top: 2rem;
+        padding: 1.4rem 0 2rem;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .hero {
+          padding-top: 3.2rem;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Changelog SDK",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Cross-platform",
+        "description": "Production-ready changelog management SDK for Next.js with AI-powered release note enhancement.",
+        "programmingLanguage": ["TypeScript", "JavaScript"],
+        "license": "https://opensource.org/licenses/MIT",
+        "url": "https://sebghatyusuf.github.io/changelog-sdk/",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <div class="brand">changelog-sdk</div>
+        <a class="btn btn-secondary" href="https://github.com/SebghatYusuf/changelog-sdk" target="_blank" rel="noreferrer">View on GitHub</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <span class="badge">Next.js 16+ • React 19 • TypeScript</span>
+          <h1>AI-Powered Changelog SDK for Next.js Apps</h1>
+          <p class="lead">
+            Add a public changelog feed, secure admin portal, and AI-assisted release writing in one SDK. Built for fast shipping teams that care about quality updates and clean integration.
+          </p>
+          <div class="actions">
+            <a class="btn btn-primary" href="https://github.com/SebghatYusuf/changelog-sdk#quick-start" target="_blank" rel="noreferrer">Get Started</a>
+            <a class="btn btn-secondary" href="https://github.com/SebghatYusuf/changelog-sdk" target="_blank" rel="noreferrer">Repository</a>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="container">
+          <h2 class="section-title">Why teams use Changelog SDK</h2>
+          <p class="section-sub">A complete changelog system for product updates, release notes, and customer-facing announcements.</p>
+          <div class="grid">
+            <article class="card">
+              <h3>Public Feed</h3>
+              <p>Ship a searchable changelog timeline at <code>/changelog</code> with filters and pagination.</p>
+            </article>
+            <article class="card">
+              <h3>Admin Portal</h3>
+              <p>Manage changelog entries at <code>/changelog/admin</code> with secure cookie-based authentication.</p>
+            </article>
+            <article class="card">
+              <h3>AI Enhancement</h3>
+              <p>Convert rough notes into polished release updates using OpenAI, Gemini, or Ollama.</p>
+            </article>
+            <article class="card">
+              <h3>Type-Safe Actions</h3>
+              <p>Use typed server actions and Zod-validated inputs to keep publishing reliable.</p>
+            </article>
+            <article class="card">
+              <h3>MongoDB Backed</h3>
+              <p>Persist updates with Mongoose and a singleton DB connection pattern.</p>
+            </article>
+            <article class="card">
+              <h3>Style Isolation</h3>
+              <p>Uses scoped <code>cl-</code> classes to avoid leaking styles into your host app.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="container">
+          <h2 class="section-title">Install</h2>
+          <p class="section-sub">Add the SDK directly from GitHub.</p>
+          <div class="code-wrap">
+            <pre>bun add github:SebghatYusuf/changelog-sdk#master
+# or
+npm install github:SebghatYusuf/changelog-sdk#master</pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="container">
+          <h2 class="section-title">What you get</h2>
+          <ul class="list">
+            <li>Route-ready changelog manager with public and admin flows</li>
+            <li>AI writing support for release notes and changelog summaries</li>
+            <li>Secure admin login helpers and auth checks</li>
+            <li>Sanitized markdown rendering and typed APIs</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        Built by Sebghat Yusuf • MIT License • <a href="https://github.com/SebghatYusuf/changelog-sdk" target="_blank" rel="noreferrer">GitHub Repository</a>
+      </div>
+    </footer>
+  </body>
+</html>
