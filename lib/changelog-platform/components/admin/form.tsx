@@ -6,6 +6,7 @@ import { useFormStatus } from 'react-dom'
 import { Sparkles } from 'lucide-react'
 import { createChangelog, fetchChangelogSettings, runAIEnhance, updateChangelog } from '../../actions/changelog-actions'
 import { ChangelogEntry, ChangelogTag } from '../../types/changelog'
+import { useToast } from '../toast/provider'
 
 /**
  * Create/Edit Changelog Form Component
@@ -73,6 +74,8 @@ function bumpSemver(version: string, bumpType: VersionBumpType): string | null {
 
 export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
   const isEditing = Boolean(initialEntry?._id)
+  const successMessage = isEditing ? 'Changelog updated successfully!' : 'Changelog created successfully!'
+  const { showToast } = useToast()
 
   const [formState, formAction] = useActionState<CreateFormState, FormData>(
     async (_state, formData) => {
@@ -112,6 +115,8 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
   const [versionValue, setVersionValue] = useState(initialEntry?.version || '1.0.0')
   const [versionError, setVersionError] = useState('')
   const [loadingVersionDefaults, setLoadingVersionDefaults] = useState(true)
+  const lastFormToastKeyRef = useRef('')
+  const lastAIErrorToastRef = useRef('')
 
   // Redirect back to admin list after a successful edit
   useEffect(() => {
@@ -121,6 +126,33 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
     }, 1200)
     return () => clearTimeout(t)
   }, [isEditing, formState.success])
+
+  useEffect(() => {
+    if (formState.error) {
+      const key = `error:${formState.error}`
+      if (key !== lastFormToastKeyRef.current) {
+        showToast(formState.error, 'error')
+        lastFormToastKeyRef.current = key
+      }
+      return
+    }
+
+    if (formState.success) {
+      const key = `success:${successMessage}`
+      if (key !== lastFormToastKeyRef.current) {
+        showToast(successMessage, 'success')
+        lastFormToastKeyRef.current = key
+      }
+    }
+  }, [formState, showToast, successMessage])
+
+  useEffect(() => {
+    if (!aiError) return
+    if (aiError === lastAIErrorToastRef.current) return
+
+    showToast(aiError, 'error')
+    lastAIErrorToastRef.current = aiError
+  }, [aiError, showToast])
 
   useEffect(() => {
     let isMounted = true
@@ -250,7 +282,7 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
 
         {formState.success && (
           <div className="cl-alert cl-alert-success">
-            <div className="cl-alert-description">{isEditing ? 'Changelog updated successfully!' : 'Changelog created successfully!'}</div>
+            <div className="cl-alert-description">{successMessage}</div>
           </div>
         )}
 

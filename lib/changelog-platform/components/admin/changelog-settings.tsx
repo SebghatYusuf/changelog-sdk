@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { fetchChangelogSettings, updateChangelogSettings } from '../../actions/changelog-actions'
+import { useToast } from '../toast/provider'
 
 interface SettingsState {
   currentVersion: string
@@ -16,11 +17,13 @@ const INITIAL_STATE: SettingsState = {
 }
 
 export default function ChangelogSettingsPanel() {
+  const { showToast } = useToast()
   const [state, setState] = useState<SettingsState>(INITIAL_STATE)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const lastToastKeyRef = useRef('')
 
   useEffect(() => {
     let isMounted = true
@@ -47,6 +50,18 @@ export default function ChangelogSettingsPanel() {
       isMounted = false
     }
   }, [])
+
+  useEffect(() => {
+    const message = error || success
+    if (!message) return
+
+    const tone = error ? 'error' : 'success'
+    const key = `${tone}:${message}`
+    if (key === lastToastKeyRef.current) return
+
+    showToast(message, tone)
+    lastToastKeyRef.current = key
+  }, [error, success, showToast])
 
   const onSave = async () => {
     setSaving(true)

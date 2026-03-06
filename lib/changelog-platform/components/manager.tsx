@@ -4,6 +4,7 @@ import ChangelogFeed from './feed/timeline'
 import ChangelogDetail from './feed/detail'
 import AdminPortal from './admin/portal'
 import LoginForm from './auth/login'
+import { ToastProvider } from './toast/provider'
 
 /**
  * Main Changelog Manager Component - Server Component
@@ -30,22 +31,21 @@ export default function ChangelogManager({ params, searchParams }: ChangelogMana
   const route = params?.route?.[0] || ''
   const adminSection = params?.route?.[1]
   const adminEditId = params?.route?.[2]
+  let content: ReactNode
 
   // Route logic
   if (route === 'admin') {
-    return <AdminPortalRoute section={adminSection} editId={adminEditId} preset={searchParams?.preset} />
+    content = <AdminPortalRoute section={adminSection} editId={adminEditId} preset={searchParams?.preset} />
+  } else if (route === 'login') {
+    content = <LoginRoute />
+  } else if (route) {
+    content = <DetailRoute slug={route} />
+  } else {
+    // Default: public feed
+    content = <PublicFeedRoute searchParams={searchParams} />
   }
 
-  if (route === 'login') {
-    return <LoginRoute />
-  }
-
-  if (route) {
-    return <DetailRoute slug={route} />
-  }
-
-  // Default: public feed
-  return <PublicFeedRoute searchParams={searchParams} />
+  return <ToastProvider>{content}</ToastProvider>
 }
 
 /**

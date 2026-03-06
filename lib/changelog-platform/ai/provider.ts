@@ -20,6 +20,13 @@ export interface AIProviderModelOption {
 }
 
 export class AIProviderFactory {
+  private static normalizeOllamaBaseUrl(baseUrl?: string): string {
+    const defaultBaseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
+    const normalized = (baseUrl || defaultBaseUrl).replace(/\/$/, '')
+
+    return normalized.endsWith('/api') ? normalized : `${normalized}/api`
+  }
+
   static async getProvider(config?: AIProviderConfig): Promise<LanguageModel> {
     const provider = config?.provider || (process.env.CHANGELOG_AI_PROVIDER as AIProvider) || 'openai'
 
@@ -73,7 +80,7 @@ export class AIProviderFactory {
   }
 
   private static async getOllamaProvider(baseUrl?: string, modelFromConfig?: string): Promise<LanguageModel> {
-    const ollamaBaseUrl = baseUrl || process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
+    const ollamaBaseUrl = this.normalizeOllamaBaseUrl(baseUrl)
 
     try {
       const { createOllama } = await import('ollama-ai-provider-v2')
@@ -150,8 +157,8 @@ export class AIProviderFactory {
   }
 
   private static async listOllamaModels(baseUrl?: string): Promise<AIProviderModelOption[]> {
-    const ollamaBaseUrl = baseUrl || process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
-    const response = await fetch(`${ollamaBaseUrl.replace(/\/$/, '')}/api/tags`)
+    const ollamaBaseUrl = this.normalizeOllamaBaseUrl(baseUrl)
+    const response = await fetch(`${ollamaBaseUrl}/tags`)
     if (!response.ok) {
       throw new Error(`Ollama models request failed (${response.status})`)
     }

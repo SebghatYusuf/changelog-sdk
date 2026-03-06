@@ -2,6 +2,7 @@ import { fetchAdminChangelogs } from '../../actions/changelog-actions'
 import { ClipboardList } from 'lucide-react'
 import { ChangelogEntry } from '../../types/changelog'
 import DeleteButton from './delete-button'
+import PublishButton from './publish-button'
 
 /**
  * Admin Changelog List Component
@@ -94,6 +95,7 @@ function AdminListItem({ entry }: { entry: ChangelogEntry }) {
       </div>
 
       <div className="cl-admin-row-actions">
+        {entry.status === 'draft' && <PublishButton id={entry._id} />}
         <a href={`/changelog/admin/edit/${entry._id}`} className="cl-btn cl-btn-sm cl-btn-secondary cl-btn-compact">
           Edit
         </a>
