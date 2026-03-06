@@ -41,6 +41,21 @@ function stripMarkdownCodeFence(text: string): string {
   return trimmed
 }
 
+function extractFencedBlocks(text: string): string[] {
+  const blocks: string[] = []
+  const regex = /```(?:json)?\s*([\s\S]*?)\s*```/gi
+
+  let match: RegExpExecArray | null
+  do {
+    match = regex.exec(text)
+    if (match?.[1]) {
+      blocks.push(match[1].trim())
+    }
+  } while (match)
+
+  return blocks
+}
+
 function extractJSONObject(text: string): string {
   const start = text.indexOf('{')
   const end = text.lastIndexOf('}')
@@ -50,15 +65,115 @@ function extractJSONObject(text: string): string {
   return text
 }
 
-function parseEnhancementResponse(text: string): { title: string; content: string; tags: unknown[] } {
-  const direct = stripMarkdownCodeFence(text)
+function extractBalancedJSONObject(text: string): string | null {
+  let depth = 0
+  let inString = false
+  let isEscaped = false
+  let startIndex = -1
 
-  try {
-    return JSON.parse(direct)
-  } catch {
-    const extracted = extractJSONObject(direct)
-    return JSON.parse(extracted)
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index]
+
+    if (inString) {
+      if (isEscaped) {
+        isEscaped = false
+      } else if (char === '\\') {
+        isEscaped = true
+      } else if (char === '"') {
+        inString = false
+      }
+      continue
+    }
+
+    if (char === '"') {
+      inString = true
+      continue
+    }
+
+    if (char === '{') {
+      if (depth === 0) {
+        startIndex = index
+      }
+      depth += 1
+      continue
+    }
+
+    if (char === '}') {
+      if (depth > 0) {
+        depth -= 1
+        if (depth === 0 && startIndex >= 0) {
+          return text.slice(startIndex, index + 1)
+        }
+      }
+    }
   }
+
+  return null
+}
+
+function sanitizeJSONCandidate(text: string): string {
+  let sanitized = text.trim()
+
+  sanitized = sanitized
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .replace(/^```(?:json)?\s*$/gim, '')
+    .replace(/^\s*```\s*$/gim, '')
+    .trim()
+
+  return sanitized
+}
+
+function buildParseCandidates(text: string): string[] {
+  const trimmed = text.trim()
+  const direct = stripMarkdownCodeFence(trimmed)
+  const fencedBlocks = extractFencedBlocks(trimmed)
+  const broadExtracted = extractJSONObject(direct)
+
+  const rawCandidates = [
+    direct,
+    ...fencedBlocks,
+    extractBalancedJSONObject(direct),
+    extractBalancedJSONObject(trimmed),
+    broadExtracted,
+  ].filter((candidate): candidate is string => Boolean(candidate && candidate.trim()))
+
+  const candidates: string[] = []
+  const seen = new Set<string>()
+
+  const pushCandidate = (candidate: string | null) => {
+    if (!candidate) return
+    const normalized = candidate.trim()
+    if (!normalized || seen.has(normalized)) return
+    seen.add(normalized)
+    candidates.push(normalized)
+  }
+
+  for (const candidate of rawCandidates) {
+    const sanitized = sanitizeJSONCandidate(candidate)
+
+    pushCandidate(candidate)
+    pushCandidate(sanitized)
+    pushCandidate(extractBalancedJSONObject(sanitized))
+    pushCandidate(extractJSONObject(sanitized))
+  }
+
+  return candidates
+}
+
+function parseEnhancementResponse(text: string): { title: string; content: string; tags: unknown[] } {
+  const candidates = buildParseCandidates(text)
+
+  let lastError: unknown
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate)
+    } catch (error) {
+      lastError = error
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Invalid AI response format')
 }
 
 export async function enhanceChangelog(rawNotes: string, version?: string): Promise<EnhanceChangelogOutput> {

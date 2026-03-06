@@ -76,10 +76,6 @@ export const AIModelListRequestSchema = z.object({
 })
 
 export const ChangelogSettingsSchema = z.object({
-  currentVersion: z
-    .string()
-    .trim()
-    .regex(/^v?\d+\.\d+\.\d+$/, 'Current version must be semantic version format (e.g. 1.2.3)'),
   defaultFeedPageSize: z.number().int().min(1).max(50),
   autoPublish: z.boolean(),
 })

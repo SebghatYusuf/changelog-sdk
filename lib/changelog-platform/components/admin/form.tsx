@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from 'react'
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { Sparkles } from 'lucide-react'
-import { createChangelog, fetchChangelogSettings, runAIEnhance, updateChangelog } from '../../actions/changelog-actions'
+import { createChangelog, fetchAISettings, fetchLatestPublishedVersion, runAIEnhance, updateChangelog } from '../../actions/changelog-actions'
 import { ChangelogEntry, ChangelogTag } from '../../types/changelog'
 import { useToast } from '../toast/provider'
+import Tooltip from '../tooltip/tooltip'
 
 /**
  * Create/Edit Changelog Form Component
@@ -53,6 +54,7 @@ const PRESETS: Record<PresetType, { title: string; content: string; tags: Change
 }
 
 type VersionBumpType = 'patch' | 'minor' | 'major'
+type AILoadingAction = 'enhance-title' | 'generate-title' | 'enhance-content'
 
 function normalizeSemver(value: string): string {
   return value.trim().replace(/^v/i, '')
@@ -67,9 +69,15 @@ function bumpSemver(version: string, bumpType: VersionBumpType): string | null {
   const minor = Number(match[2])
   const patch = Number(match[3])
 
-  if (bumpType === 'major') return `${major + 1}.0.0`
-  if (bumpType === 'minor') return `${major}.${minor + 1}.0`
+  if (bumpType === 'major') return `${major + 1}.${minor}.${patch}`
+  if (bumpType === 'minor') return `${major}.${minor + 1}.${patch}`
   return `${major}.${minor}.${patch + 1}`
+}
+
+function formatProviderName(provider: 'openai' | 'gemini' | 'ollama'): string {
+  if (provider === 'openai') return 'OpenAI'
+  if (provider === 'gemini') return 'Google Gemini'
+  return 'Ollama'
 }
 
 export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
@@ -110,13 +118,17 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
 
   const formRef = useRef<HTMLFormElement>(null)
   const [selectedTags, setSelectedTags] = useState<ChangelogTag[]>(initialEntry?.tags || [])
-  const [aiLoadingField, setAiLoadingField] = useState<'title' | 'content' | null>(null)
+  const [aiLoadingAction, setAiLoadingAction] = useState<AILoadingAction | null>(null)
   const [aiError, setAiError] = useState<string>('')
+  const [titleValue, setTitleValue] = useState(initialEntry?.title || '')
+  const [aiRuntimeLabel, setAiRuntimeLabel] = useState('configured AI model')
   const [versionValue, setVersionValue] = useState(initialEntry?.version || '1.0.0')
   const [versionError, setVersionError] = useState('')
   const [loadingVersionDefaults, setLoadingVersionDefaults] = useState(true)
   const lastFormToastKeyRef = useRef('')
   const lastAIErrorToastRef = useRef('')
+  const aiEnhanceBusyRef = useRef(false)
+  const aiEnhanceRequestIdRef = useRef(0)
 
   // Redirect back to admin list after a successful edit
   useEffect(() => {
@@ -158,11 +170,11 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
     let isMounted = true
 
     ;(async () => {
-      const result = await fetchChangelogSettings()
+      const result = await fetchLatestPublishedVersion()
       if (!isMounted) return
 
-      if (!isEditing && result.success && result.data?.currentVersion) {
-        setVersionValue(result.data.currentVersion)
+      if (!isEditing && result.success && result.data?.version) {
+        setVersionValue(result.data.version)
       }
 
       setLoadingVersionDefaults(false)
@@ -186,6 +198,7 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
 
     if (titleEl) {
       titleEl.value = selectedPreset.title
+      setTitleValue(selectedPreset.title)
     }
 
     if (contentEl) {
@@ -195,13 +208,38 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
     setSelectedTags(selectedPreset.tags)
   }, [isEditing, preset])
 
+  useEffect(() => {
+    let isMounted = true
+
+    ;(async () => {
+      const result = await fetchAISettings()
+      if (!isMounted) return
+
+      if (!result.success || !result.data) {
+        return
+      }
+
+      const providerName = formatProviderName(result.data.provider)
+      const modelName = result.data.model?.trim() || 'default'
+      setAiRuntimeLabel(`${providerName} · ${modelName}`)
+    })()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   const handleToggleTag = (tag: ChangelogTag) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     )
   }
 
-  const handleAIEnhanceField = async (field: 'title' | 'content') => {
+  const handleAIEnhanceField = async (field: 'title' | 'content', source: 'enhance' | 'generate' = 'enhance') => {
+    if (aiEnhanceBusyRef.current) {
+      return
+    }
+
     const formElement = formRef.current
     if (!formElement) return
 
@@ -213,32 +251,60 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
     const content = contentEl?.value?.trim() || ''
     const version = versionEl?.value?.trim() || ''
     const rawNotes = field === 'title' ? title || content : content || title
+    const startTitle = titleEl?.value || ''
+    const startContent = contentEl?.value || ''
 
     if (!rawNotes) {
       setAiError(`Add ${field === 'title' ? 'a title or some content' : 'content or a title'} before enhancing.`)
       return
     }
 
+    aiEnhanceBusyRef.current = true
+    const requestId = ++aiEnhanceRequestIdRef.current
+
     setAiError('')
-    setAiLoadingField(field)
+    const loadingAction: AILoadingAction =
+      field === 'content' ? 'enhance-content' : source === 'generate' ? 'generate-title' : 'enhance-title'
 
-    const result = await runAIEnhance({ rawNotes, currentVersion: version || undefined })
+    setAiLoadingAction(loadingAction)
 
-    if (result.success && result.data) {
-      if (field === 'title' && titleEl) {
-        titleEl.value = result.data.title
+    try {
+      const result = await runAIEnhance({ rawNotes, currentVersion: version || undefined })
+
+      if (requestId !== aiEnhanceRequestIdRef.current) {
+        return
       }
 
-      if (field === 'content' && contentEl) {
-        contentEl.value = result.data.content
-      }
+      if (result.success && result.data) {
+        if (field === 'title' && titleEl) {
+          const titleChangedDuringRequest = titleEl.value !== startTitle
+          if (titleChangedDuringRequest) {
+            setAiError('Title changed while AI was running. Please try Enhance again.')
+            return
+          }
+          titleEl.value = result.data.title
+          setTitleValue(result.data.title)
+        }
 
-      setSelectedTags(result.data.tags)
-    } else if (!result.success) {
-      setAiError(result.error || 'AI enhancement failed')
+        if (field === 'content' && contentEl) {
+          const contentChangedDuringRequest = contentEl.value !== startContent
+          if (contentChangedDuringRequest) {
+            setAiError('Content changed while AI was running. Please try Enhance again.')
+            return
+          }
+          contentEl.value = result.data.content
+        }
+
+        setSelectedTags(result.data.tags)
+      } else if (!result.success) {
+        setAiError(result.error || 'AI enhancement failed')
+      }
+    } finally {
+      if (requestId === aiEnhanceRequestIdRef.current) {
+        setAiLoadingAction(null)
+      }
+      aiEnhanceBusyRef.current = false
     }
-
-    setAiLoadingField(null)
   }
 
   const handleVersionBump = (bumpType: VersionBumpType) => {
@@ -291,12 +357,33 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
             <label className="cl-form-label" htmlFor="title">
               Title *
             </label>
-            <MagicEnhanceButton
-              disabled={aiLoadingField !== null}
-              loading={aiLoadingField === 'title'}
-              onClick={() => handleAIEnhanceField('title')}
-              label="Enhance title"
-            />
+            <div className="cl-ai-actions">
+              <MagicEnhanceButton
+                disabled={aiLoadingAction !== null}
+                loading={aiLoadingAction === 'enhance-title'}
+                onClick={() => handleAIEnhanceField('title')}
+                label="Enhance title"
+                tooltip={`Uses ${aiRuntimeLabel}`}
+              />
+              {titleValue.trim().length === 0 && (
+                <Tooltip content={`Generate title from content • Uses ${aiRuntimeLabel}`}>
+                  <button
+                    type="button"
+                    onClick={() => handleAIEnhanceField('title', 'generate')}
+                    disabled={aiLoadingAction !== null}
+                    className="cl-ai-inline-btn"
+                    aria-label={`Generate title from content using ${aiRuntimeLabel}`}
+                  >
+                    {aiLoadingAction === 'generate-title' ? (
+                      <span className="cl-spinner cl-spinner-sm" />
+                    ) : (
+                      <Sparkles className="cl-ai-icon" strokeWidth={1.9} aria-hidden="true" />
+                    )}
+                    <span>Generate title</span>
+                  </button>
+                </Tooltip>
+              )}
+            </div>
           </div>
           <input
             id="title"
@@ -305,6 +392,7 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
             placeholder="e.g., Major performance update"
             className="cl-input"
             defaultValue={initialEntry?.title || ''}
+            onChange={(e) => setTitleValue(e.target.value)}
             required
           />
         </div>
@@ -344,7 +432,7 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
               ? 'Edit mode: version will be updated.'
               : loadingVersionDefaults
                 ? 'Loading version defaults...'
-                : 'Default comes from changelog settings.'}
+                : 'Default comes from latest published changelog version.'}
           </p>
         </div>
 
@@ -354,10 +442,11 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
               Content (Markdown) *
             </label>
             <MagicEnhanceButton
-              disabled={aiLoadingField !== null}
-              loading={aiLoadingField === 'content'}
+              disabled={aiLoadingAction !== null}
+              loading={aiLoadingAction === 'enhance-content'}
               onClick={() => handleAIEnhanceField('content')}
               label="Enhance content"
+              tooltip={`Uses ${aiRuntimeLabel}`}
             />
           </div>
           <textarea
@@ -416,25 +505,27 @@ interface MagicEnhanceButtonProps {
   loading?: boolean
   onClick: () => void
   label: string
+  tooltip: string
 }
 
-function MagicEnhanceButton({ disabled, loading, onClick, label }: MagicEnhanceButtonProps) {
+function MagicEnhanceButton({ disabled, loading, onClick, label, tooltip }: MagicEnhanceButtonProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="cl-ai-inline-btn"
-      aria-label={label}
-      title={label}
-    >
-      {loading ? (
-        <span className="cl-spinner cl-spinner-sm" />
-      ) : (
-        <Sparkles className="cl-ai-icon" strokeWidth={1.9} aria-hidden="true" />
-      )}
-      <span>Enhance</span>
-    </button>
+    <Tooltip content={`${label} • ${tooltip}`}>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className="cl-ai-inline-btn"
+        aria-label={`${label}. ${tooltip}`}
+      >
+        {loading ? (
+          <span className="cl-spinner cl-spinner-sm" />
+        ) : (
+          <Sparkles className="cl-ai-icon" strokeWidth={1.9} aria-hidden="true" />
+        )}
+        <span>Enhance</span>
+      </button>
+    </Tooltip>
   )
 }
 

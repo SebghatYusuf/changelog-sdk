@@ -5,13 +5,11 @@ import { fetchChangelogSettings, updateChangelogSettings } from '../../actions/c
 import { useToast } from '../toast/provider'
 
 interface SettingsState {
-  currentVersion: string
   defaultFeedPageSize: number
   autoPublish: boolean
 }
 
 const INITIAL_STATE: SettingsState = {
-  currentVersion: '1.0.0',
   defaultFeedPageSize: 10,
   autoPublish: false,
 }
@@ -39,7 +37,6 @@ export default function ChangelogSettingsPanel() {
       }
 
       setState({
-        currentVersion: result.data.currentVersion,
         defaultFeedPageSize: result.data.defaultFeedPageSize,
         autoPublish: result.data.autoPublish,
       })
@@ -77,7 +74,6 @@ export default function ChangelogSettingsPanel() {
 
     const saved = result.data
     setState({
-      currentVersion: saved.currentVersion,
       defaultFeedPageSize: saved.defaultFeedPageSize,
       autoPublish: saved.autoPublish,
     })
@@ -114,19 +110,6 @@ export default function ChangelogSettingsPanel() {
 
         {!loading ? (
           <>
-            <div className="cl-form-group">
-              <label className="cl-form-label" htmlFor="current-version">
-                Current release version
-              </label>
-              <input
-                id="current-version"
-                className="cl-input"
-                value={state.currentVersion}
-                onChange={(e) => setState((prev) => ({ ...prev, currentVersion: e.target.value }))}
-                placeholder="e.g. 1.4.2"
-              />
-            </div>
-
             <div className="cl-form-group">
               <label className="cl-form-label" htmlFor="default-feed-page-size">
                 Default feed page size

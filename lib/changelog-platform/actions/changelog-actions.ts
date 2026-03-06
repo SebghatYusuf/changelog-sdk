@@ -41,6 +41,58 @@ function toChangelogEntry(doc: any): ChangelogEntry {
   }
 }
 
+function parseSemver(version: string): [number, number, number] | null {
+  const match = version.trim().replace(/^v/i, '').match(/^(\d+)\.(\d+)\.(\d+)$/)
+  if (!match) return null
+  return [Number(match[1]), Number(match[2]), Number(match[3])]
+}
+
+function compareSemver(a: string, b: string): number {
+  const parsedA = parseSemver(a)
+  const parsedB = parseSemver(b)
+
+  if (!parsedA || !parsedB) {
+    throw new Error('Version must use semantic format (e.g. 1.2.3)')
+  }
+
+  for (let index = 0; index < 3; index++) {
+    if (parsedA[index] > parsedB[index]) return 1
+    if (parsedA[index] < parsedB[index]) return -1
+  }
+
+  return 0
+}
+
+async function getHighestChangelogVersion(excludeId?: string): Promise<string | null> {
+  const query = excludeId ? { _id: { $ne: excludeId } } : {}
+  const entries = await Changelog.find(query).select('version').lean()
+
+  let highest: string | null = null
+  for (const entry of entries) {
+    const version = String(entry.version || '').trim().replace(/^v/i, '')
+    if (!parseSemver(version)) continue
+
+    if (!highest || compareSemver(version, highest) > 0) {
+      highest = version
+    }
+  }
+
+  return highest
+}
+
+async function assertVersionNotLower(candidateVersion: string, excludeId?: string): Promise<void> {
+  if (!parseSemver(candidateVersion)) {
+    throw new Error('Version must use semantic format (e.g. 1.2.3)')
+  }
+
+  const highestVersion = await getHighestChangelogVersion(excludeId)
+  if (!highestVersion) return
+
+  if (compareSemver(candidateVersion, highestVersion) <= 0) {
+    throw new Error("This version is already deployed and can't be added again. If you need changes, edit the existing changelog entry.")
+  }
+}
+
 // ===== CHANGELOG CRUD ACTIONS =====
 
 export async function createChangelog(input: unknown): Promise<{ success: boolean; data?: ChangelogEntry; error?: string }> {
@@ -50,6 +102,7 @@ export async function createChangelog(input: unknown): Promise<{ success: boolea
     // Validate input
     const validated = CreateChangelogSchema.parse(input)
     const normalizedVersion = validated.version.trim().replace(/^v/i, '')
+    await assertVersionNotLower(normalizedVersion)
 
     const currentSettings = await getChangelogSettings()
 
@@ -65,10 +118,6 @@ export async function createChangelog(input: unknown): Promise<{ success: boolea
     })
 
     await changelog.save()
-    await saveChangelogSettings({
-      ...currentSettings,
-      currentVersion: normalizedVersion,
-    })
 
     revalidatePath('/changelog')
 
@@ -92,6 +141,21 @@ export async function updateChangelog(input: unknown): Promise<{ success: boolea
     // Validate input
     const validated = UpdateChangelogSchema.parse(input)
     const normalizedVersion = validated.version?.trim().replace(/^v/i, '')
+
+    if (normalizedVersion) {
+      const existing = await Changelog.findById(validated.id).select('version').lean()
+      if (!existing) {
+        return {
+          success: false,
+          error: 'Changelog entry not found',
+        }
+      }
+
+      const existingVersion = String(existing.version || '').trim().replace(/^v/i, '')
+      if (normalizedVersion !== existingVersion) {
+        await assertVersionNotLower(normalizedVersion, validated.id)
+      }
+    }
 
     // Update entry
     const changelog = await Changelog.findByIdAndUpdate(
@@ -347,7 +411,6 @@ export async function updateChangelogSettings(input: unknown) {
 
     const validated = ChangelogSettingsSchema.parse(input)
     const normalized: ChangelogSettingsInput = {
-      currentVersion: validated.currentVersion.replace(/^v/, ''),
       defaultFeedPageSize: validated.defaultFeedPageSize,
       autoPublish: validated.autoPublish,
     }
@@ -357,6 +420,39 @@ export async function updateChangelogSettings(input: unknown) {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to update changelog settings',
+    }
+  }
+}
+
+export async function fetchLatestPublishedVersion(): Promise<{ success: boolean; data?: { version: string }; error?: string }> {
+  try {
+    const isAdmin = await checkAdminAuth()
+    if (!isAdmin) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    await connectDB()
+
+    const entries = await Changelog.find({ status: 'published' }).select('version').lean()
+    let highestVersion = '1.0.0'
+
+    for (const entry of entries) {
+      const version = String(entry.version || '').trim().replace(/^v/i, '')
+      if (!parseSemver(version)) continue
+
+      if (compareSemver(version, highestVersion) > 0) {
+        highestVersion = version
+      }
+    }
+
+    return {
+      success: true,
+      data: { version: highestVersion },
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch latest published version',
     }
   }
 }

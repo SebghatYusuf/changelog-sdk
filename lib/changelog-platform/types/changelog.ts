@@ -99,7 +99,6 @@ export interface AIModelOption {
 }
 
 export interface ChangelogSettingsInput {
-  currentVersion: string
   defaultFeedPageSize: number
   autoPublish: boolean
 }

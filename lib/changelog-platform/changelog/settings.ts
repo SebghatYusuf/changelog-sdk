@@ -2,20 +2,17 @@ import connectDB from '../db/mongoose'
 import ChangelogSettings from '../db/models/ChangelogSettings'
 
 export interface PersistedChangelogSettings {
-  currentVersion: string
   defaultFeedPageSize: number
   autoPublish: boolean
 }
 
 const DEFAULT_CHANGELOG_SETTINGS: PersistedChangelogSettings = {
-  currentVersion: '1.0.0',
   defaultFeedPageSize: 10,
   autoPublish: false,
 }
 
 function normalizeSettings(input: Partial<PersistedChangelogSettings>): PersistedChangelogSettings {
   return {
-    currentVersion: input.currentVersion?.trim() || DEFAULT_CHANGELOG_SETTINGS.currentVersion,
     defaultFeedPageSize:
       typeof input.defaultFeedPageSize === 'number'
         ? Math.min(50, Math.max(1, input.defaultFeedPageSize))
@@ -33,7 +30,6 @@ export async function getChangelogSettings(): Promise<PersistedChangelogSettings
   }
 
   return normalizeSettings({
-    currentVersion: settings.currentVersion,
     defaultFeedPageSize: settings.defaultFeedPageSize,
     autoPublish: settings.autoPublish,
   })
@@ -48,7 +44,6 @@ export async function saveChangelogSettings(input: PersistedChangelogSettings): 
     { key: 'default' },
     {
       key: 'default',
-      currentVersion: normalized.currentVersion,
       defaultFeedPageSize: normalized.defaultFeedPageSize,
       autoPublish: normalized.autoPublish,
     },

@@ -5,6 +5,7 @@ import ChangelogDetail from './feed/detail'
 import AdminPortal from './admin/portal'
 import LoginForm from './auth/login'
 import { ToastProvider } from './toast/provider'
+import { TooltipProvider } from './tooltip/provider'
 
 /**
  * Main Changelog Manager Component - Server Component
@@ -45,7 +46,11 @@ export default function ChangelogManager({ params, searchParams }: ChangelogMana
     content = <PublicFeedRoute searchParams={searchParams} />
   }
 
-  return <ToastProvider>{content}</ToastProvider>
+  return (
+    <TooltipProvider>
+      <ToastProvider>{content}</ToastProvider>
+    </TooltipProvider>
+  )
 }
 
 /**

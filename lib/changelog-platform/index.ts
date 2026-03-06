@@ -45,6 +45,7 @@ export {
   fetchAISettings,
   fetchAIProviderModels,
   updateAISettings,
+  fetchLatestPublishedVersion,
   fetchChangelogSettings,
   updateChangelogSettings,
 } from './actions/changelog-actions'
