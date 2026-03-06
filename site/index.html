@@ -30,6 +30,8 @@
     />
     <meta name="twitter:image" content="https://sebghatyusuf.github.io/changelog-sdk/images/changelog.png" />
     <link rel="canonical" href="https://sebghatyusuf.github.io/changelog-sdk/" />
+    <link rel="icon" type="image/svg+xml" href="./images/changelog-sdk-icon.svg" />
+    <link rel="apple-touch-icon" href="./images/changelog-sdk-icon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -185,10 +187,23 @@
       }
 
       .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.58rem;
         font-family: var(--font-head);
         font-weight: 800;
         font-size: 1.05rem;
         letter-spacing: -0.01em;
+      }
+
+      .brand-icon {
+        width: 1.55rem;
+        height: 1.55rem;
+        border-radius: 7px;
+        box-shadow: 0 0 0 1px rgba(91, 155, 255, 0.25), 0 6px 16px rgba(0, 0, 0, 0.35);
+      }
+
+      .brand-label {
         background: linear-gradient(135deg, #fff 30%, var(--blue-soft));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -847,7 +862,10 @@
 
     <header class="topbar">
       <div class="container topbar-inner">
-        <div class="brand">changelog-sdk</div>
+        <div class="brand">
+          <img class="brand-icon" src="./images/changelog-sdk-icon.svg" alt="Changelog SDK logo" />
+          <span class="brand-label">changelog-sdk</span>
+        </div>
         <nav class="nav-links">
           <a
             class="btn btn-ghost"

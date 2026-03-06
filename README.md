@@ -9,7 +9,9 @@ Production-ready Changelog SDK for Next.js applications with a public changelog 
 
 `changelog-sdk` is designed for teams that want to ship updates faster while keeping changelog UX clean, searchable, and isolated from host app styles.
 
-![Public Changelog Feed](./images/changelog.png)
+<img src="./images/changelog-sdk-icon.svg" alt="Changelog SDK Logo" width="72" height="72" />
+
+![Public Changelog Feed](./site/images/changelog.png)
 
 ## Table of Contents
 
@@ -196,14 +198,14 @@ Once configured, these routes are available:
 - Search by title/content
 - Filter by tags: `Features`, `Fixes`, `Improvements`, `Breaking`, `Security`, `Performance`, `Docs`
 
-![Public Changelog Feed](./images/changelog.png)
+![Public Changelog Feed](./site/images/changelog.png)
 
 ### Admin Portal
 
 - Log in at `/changelog//login`
 - Manage entries at `/changelog/admin`
 
-![Admin — New Entry Form](./images/admin-new-entry.png)
+![Admin — New Entry Form](./site/images/admin-new-entry.png)
 
 Generate a hashed password for `CHANGELOG_ADMIN_PASSWORD`:
 
@@ -218,7 +220,7 @@ bun -e "console.log(require('bcryptjs').hashSync('your-admin-password', 10))"
 3. Review generated title, markdown body, and tags
 4. Edit if needed and publish
 
-![AI Provider Settings](./images/ai-settings.png)
+![AI Provider Settings](./site/images/ai-settings.png)
 
 ## API and Server Actions
 
