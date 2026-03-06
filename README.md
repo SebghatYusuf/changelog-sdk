@@ -1,77 +1,77 @@
-# Changelog SDK for Next.js 16+
+# Changelog SDK for Next.js (AI-Powered Changelog Management)
 
-A pluggable, production-ready Changelog management SDK for Next.js 16+ with AI-powered enhancement, multi-provider AI support, and complete isolation from your host application's styling.
+[![Next.js](https://img.shields.io/badge/Next.js-16%2B-black)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-18%2B-149eca)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5%2B-3178c6)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+
+Production-ready Changelog SDK for Next.js applications with a public changelog feed, secure admin portal, MongoDB persistence, and AI-assisted changelog writing.
+
+`changelog-sdk` is designed for teams that want to ship updates faster while keeping changelog UX clean, searchable, and isolated from host app styles.
+
+## Table of Contents
+
+- [Why Changelog SDK](#why-changelog-sdk)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Quick Start](#quick-start)
+- [Routing Setup](#routing-setup)
+- [Environment Variables](#environment-variables)
+- [Usage](#usage)
+- [API and Server Actions](#api-and-server-actions)
+- [TypeScript Types](#typescript-types)
+- [Styling and CSS Isolation](#styling-and-css-isolation)
+- [Security](#security)
+- [Troubleshooting](#troubleshooting)
+- [Development (SDK Contributors)](#development-sdk-contributors)
+- [License](#license)
+
+## Why Changelog SDK
+
+- Built for Next.js app router projects that need an integrated product changelog
+- Includes admin authentication with HTTP-only cookie sessions
+- Supports AI enhancement via OpenAI, Gemini, and Ollama
+- Ships with isolated `cl-` prefixed UI styles to avoid global CSS conflicts
+- Provides typed server actions and Zod-validated inputs
 
 ## Features
 
-✅ **Zero-Style Pollution** - Uses scoped `cl-` CSS classes with no Tailwind/PostCSS requirement
-✅ **Public Feed** - Beautiful, responsive changelog timeline at `/changelog`
-✅ **Admin Portal** - Protected admin interface at `/changelog/admin` with editor
-✅ **AI Enhancement** - Generate professional changelogs from raw notes using OpenAI, Gemini, or Ollama
-✅ **Authentication** - Secure HTTP-only cookie-based admin authentication
-✅ **Type-Safe** - Full TypeScript support with Zod validation
-✅ **Server Components** - Leverages React 19 Server Components and Server Actions
-✅ **Responsive Design** - Mobile-optimized UI built with Shadcn components
+- **Public changelog feed** at `/changelog` with search, filtering, and pagination
+- **Admin portal** at `/changelog/admin` for creating, editing, and deleting entries
+- **AI-powered writing assistance** from raw notes to polished release updates
+- **Secure auth flow** using hashed passwords and cookie-based sessions
+- **Type-safe API surface** with TypeScript and Zod
+- **Server Component friendly** architecture for modern Next.js apps
+- **No Tailwind dependency in host app** for SDK styles
 
-## 🚀 For SDK Developers
+## Requirements
 
-If you want to **develop and improve the SDK** itself:
+- Node.js `>= 20`
+- Next.js `>= 15` (optimized for Next.js 16+)
+- React `>= 18`
+- MongoDB database
 
-- See [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md) for quick setup
-- See [SDK_DEVELOPMENT.md](./SDK_DEVELOPMENT.md) for detailed development guide
+## Quick Start
 
-## For SDK Users
-
-If you want to **use this SDK in your Next.js project**:
-
-Continue reading below for installation and usage instructions.
-
-## Installation
-
-### 1. Add SDK from GitHub
-
-Add the SDK as a GitHub dependency in your Next.js project's `package.json`:
-
-```json
-{
-  "dependencies": {
-    "changelog-sdk": "github:SebghatYusuf/changelog-sdk#master"
-  }
-}
-```
-
-Or with package managers:
+### 1) Install the package
 
 ```bash
 bun add github:SebghatYusuf/changelog-sdk#master
+# or
 npm install github:SebghatYusuf/changelog-sdk#master
+# or
 yarn add github:SebghatYusuf/changelog-sdk#master
+# or
 pnpm add github:SebghatYusuf/changelog-sdk#master
 ```
 
-### 2. Install Dependencies
+SDK styles are automatically included when importing from `changelog-sdk`.
 
-Using bun (recommended):
+### 2) Add the catch-all changelog route
 
-```bash
-bun install
-```
+Create `app/changelog/[[...route]]/page.tsx`:
 
-Alternatively with npm:
-
-```bash
-npm install
-```
-
-The SDK will be installed in `node_modules/changelog-sdk` and you can import it directly. No Tailwind/PostCSS setup is required.
-
-### 3. Create Routing Structure
-
-In your Next.js app, create the catch-all route:
-
-**`app/changelog/[[...route]]/page.tsx`**
-
-```typescript
+```tsx
 import { ChangelogManager } from 'changelog-sdk'
 
 interface ChangelogPageProps {
@@ -90,101 +90,88 @@ export default function ChangelogPage({ params }: ChangelogPageProps) {
 }
 ```
 
-### 4. Environment Variables
+### 3) Configure environment variables
 
-Create a `.env.local` file in your project root:
+Create `.env.local` in your project root:
 
 ```env
-# MongoDB Connection
+# MongoDB
 CHANGELOG_MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/changelog?retryWrites=true&w=majority
 
-# Admin Password (MUST BE HASHED with bcryptjs in production)
-CHANGELOG_ADMIN_PASSWORD=$2a$10$... # Use bcryptjs.hash('your-password', 10)
+# Admin password (bcryptjs hash only)
+CHANGELOG_ADMIN_PASSWORD=$2a$10$...
 
-# AI Provider Configuration
-CHANGELOG_AI_PROVIDER=openai # Options: openai, gemini, ollama
+# AI provider: openai | gemini | ollama
+CHANGELOG_AI_PROVIDER=openai
 
-# OpenAI (if using openai provider)
+# Provider keys
 OPENAI_API_KEY=sk-...
-
-# Google Gemini (if using gemini provider)
 GOOGLE_GENERATIVE_AI_API_KEY=...
-
-# Ollama (if using ollama provider - local LLM)
 OLLAMA_BASE_URL=http://localhost:11434
 
-# Optional: Rate limiting
-CHANGELOG_RATE_LIMIT=10 # Max AI calls per minute (default: 10)
+# Optional
+CHANGELOG_RATE_LIMIT=10
 ```
 
-### 5. CI/CD Deployment
-
-The SDK will be automatically installed in your CI/CD pipeline because it's specified in `package.json`:
+### 4) Run your app
 
 ```bash
-# In your CI/CD (GitHub Actions, GitLab CI, Bitbucket Pipelines, etc.)
-bun install  # or npm install
-
-# The changelog-sdk will be pulled from GitHub automatically
-bun run build
+bun run dev
+# or
+npm run dev
 ```
 
-No additional configuration is needed for your CI/CD platform—just commit the updated `package.json`.
+## Routing Setup
+
+Once configured, these routes are available:
+
+- `/changelog` → public timeline
+- `/changelog/login` → admin login
+- `/changelog/admin` → admin dashboard
+
+## Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `CHANGELOG_MONGODB_URI` | Yes | MongoDB connection string |
+| `CHANGELOG_ADMIN_PASSWORD` | Yes | Bcrypt-hashed admin password |
+| `CHANGELOG_AI_PROVIDER` | No | `openai`, `gemini`, or `ollama` |
+| `OPENAI_API_KEY` | If OpenAI | API key for OpenAI provider |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | If Gemini | API key for Gemini provider |
+| `OLLAMA_BASE_URL` | If Ollama | Base URL for local Ollama instance |
+| `CHANGELOG_RATE_LIMIT` | No | AI calls per minute (default: `10`) |
 
 ## Usage
 
 ### Public Feed
 
-Users can view published changelogs at:
-
-- `/changelog` - Main feed with filtering and search
-- Search by title or content
-- Filter by tags (Features, Fixes, Improvements, Breaking, Security, Performance, Docs)
+- Browse published updates at `/changelog`
+- Search by title/content
+- Filter by tags: `Features`, `Fixes`, `Improvements`, `Breaking`, `Security`, `Performance`, `Docs`
 
 ### Admin Portal
 
-Admins can manage changelogs at:
+- Log in at `/changelog/login`
+- Manage entries at `/changelog/admin`
 
-- `/changelog/login` - Login page
-- `/changelog/admin` - Admin dashboard (create, edit, delete entries)
-
-**Default Admin Password:**
-
-For development, set `CHANGELOG_ADMIN_PASSWORD` to a hashed password.
-
-Using bcryptjs with bun:
+Generate a hashed password for `CHANGELOG_ADMIN_PASSWORD`:
 
 ```bash
 bun -e "console.log(require('bcryptjs').hashSync('your-admin-password', 10))"
 ```
 
-Or with Node.js:
+### AI Enhancement Workflow
 
-```javascript
-const bcryptjs = require('bcryptjs')
-const password = 'your-admin-password'
-const hashed = bcryptjs.hashSync(password, 10)
-console.log(hashed) // Use this as CHANGELOG_ADMIN_PASSWORD
-```
+1. Enter raw release notes
+2. Click **Enhance with AI**
+3. Review generated title, markdown body, and tags
+4. Edit if needed and publish
 
-### AI Enhancement
+## API and Server Actions
 
-In the admin portal, use the "AI Enhance" feature:
+### Create changelog
 
-1. Enter raw notes about your update
-2. Click "✨ Enhance with AI"
-3. AI will generate:
-   - Professional title
-   - Formatted markdown body (Features, Fixes, Improvements sections)
-   - Auto-detected tags
-4. Review and modify if needed
-5. Publish when ready
-
-## API & Server Actions
-
-### Create Changelog
-
-```typescript
+```ts
 import { createChangelog } from 'changelog-sdk'
 
 const result = await createChangelog({
@@ -196,52 +183,38 @@ const result = await createChangelog({
 })
 ```
 
-### Fetch Published Changelogs
+### Fetch published changelogs
 
-```typescript
+```ts
 import { fetchPublishedChangelogs } from 'changelog-sdk'
 
-const result = await fetchPublishedChangelogs(
-  page,
-  limit,
-  tags?,
-  search?
-)
+const result = await fetchPublishedChangelogs(page, limit, tags, search)
 ```
 
-### AI Enhancement
+### Run AI enhancement
 
-```typescript
+```ts
 import { runAIEnhance } from 'changelog-sdk'
 
 const result = await runAIEnhance({
-  rawNotes: 'Fixed bug with auth, added dark mode, improved performance',
-  currentVersion: '1.2.0'
+  rawNotes: 'Fixed auth bug, added dark mode, improved performance',
+  currentVersion: '1.2.0',
 })
 ```
 
-### Authentication
+### Authentication helpers
 
-```typescript
-import {
-  loginAdmin,
-  logoutAdmin,
-  checkAdminAuth
-} from 'changelog-sdk'
+```ts
+import { loginAdmin, logoutAdmin, checkAdminAuth } from 'changelog-sdk'
 
-// Check if user is authenticated
 const isAdmin = await checkAdminAuth()
-
-// Login
-const result = await loginAdmin(password)
-
-// Logout
+const loginResult = await loginAdmin('password')
 await logoutAdmin()
 ```
 
 ## TypeScript Types
 
-```typescript
+```ts
 import type {
   ChangelogEntry,
   ChangelogStatus,
@@ -253,86 +226,61 @@ import type {
 } from 'changelog-sdk'
 ```
 
-## Styling with `cl-` Prefix
+## Styling and CSS Isolation
 
-All internal styles use the `cl-` prefix to avoid conflicts:
+All internal classes are namespaced with `cl-` to minimize host-app style collisions.
 
-```html
-<div class="cl-card">
-  <div class="cl-card-header">
-    <h1 class="cl-h1">Title</h1>
-  </div>
-  <div class="cl-card-content">
-    <p class="cl-p">Content</p>
-  </div>
-</div>
-```
+Available utility groups:
 
-Available classes:
+- **Typography:** `cl-h1`, `cl-h2`, `cl-h3`, `cl-h4`, `cl-p`, `cl-code`
+- **Components:** `cl-card`, `cl-btn`, `cl-input`, `cl-textarea`, `cl-badge`, `cl-alert`
+- **Layout:** `cl-container`, `cl-section`, `cl-grid`, `cl-grid-cols-1`, `cl-grid-cols-2`
+- **Utilities:** `cl-transition`, `cl-truncate`, `cl-line-clamp-2`, `cl-line-clamp-3`
 
-- **Typography**: `cl-h1`, `cl-h2`, `cl-h3`, `cl-h4`, `cl-p`, `cl-code`
-- **Components**: `cl-card`, `cl-btn`, `cl-input`, `cl-textarea`, `cl-badge`, `cl-alert`
-- **Layouts**: `cl-container`, `cl-section`, `cl-grid`, `cl-grid-cols-1`, `cl-grid-cols-2`
-- **Utilities**: `cl-transition`, `cl-truncate`, `cl-line-clamp-2`, `cl-line-clamp-3`
+## Security
 
-## Database Schema
-
-The SDK uses MongoDB with Mongoose. Key fields:
-
-```typescript
-{
-  _id: ObjectId
-  title: string
-  slug: string // Auto-generated from title
-  content: string // Markdown format
-  version: string // e.g., "1.2.3"
-  date: Date
-  status: 'draft' | 'published'
-  tags: string[] // Array of tags
-  aiGenerated: boolean
-  rawNotes?: string // Original input if AI-generated
-  createdAt: Date
-  updatedAt: Date
-}
-```
-
-## Security Considerations
-
-- ✅ **XSS Protection**: Markdown rendering sanitized with `rehype-sanitize`
-- ✅ **CSRF Protection**: Built-in Next.js CSRF protection for forms
-- ✅ **HTTP-Only Cookies**: Admin sessions use secure, HTTP-only cookies
-- ✅ **Password Hashing**: Admin password hashed with bcryptjs
-- ✅ **Input Validation**: All inputs validated with Zod schemas
-- ✅ **Rate Limiting**: Optional rate limiting on AI endpoints (default: 10 calls/min)
+- Markdown sanitization via `rehype-sanitize`
+- Zod validation for inputs and actions
+- HTTP-only cookie sessions for admin auth
+- Bcrypt password verification flow
+- Configurable AI request rate limiting
 
 ## Troubleshooting
 
-### "Too many connections" error
+### Too many MongoDB connections
 
-The Mongoose connection uses a singleton pattern. Ensure you're only calling `connectDB()` once per application instance.
+Ensure your app uses the SDK's singleton DB connection pattern and avoids creating duplicate connections per request.
 
-### Admin authentication not working
+### Admin login fails
 
-1. Verify `CHANGELOG_ADMIN_PASSWORD` is set and hashed
-2. Check that cookies are enabled
-3. Clear browser cookies and try again
+1. Confirm `CHANGELOG_ADMIN_PASSWORD` is a valid bcrypt hash
+2. Verify cookies are enabled
+3. Clear cookies and retry
 
-### AI Enhancement not working
+### AI enhancement fails
 
-1. Verify `CHANGELOG_AI_PROVIDER` is set correctly
-2. Check API key is valid for your chosen provider:
-   - OpenAI: `OPENAI_API_KEY`
-   - Gemini: `GOOGLE_GENERATIVE_AI_API_KEY`
-   - Ollama: Ensure Ollama is running at `OLLAMA_BASE_URL`
+1. Check `CHANGELOG_AI_PROVIDER`
+2. Verify provider credentials:
+   - OpenAI → `OPENAI_API_KEY`
+   - Gemini → `GOOGLE_GENERATIVE_AI_API_KEY`
+   - Ollama → running server at `OLLAMA_BASE_URL`
 
-### Styles appearing in host app
+### Unexpected host app styles
 
-Ensure all class names use the `cl-` prefix. Check for any forgotten prefixes in custom styles.
+Avoid overriding `cl-` prefixed selectors globally. If you use deep imports instead of `changelog-sdk`, ensure the SDK stylesheet is included.
+
+## Development (SDK Contributors)
+
+Run commands from this repository root:
+
+```bash
+bun install
+bun run build
+bun run type-check
+bun run example:install
+bun run example:dev
+```
 
 ## License
 
 MIT
-
-## Support
-
-For issues or questions, check the troubleshooting section in README.md or visit the [Bitbucket repository](https://bitbucket.org/your-workspace/changelog-sdk).
