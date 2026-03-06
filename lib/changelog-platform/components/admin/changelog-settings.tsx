@@ -96,18 +96,6 @@ export default function ChangelogSettingsPanel() {
           </div>
         ) : null}
 
-        {!loading && error ? (
-          <div className="cl-alert cl-alert-error">
-            <div className="cl-alert-description">{error}</div>
-          </div>
-        ) : null}
-
-        {!loading && success ? (
-          <div className="cl-alert cl-alert-success">
-            <div className="cl-alert-description">{success}</div>
-          </div>
-        ) : null}
-
         {!loading ? (
           <>
             <div className="cl-form-group">

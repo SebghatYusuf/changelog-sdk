@@ -145,18 +145,6 @@ export default function AISettingsPanel() {
       </div>
 
       <div className="cl-card-content cl-admin-form-body">
-        {error ? (
-          <div className="cl-alert cl-alert-error">
-            <div className="cl-alert-description">{error}</div>
-          </div>
-        ) : null}
-
-        {success ? (
-          <div className="cl-alert cl-alert-success">
-            <div className="cl-alert-description">{success}</div>
-          </div>
-        ) : null}
-
         <div className="cl-form-group">
           <label className="cl-form-label" htmlFor="ai-provider">
             Provider

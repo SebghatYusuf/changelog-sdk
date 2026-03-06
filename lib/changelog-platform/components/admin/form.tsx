@@ -116,19 +116,21 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
     { success: false }
   )
 
-  const formRef = useRef<HTMLFormElement>(null)
   const [selectedTags, setSelectedTags] = useState<ChangelogTag[]>(initialEntry?.tags || [])
   const [aiLoadingAction, setAiLoadingAction] = useState<AILoadingAction | null>(null)
   const [aiError, setAiError] = useState<string>('')
   const [titleValue, setTitleValue] = useState(initialEntry?.title || '')
+  const [contentValue, setContentValue] = useState(initialEntry?.content || '')
+  const [statusValue, setStatusValue] = useState<'draft' | 'published'>(initialEntry?.status || 'draft')
   const [aiRuntimeLabel, setAiRuntimeLabel] = useState('configured AI model')
   const [versionValue, setVersionValue] = useState(initialEntry?.version || '1.0.0')
   const [versionError, setVersionError] = useState('')
   const [loadingVersionDefaults, setLoadingVersionDefaults] = useState(true)
-  const lastFormToastKeyRef = useRef('')
   const lastAIErrorToastRef = useRef('')
   const aiEnhanceBusyRef = useRef(false)
   const aiEnhanceRequestIdRef = useRef(0)
+  const titleValueRef = useRef(titleValue)
+  const contentValueRef = useRef(contentValue)
 
   // Redirect back to admin list after a successful edit
   useEffect(() => {
@@ -141,20 +143,12 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
 
   useEffect(() => {
     if (formState.error) {
-      const key = `error:${formState.error}`
-      if (key !== lastFormToastKeyRef.current) {
-        showToast(formState.error, 'error')
-        lastFormToastKeyRef.current = key
-      }
+      showToast(formState.error, 'error')
       return
     }
 
     if (formState.success) {
-      const key = `success:${successMessage}`
-      if (key !== lastFormToastKeyRef.current) {
-        showToast(successMessage, 'success')
-        lastFormToastKeyRef.current = key
-      }
+      showToast(successMessage, 'success')
     }
   }, [formState, showToast, successMessage])
 
@@ -165,6 +159,14 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
     showToast(aiError, 'error')
     lastAIErrorToastRef.current = aiError
   }, [aiError, showToast])
+
+  useEffect(() => {
+    titleValueRef.current = titleValue
+  }, [titleValue])
+
+  useEffect(() => {
+    contentValueRef.current = contentValue
+  }, [contentValue])
 
   useEffect(() => {
     let isMounted = true
@@ -190,21 +192,8 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
     if (!preset || !(preset in PRESETS)) return
 
     const selectedPreset = PRESETS[preset as PresetType]
-    const formElement = formRef.current
-    if (!formElement) return
-
-    const titleEl = formElement.querySelector('input[name="title"]') as HTMLInputElement | null
-    const contentEl = formElement.querySelector('textarea[name="content"]') as HTMLTextAreaElement | null
-
-    if (titleEl) {
-      titleEl.value = selectedPreset.title
-      setTitleValue(selectedPreset.title)
-    }
-
-    if (contentEl) {
-      contentEl.value = selectedPreset.content
-    }
-
+    setTitleValue(selectedPreset.title)
+    setContentValue(selectedPreset.content)
     setSelectedTags(selectedPreset.tags)
   }, [isEditing, preset])
 
@@ -240,19 +229,12 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
       return
     }
 
-    const formElement = formRef.current
-    if (!formElement) return
-
-    const titleEl = formElement.querySelector('input[name="title"]') as HTMLInputElement | null
-    const contentEl = formElement.querySelector('textarea[name="content"]') as HTMLTextAreaElement | null
-    const versionEl = formElement.querySelector('input[name="version"]') as HTMLInputElement | null
-
-    const title = titleEl?.value?.trim() || ''
-    const content = contentEl?.value?.trim() || ''
-    const version = versionEl?.value?.trim() || ''
+    const title = titleValue.trim()
+    const content = contentValue.trim()
+    const version = versionValue.trim()
     const rawNotes = field === 'title' ? title || content : content || title
-    const startTitle = titleEl?.value || ''
-    const startContent = contentEl?.value || ''
+    const startTitle = titleValue
+    const startContent = contentValue
 
     if (!rawNotes) {
       setAiError(`Add ${field === 'title' ? 'a title or some content' : 'content or a title'} before enhancing.`)
@@ -276,23 +258,22 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
       }
 
       if (result.success && result.data) {
-        if (field === 'title' && titleEl) {
-          const titleChangedDuringRequest = titleEl.value !== startTitle
+        if (field === 'title') {
+          const titleChangedDuringRequest = titleValueRef.current !== startTitle
           if (titleChangedDuringRequest) {
             setAiError('Title changed while AI was running. Please try Enhance again.')
             return
           }
-          titleEl.value = result.data.title
           setTitleValue(result.data.title)
         }
 
-        if (field === 'content' && contentEl) {
-          const contentChangedDuringRequest = contentEl.value !== startContent
+        if (field === 'content') {
+          const contentChangedDuringRequest = contentValueRef.current !== startContent
           if (contentChangedDuringRequest) {
             setAiError('Content changed while AI was running. Please try Enhance again.')
             return
           }
-          contentEl.value = result.data.content
+          setContentValue(result.data.content)
           showToast('Content generated successfully.', 'success')
         }
 
@@ -320,7 +301,7 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
   }
 
   return (
-    <form ref={formRef} action={formAction} className="cl-card cl-admin-panel cl-admin-form">
+    <form action={formAction} className="cl-card cl-admin-panel cl-admin-form">
       <div className="cl-card-header">
         <h3 className="cl-card-title">{isEditing ? 'Edit entry' : 'New entry'}</h3>
         <p className="cl-card-description">
@@ -329,27 +310,9 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
       </div>
 
       <div className="cl-card-content cl-admin-form-body">
-        {aiError && (
-          <div className="cl-alert cl-alert-error">
-            <div className="cl-alert-description">{aiError}</div>
-          </div>
-        )}
-
-        {formState.error && (
-          <div className="cl-alert cl-alert-error">
-            <div className="cl-alert-description">{formState.error}</div>
-          </div>
-        )}
-
         {versionError && (
           <div className="cl-alert cl-alert-error">
             <div className="cl-alert-description">{versionError}</div>
-          </div>
-        )}
-
-        {formState.success && (
-          <div className="cl-alert cl-alert-success">
-            <div className="cl-alert-description">{successMessage}</div>
           </div>
         )}
 
@@ -392,7 +355,7 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
             type="text"
             placeholder="e.g., Major performance update"
             className="cl-input"
-            defaultValue={initialEntry?.title || ''}
+            value={titleValue}
             onChange={(e) => setTitleValue(e.target.value)}
             required
           />
@@ -455,7 +418,8 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
             name="content"
             placeholder={"## Highlights\n- Improved loading performance\n- Fixed login edge cases"}
             className="cl-textarea"
-            defaultValue={initialEntry?.content || ''}
+            value={contentValue}
+            onChange={(e) => setContentValue(e.target.value)}
             rows={9}
             required
           />
@@ -482,7 +446,12 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
           <label className="cl-form-label" htmlFor="status">
             Status
           </label>
-          <select name="status" defaultValue={initialEntry?.status || 'draft'} className="cl-select">
+          <select
+            name="status"
+            value={statusValue}
+            onChange={(e) => setStatusValue(e.target.value as 'draft' | 'published')}
+            className="cl-select"
+          >
             <option value="draft">Draft</option>
             <option value="published">Published</option>
           </select>
