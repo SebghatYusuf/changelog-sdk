@@ -24,10 +24,10 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json && mkdir -p dist/styles && cp lib/changelog-platform/styles/changelog-ui.css dist/styles/changelog-ui.css",
-    "build:sync": "yarn build && bun install --cwd example",
+    "build:sync": "bun run build && bun install --cwd example",
     "prepare": "npm run build",
     "prepack": "npm run build",
-    "dev": "yarn --cwd example dev",
+    "dev": "cd example && bun run dev",
     "type-check": "tsc --noEmit",
     "check:mongo": "node scripts/check-mongodb.js",
     "hash:password": "node scripts/hash-password.js",

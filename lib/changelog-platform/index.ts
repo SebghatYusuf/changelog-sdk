@@ -1,12 +1,14 @@
 /**
  * Main export for Changelog SDK
+ * Next.js 16+ optimized exports for tree-shaking and proper code splitting
  */
 
+// ===== COMPONENTS (Client-Safe) =====
 export { default as ChangelogManager } from './components/manager'
 export { default as ChangelogFeed } from './components/feed/timeline'
 export { default as AdminPortal } from './components/admin/portal'
 
-// Export types
+// ===== TYPES (Zero-runtime) =====
 export type {
   ChangelogEntry,
   ChangelogStatus,
@@ -23,18 +25,23 @@ export type {
   ChangelogSettingsInput,
 } from './types/changelog'
 
-// Export actions
+// ===== SERVER ACTIONS (Private by default, opt-in imports) =====
 export {
+  // CRUD
   createChangelog,
   updateChangelog,
   deleteChangelog,
-  runAIEnhance,
-  loginAdmin,
-  logoutAdmin,
-  checkAdminAuth,
+  // Fetching
   fetchChangelogBySlug,
   fetchPublishedChangelogs,
   fetchAdminChangelogs,
+  // AI
+  runAIEnhance,
+  // Auth
+  loginAdmin,
+  logoutAdmin,
+  checkAdminAuth,
+  // Settings
   fetchAISettings,
   fetchAIProviderModels,
   updateAISettings,
@@ -42,7 +49,7 @@ export {
   updateChangelogSettings,
 } from './actions/changelog-actions'
 
-// Export schemas
+// ===== SCHEMAS (Validation) =====
 export {
   ChangelogTagEnum,
   ChangelogStatusEnum,
@@ -58,16 +65,16 @@ export {
   ChangelogSettingsSchema,
 } from './schemas/changelog'
 
-// Export database
+// ===== DATABASE (Advanced users only) =====
 export { connectDB, disconnectDB } from './db/mongoose'
 export { Changelog } from './db/models/Changelog'
 
-// Export AI
+// ===== AI (Advanced) =====
 export { AIProviderFactory } from './ai/provider'
 export { default as enhanceChangelog } from './ai/enhancer'
 
-// Export middleware
+// ===== MIDDLEWARE (Advanced) =====
 export { authMiddleware } from './middleware/auth'
 
-// Styles
+// ===== STYLES (Auto-included via entrypoint) =====
 import './styles/changelog-ui.css'

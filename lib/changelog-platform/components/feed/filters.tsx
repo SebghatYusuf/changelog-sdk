@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTransition, useEffect, useRef, useState, useCallback } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { ChangelogTag } from '../../types/changelog'
 
@@ -36,52 +36,92 @@ function buildUrl(pathname: string, search: string, tags: ChangelogTag[]): strin
 export default function Filters({ initialSearch = '', initialTags = [] }: FiltersProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const [isPending, startTransition] = useTransition()
+
   const [search, setSearch] = useState(initialSearch)
   const [selectedTags, setSelectedTags] = useState<ChangelogTag[]>(initialTags)
-  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Navigate immediately when tags change
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isInitialMount = useRef(true)
+  const searchRef = useRef(initialSearch)
+  const selectedTagsRef = useRef(initialTags)
+
+  // Sync external prop changes into local state
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      searchRef.current = initialSearch
+      selectedTagsRef.current = initialTags
+      return
+    }
+
+    setSearch(initialSearch)
+    setSelectedTags(initialTags)
+    searchRef.current = initialSearch
+    selectedTagsRef.current = initialTags
+  }, [initialSearch, initialTags])
+
   const navigateWithFilters = useCallback(
     (newSearch: string, newTags: ChangelogTag[]) => {
-      router.push(buildUrl(pathname, newSearch, newTags))
+      const nextUrl = buildUrl(pathname, newSearch, newTags)
+      startTransition(() => {
+        router.replace(nextUrl, { scroll: false })
+      })
     },
-    [router, pathname]
+    [pathname, router]
   )
 
-  const handleToggleTag = (tag: ChangelogTag) => {
-    const next = selectedTags.includes(tag)
-      ? selectedTags.filter((t) => t !== tag)
-      : [...selectedTags, tag]
-    setSelectedTags(next)
-    navigateWithFilters(search, next)
-  }
+  const handleToggleTag = useCallback(
+    (tag: ChangelogTag) => {
+      if (searchDebounce.current) clearTimeout(searchDebounce.current)
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value
-    setSearch(val)
+      const next = selectedTagsRef.current.includes(tag)
+        ? selectedTagsRef.current.filter((t) => t !== tag)
+        : [...selectedTagsRef.current, tag]
+
+      selectedTagsRef.current = next
+      setSelectedTags(next)
+      navigateWithFilters(searchRef.current, next)
+    },
+    [navigateWithFilters]
+  )
+
+  const handleSearch = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value
+      setSearch(val)
+      searchRef.current = val
+
+      if (searchDebounce.current) clearTimeout(searchDebounce.current)
+      searchDebounce.current = setTimeout(() => {
+        navigateWithFilters(val, selectedTagsRef.current)
+      }, 300)
+    },
+    [navigateWithFilters]
+  )
+
+  const handleClear = useCallback(() => {
     if (searchDebounce.current) clearTimeout(searchDebounce.current)
-    searchDebounce.current = setTimeout(() => {
-      navigateWithFilters(val, selectedTags)
-    }, 400)
-  }
 
-  const handleClear = () => {
+    searchRef.current = ''
+    selectedTagsRef.current = []
     setSearch('')
     setSelectedTags([])
-    router.push(pathname)
-  }
+    navigateWithFilters('', [])
+  }, [navigateWithFilters])
 
-  // Clean up debounce on unmount
-  useEffect(() => () => {
-    if (searchDebounce.current) clearTimeout(searchDebounce.current)
-  }, [])
+  useEffect(
+    () => () => {
+      if (searchDebounce.current) clearTimeout(searchDebounce.current)
+    },
+    []
+  )
 
   const hasFilters = search.trim().length > 0 || selectedTags.length > 0
 
   return (
     <div className="cl-card cl-filter-card">
       <div className="cl-filter-body">
-        {/* Search */}
         <div className="cl-filter-search-row">
           <div className="cl-filter-search-icon-wrap">
             <svg
@@ -101,11 +141,11 @@ export default function Filters({ initialSearch = '', initialTags = [] }: Filter
             placeholder="Search updates and features..."
             value={search}
             onChange={handleSearch}
+            disabled={isPending}
             className="cl-input cl-filter-search-input"
           />
         </div>
 
-        {/* Tags */}
         <div className="cl-filter-section">
           <label className="cl-filter-label">Filter by category</label>
           <div className="cl-filter-tags">
@@ -114,7 +154,9 @@ export default function Filters({ initialSearch = '', initialTags = [] }: Filter
               return (
                 <button
                   key={tag}
+                  type="button"
                   onClick={() => handleToggleTag(tag)}
+                  disabled={isPending}
                   className={`cl-filter-chip ${isSelected ? 'is-selected' : ''}`}
                 >
                   {tag}
@@ -133,7 +175,6 @@ export default function Filters({ initialSearch = '', initialTags = [] }: Filter
           </div>
         </div>
 
-        {/* Active filters summary */}
         {hasFilters && (
           <div className="cl-filter-active">
             <div className="cl-filter-active-row">
@@ -142,7 +183,7 @@ export default function Filters({ initialSearch = '', initialTags = [] }: Filter
                 {search && selectedTags.length > 0 && ' · '}
                 {search.trim() && `Searching "${search.trim()}"`}
               </span>
-              <button onClick={handleClear} className="cl-filter-clear">
+              <button type="button" onClick={handleClear} disabled={isPending} className="cl-filter-clear">
                 Clear all
               </button>
             </div>

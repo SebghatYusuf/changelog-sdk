@@ -10,15 +10,19 @@ import LoginForm from './auth/login'
  * Routes between Feed, Login, and Admin views based on URL params
  */
 
+interface RouteParams {
+  route?: string[]
+}
+
+interface SearchParams {
+  page?: string
+  tags?: string
+  search?: string
+}
+
 interface ChangelogManagerProps {
-  params?: {
-    route?: string[]
-  }
-  searchParams?: {
-    page?: string
-    tags?: string
-    search?: string
-  }
+  params?: RouteParams
+  searchParams?: SearchParams
 }
 
 export default function ChangelogManager({ params, searchParams }: ChangelogManagerProps) {

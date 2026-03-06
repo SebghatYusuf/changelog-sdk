@@ -362,6 +362,11 @@ export async function updateChangelogSettings(input: unknown) {
 }
 
 // ===== DATA FETCHING ACTIONS =====
+// Note: These Server Actions don't require caching configuration in the SDK.
+// The host app can implement caching via:
+// 1. Next.js ISR: Use `revalidatePath()` in mutation actions after updates
+// 2. Request deduplication: Next.js automatically dedupes identical fetch requests
+// 3. Custom caching: Import 'unstable_cache' from 'next/cache' in the host app
 
 export async function fetchChangelogBySlug(slug: string): Promise<{ data?: ChangelogEntry; error?: string }> {
   try {
