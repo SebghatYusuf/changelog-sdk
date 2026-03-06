@@ -2,23 +2,24 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateChangelog } from '../../actions/changelog-actions'
+import { transitionChangelogWorkflow } from '../../actions/changelog-actions'
 
 interface PublishButtonProps {
   id: string
+  basePath?: string
 }
 
-export default function PublishButton({ id }: PublishButtonProps) {
+export default function PublishButton({ id, basePath = '/changelog' }: PublishButtonProps) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   const handlePublish = async () => {
     setLoading(true)
 
-    const result = await updateChangelog({
+    const result = await transitionChangelogWorkflow({
       id,
-      status: 'published',
-    })
+      nextState: 'published',
+    }, { basePath })
 
     if (!result.success) {
       alert(`Error: ${result.error}`)

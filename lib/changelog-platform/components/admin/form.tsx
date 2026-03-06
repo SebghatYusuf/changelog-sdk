@@ -5,9 +5,11 @@ import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { Sparkles } from 'lucide-react'
 import { createChangelog, fetchAISettings, fetchLatestPublishedVersion, runAIEnhance, updateChangelog } from '../../actions/changelog-actions'
-import { ChangelogEntry, ChangelogTag } from '../../types/changelog'
+import { ChangelogEntry, ChangelogTag, WorkflowState } from '../../types/changelog'
 import { useToast } from '../toast/provider'
 import Tooltip from '../tooltip/tooltip'
+import { deriveStatusFromWorkflow } from '../../changelog/workflow'
+import { joinPath } from '../../runtime/paths'
 
 /**
  * Create/Edit Changelog Form Component
@@ -31,6 +33,7 @@ interface CreateFormState {
 interface CreateFormProps {
   initialEntry?: ChangelogEntry
   preset?: string
+  basePath?: string
 }
 
 type PresetType = 'feature-release' | 'hotfix' | 'maintenance'
@@ -80,7 +83,7 @@ function formatProviderName(provider: 'openai' | 'gemini' | 'ollama'): string {
   return 'Ollama'
 }
 
-export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
+export default function CreateForm({ initialEntry, preset, basePath = '/changelog' }: CreateFormProps) {
   const isEditing = Boolean(initialEntry?._id)
   const successMessage = isEditing ? 'Changelog updated successfully!' : 'Changelog created successfully!'
   const { showToast } = useToast()
@@ -90,7 +93,10 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
       const title = formData.get('title') as string
       const content = formData.get('content') as string
       const version = formData.get('version') as string
-      const status = formData.get('status') as 'draft' | 'published'
+      const workflowState = formData.get('workflowState') as WorkflowState
+      const scheduledAt = formData.get('scheduledAt') as string
+      const approvalNote = formData.get('approvalNote') as string
+      const status = deriveStatusFromWorkflow(workflowState || 'draft')
       const tagsStr = formData.get('tags') as string
       const tags = tagsStr.split(',').filter(Boolean) as ChangelogTag[]
 
@@ -101,15 +107,21 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
             content,
             version,
             status,
+            workflowState,
+            scheduledAt: scheduledAt || undefined,
+            approvalNote: approvalNote || undefined,
             tags,
-          })
+          }, { basePath })
         : await createChangelog({
             title,
             content,
             version,
             status,
+            workflowState,
+            scheduledAt: scheduledAt || undefined,
+            approvalNote: approvalNote || undefined,
             tags,
-          })
+          }, { basePath })
 
       return result
     },
@@ -121,7 +133,11 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
   const [aiError, setAiError] = useState<string>('')
   const [titleValue, setTitleValue] = useState(initialEntry?.title || '')
   const [contentValue, setContentValue] = useState(initialEntry?.content || '')
-  const [statusValue, setStatusValue] = useState<'draft' | 'published'>(initialEntry?.status || 'draft')
+  const [workflowValue, setWorkflowValue] = useState<WorkflowState>(initialEntry?.workflowState || (initialEntry?.status === 'published' ? 'published' : 'draft'))
+  const [scheduledAtValue, setScheduledAtValue] = useState(
+    initialEntry?.scheduledAt ? new Date(initialEntry.scheduledAt).toISOString().slice(0, 16) : ''
+  )
+  const [approvalNoteValue, setApprovalNoteValue] = useState(initialEntry?.approvalNote || '')
   const [aiRuntimeLabel, setAiRuntimeLabel] = useState('configured AI model')
   const [versionValue, setVersionValue] = useState(initialEntry?.version || '1.0.0')
   const [versionError, setVersionError] = useState('')
@@ -136,10 +152,10 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
   useEffect(() => {
     if (!isEditing || !formState.success) return
     const t = setTimeout(() => {
-      window.location.href = '/changelog/admin'
+      window.location.href = joinPath(basePath, 'admin')
     }, 1200)
     return () => clearTimeout(t)
-  }, [isEditing, formState.success])
+  }, [basePath, isEditing, formState.success])
 
   useEffect(() => {
     if (formState.error) {
@@ -443,24 +459,58 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
         </div>
 
         <div className="cl-form-group">
-          <label className="cl-form-label" htmlFor="status">
-            Status
+          <label className="cl-form-label" htmlFor="workflow-state">
+            Workflow state
           </label>
           <select
-            name="status"
-            value={statusValue}
-            onChange={(e) => setStatusValue(e.target.value as 'draft' | 'published')}
+            id="workflow-state"
+            name="workflowState"
+            value={workflowValue}
+            onChange={(e) => setWorkflowValue(e.target.value as WorkflowState)}
             className="cl-select"
           >
             <option value="draft">Draft</option>
+            <option value="pending_approval">Pending Approval</option>
+            <option value="approved">Approved</option>
+            <option value="scheduled">Scheduled</option>
             <option value="published">Published</option>
           </select>
+        </div>
+
+        <div className="cl-form-group">
+          <label className="cl-form-label" htmlFor="scheduled-at">
+            Scheduled at (UTC)
+          </label>
+          <input
+            id="scheduled-at"
+            name="scheduledAt"
+            type="datetime-local"
+            className="cl-input"
+            value={scheduledAtValue}
+            onChange={(e) => setScheduledAtValue(e.target.value)}
+            disabled={workflowValue !== 'scheduled'}
+          />
+        </div>
+
+        <div className="cl-form-group">
+          <label className="cl-form-label" htmlFor="approval-note">
+            Approval note
+          </label>
+          <textarea
+            id="approval-note"
+            name="approvalNote"
+            className="cl-textarea"
+            value={approvalNoteValue}
+            onChange={(e) => setApprovalNoteValue(e.target.value)}
+            rows={3}
+            placeholder="Optional note for approval/scheduling context"
+          />
         </div>
 
         <div className="cl-form-actions">
           <SubmitButton isEditing={isEditing} />
           {isEditing ? (
-            <a href="/changelog/admin" className="cl-btn cl-btn-secondary cl-admin-cancel-edit">
+            <a href={joinPath(basePath, 'admin')} className="cl-btn cl-btn-secondary cl-admin-cancel-edit">
               Cancel
             </a>
           ) : null}

@@ -4,12 +4,13 @@ import { useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { loginAdmin } from '../../actions/changelog-actions'
 import { useRouter } from 'next/navigation'
+import { joinPath } from '../../runtime/paths'
 
 /**
  * Admin Login Form Component
  */
 
-export default function LoginForm() {
+export default function LoginForm({ basePath = '/changelog' }: { basePath?: string }) {
   const router = useRouter()
   const [error, setError] = useState<string>('')
 
@@ -29,7 +30,7 @@ export default function LoginForm() {
     }
 
     // Redirect to admin portal
-    router.push('/changelog/admin')
+    router.push(joinPath(basePath, 'admin'))
   }
 
   return (

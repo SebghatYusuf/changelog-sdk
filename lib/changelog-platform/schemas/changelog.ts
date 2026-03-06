@@ -7,6 +7,7 @@ import { z } from 'zod'
 export const ChangelogTagEnum = z.enum(['Features', 'Fixes', 'Improvements', 'Breaking', 'Security', 'Performance', 'Docs'])
 
 export const ChangelogStatusEnum = z.enum(['draft', 'published'])
+export const WorkflowStateEnum = z.enum(['draft', 'pending_approval', 'approved', 'scheduled', 'published'])
 export const AIProviderEnum = z.enum(['openai', 'gemini', 'ollama'])
 
 export const ChangelogEntrySchema = z.object({
@@ -17,6 +18,11 @@ export const ChangelogEntrySchema = z.object({
   version: z.string(),
   date: z.date(),
   status: ChangelogStatusEnum,
+  workflowState: WorkflowStateEnum,
+  scheduledAt: z.date().optional(),
+  publishedAt: z.date().optional(),
+  approvalNote: z.string().optional(),
+  previewTokenVersion: z.number().optional(),
   tags: z.array(ChangelogTagEnum),
   aiGenerated: z.boolean(),
   rawNotes: z.string().optional(),
@@ -29,6 +35,9 @@ export const CreateChangelogSchema = z.object({
   content: z.string().min(1, 'Content is required'),
   version: z.string().min(1, 'Version is required'),
   status: ChangelogStatusEnum.default('draft'),
+  workflowState: WorkflowStateEnum.optional(),
+  scheduledAt: z.union([z.date(), z.string()]).optional(),
+  approvalNote: z.string().optional(),
   tags: z.array(ChangelogTagEnum).min(1, 'At least one tag is required'),
   rawNotes: z.string().optional(),
   aiGenerated: z.boolean().default(false),
@@ -40,7 +49,22 @@ export const UpdateChangelogSchema = z.object({
   content: z.string().min(1).optional(),
   version: z.string().min(1).optional(),
   status: ChangelogStatusEnum.optional(),
+  workflowState: WorkflowStateEnum.optional(),
+  scheduledAt: z.union([z.date(), z.string(), z.null()]).optional(),
+  approvalNote: z.union([z.string(), z.null()]).optional(),
   tags: z.array(ChangelogTagEnum).optional(),
+})
+
+export const TransitionWorkflowSchema = z.object({
+  id: z.string().min(1),
+  nextState: WorkflowStateEnum,
+  scheduledAt: z.union([z.date(), z.string(), z.null()]).optional(),
+  approvalNote: z.union([z.string(), z.null()]).optional(),
+})
+
+export const GeneratePreviewLinkSchema = z.object({
+  id: z.string().min(1),
+  expiresInHours: z.number().int().min(1).max(168).default(24),
 })
 
 export const EnhanceChangelogSchema = z.object({
@@ -89,3 +113,5 @@ export type FeedFiltersType = z.infer<typeof FeedFiltersSchema>
 export type AISettingsType = z.infer<typeof AISettingsSchema>
 export type AIModelListRequestType = z.infer<typeof AIModelListRequestSchema>
 export type ChangelogSettingsType = z.infer<typeof ChangelogSettingsSchema>
+export type TransitionWorkflowType = z.infer<typeof TransitionWorkflowSchema>
+export type GeneratePreviewLinkType = z.infer<typeof GeneratePreviewLinkSchema>

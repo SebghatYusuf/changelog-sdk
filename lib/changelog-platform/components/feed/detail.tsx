@@ -1,15 +1,20 @@
 import Markdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
-import { fetchChangelogBySlug } from '../../actions/changelog-actions'
+import { fetchChangelogByPreviewToken, fetchChangelogBySlug } from '../../actions/changelog-actions'
 
 interface ChangelogDetailProps {
-  slug: string
+  slug?: string
+  previewToken?: string
+  basePath?: string
 }
 
-export default async function ChangelogDetail({ slug }: ChangelogDetailProps) {
-  const result = await fetchChangelogBySlug(slug)
+export default async function ChangelogDetail({ slug, previewToken, basePath = '/changelog' }: ChangelogDetailProps) {
+  const isPreview = Boolean(previewToken)
+  const result = isPreview
+    ? await fetchChangelogByPreviewToken(previewToken || '')
+    : await fetchChangelogBySlug(slug || '')
 
-  if (result.error || !result.data || result.data.status !== 'published') {
+  if (result.error || !result.data || (!isPreview && result.data.status !== 'published')) {
     return (
       <section className="cl-detail-wrap">
         <div className="cl-card cl-detail-card cl-detail-not-found">
@@ -18,7 +23,7 @@ export default async function ChangelogDetail({ slug }: ChangelogDetailProps) {
             <p className="cl-card-description">This changelog entry does not exist or is not published yet.</p>
           </div>
           <div className="cl-card-content">
-            <a href="/changelog" className="cl-btn cl-btn-secondary">
+            <a href={basePath} className="cl-btn cl-btn-secondary">
               Back to changelog
             </a>
           </div>
@@ -39,7 +44,7 @@ export default async function ChangelogDetail({ slug }: ChangelogDetailProps) {
 
   return (
     <section className="cl-detail-wrap">
-      <a href="/changelog" className="cl-detail-back-link">
+      <a href={basePath} className="cl-detail-back-link">
         ← Back to all updates
       </a>
 
@@ -52,6 +57,9 @@ export default async function ChangelogDetail({ slug }: ChangelogDetailProps) {
           </div>
 
           <h1 className="cl-detail-title">{entry.title}</h1>
+          {isPreview ? (
+            <p className="cl-card-description">Preview mode (share link)</p>
+          ) : null}
 
           <div className="cl-entry-tags">
             {entry.tags.map((tag) => (

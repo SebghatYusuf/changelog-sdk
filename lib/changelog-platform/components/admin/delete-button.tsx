@@ -9,9 +9,10 @@ import { deleteChangelog } from '../../actions/changelog-actions'
 
 interface DeleteButtonProps {
   id: string
+  basePath?: string
 }
 
-export default function DeleteButton({ id }: DeleteButtonProps) {
+export default function DeleteButton({ id, basePath = '/changelog' }: DeleteButtonProps) {
   const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
@@ -20,7 +21,7 @@ export default function DeleteButton({ id }: DeleteButtonProps) {
     }
 
     setLoading(true)
-    const result = await deleteChangelog(id)
+    const result = await deleteChangelog(id, { basePath })
 
     if (!result.success) {
       alert(`Error: ${result.error}`)

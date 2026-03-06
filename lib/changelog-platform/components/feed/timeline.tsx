@@ -4,6 +4,8 @@ import { ChangelogEntry, ChangelogTag } from '../../types/changelog'
 import ChangelogCard from './card'
 import Filters from './filters'
 import Pagination from './pagination'
+import { getChangelogSettings } from '../../changelog/settings'
+import { normalizeBasePath } from '../../runtime/paths'
 
 /**
  * Public Changelog Feed Timeline
@@ -13,14 +15,30 @@ interface TimelineProps {
   initialPage?: number
   initialTags?: ChangelogTag[]
   initialSearch?: string
+  basePath?: string
 }
 
 export default async function ChangelogFeed({
   initialPage = 1,
   initialTags = [],
   initialSearch = '',
+  basePath = '/changelog',
 }: TimelineProps) {
-  const result = await fetchPublishedChangelogs(initialPage, 10, initialTags, initialSearch)
+  const resolvedBasePath = normalizeBasePath(basePath)
+  const settings = await getChangelogSettings()
+  const pageSize = settings.defaultFeedPageSize || 10
+  const result = await fetchPublishedChangelogs(initialPage, pageSize, initialTags, initialSearch)
+  if (!result.success) {
+    return (
+      <div className="cl-root cl-feed-wrap">
+        <div className="cl-card cl-feed-empty-card">
+          <div className="cl-card-content cl-feed-empty-content">
+            <p className="cl-p cl-feed-empty-title">{result.error || 'Unable to load changelog right now.'}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
   const { entries, total, page, hasMore } = result.data
 
   return (
@@ -58,13 +76,13 @@ export default async function ChangelogFeed({
         ) : (
           entries.map((entry: ChangelogEntry) => (
             <div key={entry._id} className="cl-timeline-item">
-              <ChangelogCard entry={entry} />
+              <ChangelogCard entry={entry} basePath={resolvedBasePath} />
             </div>
           ))
         )}
       </div>
 
-      <Pagination currentPage={page} hasMore={hasMore} total={total} />
+      <Pagination currentPage={page} hasMore={hasMore} total={total} pageSize={pageSize} basePath={resolvedBasePath} />
     </div>
   )
 }

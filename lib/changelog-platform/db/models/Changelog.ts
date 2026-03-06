@@ -1,5 +1,7 @@
 import mongoose, { Schema } from 'mongoose'
 import { ChangelogTag } from '../../types/changelog'
+import { WorkflowState } from '../../changelog/workflow'
+import { slugifyTitle } from '../../changelog/slug'
 
 /**
  * Changelog Mongoose Model
@@ -12,6 +14,11 @@ interface ChangelogModelFields {
   version: string
   date: Date
   status: 'draft' | 'published'
+  workflowState: WorkflowState
+  scheduledAt: Date | null
+  publishedAt: Date | null
+  approvalNote: string | null
+  previewTokenVersion: number
   tags: ChangelogTag[]
   aiGenerated: boolean
   rawNotes: string | null
@@ -49,6 +56,30 @@ const changelogSchema = new Schema<ChangelogModelFields>(
       enum: ['draft', 'published'],
       default: 'draft',
     },
+    workflowState: {
+      type: String,
+      enum: ['draft', 'pending_approval', 'approved', 'scheduled', 'published'],
+      default: 'draft',
+      required: true,
+    },
+    scheduledAt: {
+      type: Date,
+      default: null,
+    },
+    publishedAt: {
+      type: Date,
+      default: null,
+    },
+    approvalNote: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    previewTokenVersion: {
+      type: Number,
+      default: 0,
+      required: true,
+    },
     tags: {
       type: [String],
       enum: ['Features', 'Fixes', 'Improvements', 'Breaking', 'Security', 'Performance', 'Docs'],
@@ -73,13 +104,10 @@ const changelogSchema = new Schema<ChangelogModelFields>(
 changelogSchema.index({ slug: 1 })
 changelogSchema.index({ status: 1, date: -1 })
 changelogSchema.index({ tags: 1 })
+changelogSchema.index({ workflowState: 1, scheduledAt: 1 })
 
-function slugifyTitle(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+if (process.env.CHANGELOG_ENFORCE_UNIQUE_VERSION_INDEX === 'true') {
+  changelogSchema.index({ version: 1 }, { unique: true, name: 'cl_unique_version_global' })
 }
 
 // Generate slug before validation so `required: true` passes.

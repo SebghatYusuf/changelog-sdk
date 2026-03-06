@@ -3,6 +3,7 @@
  */
 
 export type ChangelogStatus = 'draft' | 'published'
+export type WorkflowState = 'draft' | 'pending_approval' | 'approved' | 'scheduled' | 'published'
 export type ChangelogTag = 'Features' | 'Fixes' | 'Improvements' | 'Breaking' | 'Security' | 'Performance' | 'Docs'
 
 export interface ChangelogEntry {
@@ -13,6 +14,11 @@ export interface ChangelogEntry {
   version: string
   date: Date
   status: ChangelogStatus
+  workflowState: WorkflowState
+  scheduledAt?: Date
+  publishedAt?: Date
+  approvalNote?: string
+  previewTokenVersion?: number
   tags: ChangelogTag[]
   aiGenerated: boolean
   rawNotes?: string
@@ -25,6 +31,9 @@ export interface CreateChangelogInput {
   content: string
   version: string
   status: ChangelogStatus
+  workflowState?: WorkflowState
+  scheduledAt?: Date | string
+  approvalNote?: string
   tags: ChangelogTag[]
   rawNotes?: string
   aiGenerated?: boolean
@@ -36,6 +45,9 @@ export interface UpdateChangelogInput {
   content?: string
   version?: string
   status?: ChangelogStatus
+  workflowState?: WorkflowState
+  scheduledAt?: Date | string | null
+  approvalNote?: string | null
   tags?: ChangelogTag[]
 }
 
@@ -101,4 +113,21 @@ export interface AIModelOption {
 export interface ChangelogSettingsInput {
   defaultFeedPageSize: number
   autoPublish: boolean
+}
+
+export interface ActionContextInput {
+  basePath?: string
+}
+
+export interface TransitionWorkflowInput {
+  id: string
+  nextState: WorkflowState
+  scheduledAt?: Date | string | null
+  approvalNote?: string | null
+}
+
+export interface PreviewLinkResult {
+  url: string
+  token: string
+  expiresAt: Date
 }

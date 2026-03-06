@@ -10,6 +10,7 @@ export { default as AdminPortal } from './components/admin/portal'
 
 // ===== TYPES (Zero-runtime) =====
 export type {
+  ActionContextInput,
   ChangelogEntry,
   ChangelogStatus,
   ChangelogTag,
@@ -23,6 +24,9 @@ export type {
   AIModelOption,
   AIProviderKind,
   ChangelogSettingsInput,
+  PreviewLinkResult,
+  TransitionWorkflowInput,
+  WorkflowState,
 } from './types/changelog'
 
 // ===== SERVER ACTIONS (Private by default, opt-in imports) =====
@@ -30,9 +34,12 @@ export {
   // CRUD
   createChangelog,
   updateChangelog,
+  transitionChangelogWorkflow,
   deleteChangelog,
+  generateChangelogPreviewLink,
   // Fetching
   fetchChangelogBySlug,
+  fetchChangelogByPreviewToken,
   fetchPublishedChangelogs,
   fetchAdminChangelogs,
   // AI
@@ -64,6 +71,9 @@ export {
   AISettingsSchema,
   AIModelListRequestSchema,
   ChangelogSettingsSchema,
+  WorkflowStateEnum,
+  TransitionWorkflowSchema,
+  GeneratePreviewLinkSchema,
 } from './schemas/changelog'
 
 // ===== DATABASE (Advanced users only) =====
@@ -73,6 +83,9 @@ export { Changelog } from './db/models/Changelog'
 // ===== AI (Advanced) =====
 export { AIProviderFactory } from './ai/provider'
 export { default as enhanceChangelog } from './ai/enhancer'
+export { configureChangelogSDK } from './runtime/config'
+export { onChangelogEvent } from './runtime/events'
+export type { ChangelogEvent, ChangelogEventName, ChangelogSDKConfig, SDKLogger, WebhookTarget } from './runtime/config'
 
 // ===== MIDDLEWARE (Advanced) =====
 export { authMiddleware } from './middleware/auth'
