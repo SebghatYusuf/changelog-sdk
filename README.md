@@ -1,6 +1,6 @@
 <div align="center">
   <img src="./images/changelog-sdk-icon.svg" alt="Changelog SDK Logo" width="128" height="128" />
-  <h1>Changelog SDK for Next.js</h1>
+  <h1>Changelog SDK (Core + Next Adapter)</h1>
   <p><strong>AI-Powered Changelog Management</strong></p>
 
   [![Next.js](https://img.shields.io/badge/Next.js-16%2B-black)](https://nextjs.org/)
@@ -11,7 +11,7 @@
 
 <br />
 
-Production-ready Changelog SDK for Next.js applications with a public changelog feed, secure admin portal, MongoDB persistence, and AI-assisted changelog writing.
+Framework-agnostic changelog SDK with a headless core package plus a production-ready Next.js adapter.
 
 `changelog-sdk` is designed for teams that want to ship updates faster while keeping changelog UX clean, searchable, and isolated from host app styles.
 
@@ -57,7 +57,8 @@ Production-ready Changelog SDK for Next.js applications with a public changelog 
 
 ## Why Changelog SDK
 
-- Built for Next.js app router projects that need an integrated product changelog
+- Core business logic is framework-agnostic and adapter-driven
+- Includes a first-party Next.js app-router adapter
 - Includes admin authentication with HTTP-only cookie sessions
 - Supports AI enhancement via OpenAI, Gemini, and Ollama
 - Ships with isolated `cl-` prefixed UI styles to avoid global CSS conflicts
@@ -70,7 +71,7 @@ Production-ready Changelog SDK for Next.js applications with a public changelog 
 - **AI-powered writing assistance** from raw notes to polished release updates
 - **Secure auth flow** using hashed passwords and cookie-based sessions
 - **Type-safe API surface** with TypeScript and Zod
-- **Server Component friendly** architecture for modern Next.js apps
+- **Adapter architecture**: `core`, `next`, and `mongoose` package surfaces
 - **No Tailwind dependency in host app** for SDK styles
 
 ## Requirements
@@ -129,7 +130,7 @@ Create `app/changelog/[[...route]]/page.tsx`:
 
 ```tsx
 import { Suspense } from 'react'
-import { ChangelogManager } from 'changelog-sdk'
+import { ChangelogManager } from 'changelog-sdk/next'
 
 interface ChangelogPageProps {
   params: Promise<{ route?: string[] }>
@@ -188,6 +189,12 @@ bun run dev
 npm run dev
 ```
 
+## Package Surfaces
+
+- `changelog-sdk` or `changelog-sdk/core` → framework-agnostic core service, ports, and schemas
+- `changelog-sdk/next` → Next.js actions, middleware helper, and React UI components
+- `changelog-sdk/mongoose` → MongoDB repository adapters for core ports
+
 ## Routing Setup
 
 Once configured, these routes are available:
@@ -220,7 +227,7 @@ Once configured, these routes are available:
 
 ### Admin Portal
 
-- Log in at `/changelog//login`
+- Log in at `/changelog/login`
 - Manage entries at `/changelog/admin`
 
 ![Admin — New Entry Form](./site/images/admin-new-entry.png)
@@ -245,7 +252,7 @@ bun -e "console.log(require('bcryptjs').hashSync('your-admin-password', 10))"
 ### Create changelog
 
 ```ts
-import { createChangelog } from 'changelog-sdk'
+import { createChangelog } from 'changelog-sdk/next'
 
 const result = await createChangelog({
   title: 'v1.2.0 Released',
@@ -259,7 +266,7 @@ const result = await createChangelog({
 ### Fetch published changelogs
 
 ```ts
-import { fetchPublishedChangelogs } from 'changelog-sdk'
+import { fetchPublishedChangelogs } from 'changelog-sdk/next'
 
 const result = await fetchPublishedChangelogs(page, limit, tags, search)
 ```
@@ -267,7 +274,7 @@ const result = await fetchPublishedChangelogs(page, limit, tags, search)
 ### Run AI enhancement
 
 ```ts
-import { runAIEnhance } from 'changelog-sdk'
+import { runAIEnhance } from 'changelog-sdk/next'
 
 const result = await runAIEnhance({
   rawNotes: 'Fixed auth bug, added dark mode, improved performance',
@@ -278,7 +285,7 @@ const result = await runAIEnhance({
 ### Authentication helpers
 
 ```ts
-import { loginAdmin, logoutAdmin, checkAdminAuth } from 'changelog-sdk'
+import { loginAdmin, logoutAdmin, checkAdminAuth } from 'changelog-sdk/next'
 
 const isAdmin = await checkAdminAuth()
 const loginResult = await loginAdmin('password')
@@ -296,7 +303,7 @@ import type {
   UpdateChangelogInput,
   EnhanceChangelogInput,
   FeedResponse,
-} from 'changelog-sdk'
+} from 'changelog-sdk/core'
 ```
 
 ## Styling and CSS Isolation

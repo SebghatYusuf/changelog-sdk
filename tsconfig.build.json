@@ -4,11 +4,11 @@
     "noEmit": false,
     "allowImportingTsExtensions": false,
     "outDir": "dist",
-    "rootDir": "lib/changelog-platform",
+    "rootDir": "lib",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["lib/changelog-platform/**/*.ts", "lib/changelog-platform/**/*.tsx"],
+  "include": ["lib/**/*.ts", "lib/**/*.tsx"],
   "exclude": ["node_modules", "example", "dist"]
 }

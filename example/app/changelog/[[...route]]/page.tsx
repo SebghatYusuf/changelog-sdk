@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { ChangelogManager } from 'changelog-sdk'
+import { ChangelogManager } from 'changelog-sdk/next'
 
 interface ChangelogPageProps {
   params: Promise<{
