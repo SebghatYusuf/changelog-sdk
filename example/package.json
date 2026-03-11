@@ -1,39 +1,23 @@
 {
-  "name": "changelog-sdk-example",
-  "version": "1.0.0",
+  "name": "example",
+  "version": "0.1.0",
   "private": true,
-  "description": "Example Next.js app demonstrating changelog-sdk integration",
   "scripts": {
-    "dev": "next dev --webpack -p 3000",
+    "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 3000"
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
-    "changelog-sdk": "file:..",
-    "next": "^16.1.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "mongoose": "^9.1.0",
-    "zod": "^4.3.6",
-    "bcryptjs": "^3.0.3",
-    "react-markdown": "^10.1.0",
-    "rehype-sanitize": "^6.0.0",
-    "lucide-react": "^0.468.0",
-    "ai": "^6.0.116",
-    "@ai-sdk/openai": "^3.0.41",
-    "@ai-sdk/google": "^3.0.43",
-    "ollama-ai-provider-v2": "^3.3.1"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.3",
-    "@types/node": "^25.3.3",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@types/bcryptjs": "^3.0.0",
-    "@tailwindcss/postcss": "^4.2.1",
-    "tailwindcss": "^4.2.1",
-    "postcss": "^8.5.8",
-    "eslint": "^10.0.2",
-    "eslint-config-next": "^16.1.6"
+    "@next/font": "14.2.15",
+    "@types/node": "25.4.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.1.6",
+    "next": "16.1.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "typescript": "5.9.3"
   }
 }

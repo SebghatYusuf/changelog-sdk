@@ -1,6 +1,6 @@
 <div align="center">
   <img src="./images/changelog-sdk-icon.svg" alt="Changelog SDK Logo" width="128" height="128" />
-  <h1>Changelog SDK for Next.js</h1>
+  <h1>Changelog SDK (Core + Next Adapter)</h1>
   <p><strong>AI-Powered Changelog Management</strong></p>
 
   [![Next.js](https://img.shields.io/badge/Next.js-16%2B-black)](https://nextjs.org/)
@@ -11,7 +11,7 @@
 
 <br />
 
-Production-ready Changelog SDK for Next.js applications with a public changelog feed, secure admin portal, MongoDB persistence, and AI-assisted changelog writing.
+Framework-agnostic changelog SDK with a headless core package plus a production-ready Next.js adapter.
 
 `changelog-sdk` is designed for teams that want to ship updates faster while keeping changelog UX clean, searchable, and isolated from host app styles.
 
@@ -31,11 +31,9 @@ Production-ready Changelog SDK for Next.js applications with a public changelog 
   - [3) Add the catch-all changelog route](#3-add-the-catch-all-changelog-route)
   - [4) Configure environment variables](#4-configure-environment-variables)
   - [5) Run your app](#5-run-your-app)
-- [Routing Setup](#routing-setup)
-- [Environment Variables](#environment-variables)
-- [Usage](#usage)
-  - [Public Feed](#public-feed)
-  - [Admin Portal](#admin-portal)
+- [Package Surfaces](#package-surfaces)
+- [Nuxt Quick Start (Headless API)](#nuxt-quick-start-headless-api)
+- [Vue 3 UI Quick Start](#vue-3-ui-quick-start)
   - [AI Enhancement Workflow](#ai-enhancement-workflow)
 - [API and Server Actions](#api-and-server-actions)
   - [Create changelog](#create-changelog)
@@ -57,7 +55,8 @@ Production-ready Changelog SDK for Next.js applications with a public changelog 
 
 ## Why Changelog SDK
 
-- Built for Next.js app router projects that need an integrated product changelog
+- Core business logic is framework-agnostic and adapter-driven
+- Includes a first-party Next.js app-router adapter
 - Includes admin authentication with HTTP-only cookie sessions
 - Supports AI enhancement via OpenAI, Gemini, and Ollama
 - Ships with isolated `cl-` prefixed UI styles to avoid global CSS conflicts
@@ -70,7 +69,7 @@ Production-ready Changelog SDK for Next.js applications with a public changelog 
 - **AI-powered writing assistance** from raw notes to polished release updates
 - **Secure auth flow** using hashed passwords and cookie-based sessions
 - **Type-safe API surface** with TypeScript and Zod
-- **Server Component friendly** architecture for modern Next.js apps
+- **Adapter architecture**: `core`, `next`, and `mongoose` package surfaces
 - **No Tailwind dependency in host app** for SDK styles
 
 ## Requirements
@@ -129,7 +128,7 @@ Create `app/changelog/[[...route]]/page.tsx`:
 
 ```tsx
 import { Suspense } from 'react'
-import { ChangelogManager } from 'changelog-sdk'
+import { ChangelogManager } from 'changelog-sdk/next'
 
 interface ChangelogPageProps {
   params: Promise<{ route?: string[] }>
@@ -188,6 +187,166 @@ bun run dev
 npm run dev
 ```
 
+## Package Surfaces
+
+- `changelog-sdk` or `changelog-sdk/core` → framework-agnostic core service, ports, and schemas
+- `changelog-sdk/next` → Next.js actions, middleware helper, and React UI components
+- `changelog-sdk/mongoose` → MongoDB repository adapters for core ports
+- `changelog-sdk/nuxt` → Nuxt/Nitro server handlers (headless API)
+- `changelog-sdk/vue` → Vue 3 UI components (headless API client)
+
+## Nuxt Quick Start (Headless API)
+
+### 1) Install the package
+
+```bash
+bun add github:SebghatYusuf/changelog-sdk#master
+# or
+npm install github:SebghatYusuf/changelog-sdk#master
+```
+
+### 2) Install peer dependencies
+
+Nuxt adapter requires `h3` and `vue`:
+
+```bash
+bun add h3 vue
+```
+
+### 3) Configure environment variables
+
+Create `.env` in your project root:
+
+```env
+# MongoDB
+CHANGELOG_MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/changelog?retryWrites=true&w=majority
+
+# Admin password (bcryptjs hash only)
+CHANGELOG_ADMIN_PASSWORD=$2a$10$...
+
+# AI provider: openai | gemini | ollama
+CHANGELOG_AI_PROVIDER=openai
+
+# Provider keys
+OPENAI_API_KEY=sk-...
+GOOGLE_GENERATIVE_AI_API_KEY=...
+OLLAMA_BASE_URL=http://localhost:11434
+```
+
+### 4) Define server routes
+
+Define server routes in `server/api/changelog/` and wire to the handlers:
+
+```ts
+// server/api/changelog/feed.get.ts
+import { createNuxtChangelogHandlers } from 'changelog-sdk/nuxt'
+
+const handlers = createNuxtChangelogHandlers()
+export default handlers.getPublishedFeed
+```
+
+```ts
+// server/api/changelog/entries.post.ts
+import { createNuxtChangelogHandlers } from 'changelog-sdk/nuxt'
+
+const handlers = createNuxtChangelogHandlers()
+export default handlers.createEntry
+```
+
+```ts
+// server/api/changelog/entries/[id].delete.ts
+import { createNuxtChangelogHandlers } from 'changelog-sdk/nuxt'
+
+const handlers = createNuxtChangelogHandlers()
+export default handlers.deleteEntry
+```
+
+```ts
+// server/api/changelog/admin/login.post.ts
+import { createNuxtChangelogHandlers } from 'changelog-sdk/nuxt'
+
+const handlers = createNuxtChangelogHandlers()
+export default handlers.login
+```
+
+Endpoints return the same payloads as the Next adapter actions.
+
+### 5) Use the Vue UI
+
+Once the API is set up, you can use the Vue components:
+
+```ts
+// In your Vue page
+import { ChangelogManager } from 'changelog-sdk/vue'
+
+// Extract route params from Nuxt
+const route = useRoute()
+const params = { 
+  route: Array.isArray(route.params.route) ? route.params.route : [String(route.params.route || '')] 
+}
+const searchParams = route.query as { page?: string; tags?: string; search?: string }
+```
+
+```html
+<template>
+  <ChangelogManager :params="params" :searchParams="searchParams" />
+</template>
+```
+
+## Vue 3 UI Quick Start
+
+### 1) Install the package
+
+```bash
+bun add github:SebghatYusuf/changelog-sdk#master
+# or
+npm install github:SebghatYusuf/changelog-sdk#master
+```
+
+### 2) Wire the SDK styles
+
+```ts
+import 'changelog-sdk/styles'
+import { ChangelogManager } from 'changelog-sdk/vue'
+```
+
+### 3) Render with route params
+
+Use Vue Router to extract params and pass them to the manager:
+
+```ts
+// Example: in a Vue SFC setup()
+import { useRoute } from 'vue-router'
+import { ChangelogManager } from 'changelog-sdk/vue'
+
+const route = useRoute()
+const params = { 
+  route: Array.isArray(route.params.route) ? route.params.route : [String(route.params.route || '')] 
+}
+const searchParams = route.query as { page?: string; tags?: string; search?: string }
+```
+
+```html
+<template>
+  <ChangelogManager :params="params" :searchParams="searchParams" />
+</template>
+```
+
+### 4) Configure API endpoint
+
+The Vue UI expects a Nuxt/Vue API at `/api/changelog`. You can override it with:
+
+```html
+<ChangelogManager 
+  apiBasePath="/your-api" 
+  baseUrl="https://api.example.com" 
+/>
+```
+
+### 5) Environment variables
+
+Ensure your backend (Nuxt server or other) has the same MongoDB and auth configuration as the Next.js adapter.
+
 ## Routing Setup
 
 Once configured, these routes are available:
@@ -220,7 +379,7 @@ Once configured, these routes are available:
 
 ### Admin Portal
 
-- Log in at `/changelog//login`
+- Log in at `/changelog/login`
 - Manage entries at `/changelog/admin`
 
 ![Admin — New Entry Form](./site/images/admin-new-entry.png)
@@ -245,7 +404,7 @@ bun -e "console.log(require('bcryptjs').hashSync('your-admin-password', 10))"
 ### Create changelog
 
 ```ts
-import { createChangelog } from 'changelog-sdk'
+import { createChangelog } from 'changelog-sdk/next'
 
 const result = await createChangelog({
   title: 'v1.2.0 Released',
@@ -259,7 +418,7 @@ const result = await createChangelog({
 ### Fetch published changelogs
 
 ```ts
-import { fetchPublishedChangelogs } from 'changelog-sdk'
+import { fetchPublishedChangelogs } from 'changelog-sdk/next'
 
 const result = await fetchPublishedChangelogs(page, limit, tags, search)
 ```
@@ -267,7 +426,7 @@ const result = await fetchPublishedChangelogs(page, limit, tags, search)
 ### Run AI enhancement
 
 ```ts
-import { runAIEnhance } from 'changelog-sdk'
+import { runAIEnhance } from 'changelog-sdk/next'
 
 const result = await runAIEnhance({
   rawNotes: 'Fixed auth bug, added dark mode, improved performance',
@@ -278,7 +437,7 @@ const result = await runAIEnhance({
 ### Authentication helpers
 
 ```ts
-import { loginAdmin, logoutAdmin, checkAdminAuth } from 'changelog-sdk'
+import { loginAdmin, logoutAdmin, checkAdminAuth } from 'changelog-sdk/next'
 
 const isAdmin = await checkAdminAuth()
 const loginResult = await loginAdmin('password')
@@ -296,7 +455,7 @@ import type {
   UpdateChangelogInput,
   EnhanceChangelogInput,
   FeedResponse,
-} from 'changelog-sdk'
+} from 'changelog-sdk/core'
 ```
 
 ## Styling and CSS Isolation

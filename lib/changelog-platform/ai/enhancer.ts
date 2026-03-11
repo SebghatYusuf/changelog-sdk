@@ -1,6 +1,6 @@
 import { generateObject, generateText } from 'ai'
 import { z } from 'zod'
-import AIProviderFactory from './provider'
+import AIProviderFactory, { type AIProviderConfig } from './provider'
 import { getRuntimeAIConfig } from './settings'
 import { EnhanceChangelogOutput, ChangelogTag } from '../types/changelog'
 
@@ -183,9 +183,9 @@ function parseEnhancementResponse(text: string): { title: string; content: strin
   throw lastError instanceof Error ? lastError : new Error('Invalid AI response format')
 }
 
-export async function enhanceChangelog(rawNotes: string, version?: string): Promise<EnhanceChangelogOutput> {
+export async function enhanceChangelog(rawNotes: string, version?: string, config?: AIProviderConfig): Promise<EnhanceChangelogOutput> {
   try {
-    const runtimeConfig = await getRuntimeAIConfig()
+    const runtimeConfig = config || await getRuntimeAIConfig()
     const model = await AIProviderFactory.getProvider(runtimeConfig)
 
     const prompt = ENHANCEMENT_PROMPT.replace('{rawNotes}', rawNotes).replace(
