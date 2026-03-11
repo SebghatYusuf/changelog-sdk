@@ -1,10 +1,8 @@
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
-import type { AIProviderPort, CacheInvalidationPort, SessionPort } from '../core/ports'
-import type { AIProviderKind } from '../core/constants'
-import enhanceChangelog from '../changelog-platform/ai/enhancer'
-import { AIProviderFactory } from '../changelog-platform/ai/provider'
+import type { AIProviderPort, AISettingsRepository, CacheInvalidationPort, SessionPort } from '../core/ports'
 import { DEFAULT_SESSION_COOKIE } from './constants'
+import { createDefaultAIProviderPort } from '../adapters/ai-provider'
 
 export function createNextSessionPort(cookieName: string = DEFAULT_SESSION_COOKIE): SessionPort {
   return {
@@ -38,20 +36,8 @@ export function createNextCacheInvalidationPort(pathname: string = '/changelog')
   }
 }
 
-export function createNextAIProviderPort(): AIProviderPort {
-  return {
-    enhance(rawNotes: string, currentVersion?: string) {
-      return enhanceChangelog(rawNotes, currentVersion)
-    },
-
-    listModels(input: { provider: AIProviderKind; ollamaBaseUrl?: string }) {
-      return AIProviderFactory.listModels({
-        provider: input.provider,
-        apiKey: undefined,
-        baseUrl: input.ollamaBaseUrl,
-      })
-    },
-  }
+export function createNextAIProviderPort(aiSettingsRepository: AISettingsRepository): AIProviderPort {
+  return createDefaultAIProviderPort(aiSettingsRepository)
 }
 
 export { DEFAULT_SESSION_COOKIE }

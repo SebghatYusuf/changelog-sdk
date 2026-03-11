@@ -21,14 +21,15 @@ export interface NextAdapterOptions {
 
 export function createNextChangelogAdapter(options: NextAdapterOptions = {}) {
   const sessionCookieName = options.sessionCookieName || DEFAULT_SESSION_COOKIE
+  const aiSettingsRepository = options.aiSettingsRepository || createMongooseAISettingsRepository()
 
   const service = createChangelogService({
     changelogRepository: options.changelogRepository || createMongooseChangelogRepository(),
     settingsRepository: options.settingsRepository || createMongooseSettingsRepository(),
-    aiSettingsRepository: options.aiSettingsRepository || createMongooseAISettingsRepository(),
+    aiSettingsRepository,
     session: createNextSessionPort(sessionCookieName),
     cacheInvalidation: createNextCacheInvalidationPort(options.revalidatePathname || '/changelog'),
-    aiProvider: createNextAIProviderPort(),
+    aiProvider: createNextAIProviderPort(aiSettingsRepository),
     config: {
       getAdminPassword: () => process.env.CHANGELOG_ADMIN_PASSWORD?.trim() || process.env.ADMIN_PASSWORD?.trim(),
     },

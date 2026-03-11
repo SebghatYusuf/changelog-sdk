@@ -1,0 +1,24 @@
+{
+  "name": "changelog-sdk-example",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Example Vite + React app for changelog-sdk landing and docs",
+  "scripts": {
+    "dev": "vite --port 3000",
+    "build": "vite build",
+    "start": "vite preview --port 3000",
+    "export": "vite build && rsync -a --delete --exclude='.git' dist/ ../site/"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.4",
+    "vite": "^7.1.12",
+    "typescript": "^5.9.3",
+    "@types/node": "^25.3.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3"
+  }
+}

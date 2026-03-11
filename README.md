@@ -31,11 +31,9 @@ Framework-agnostic changelog SDK with a headless core package plus a production-
   - [3) Add the catch-all changelog route](#3-add-the-catch-all-changelog-route)
   - [4) Configure environment variables](#4-configure-environment-variables)
   - [5) Run your app](#5-run-your-app)
-- [Routing Setup](#routing-setup)
-- [Environment Variables](#environment-variables)
-- [Usage](#usage)
-  - [Public Feed](#public-feed)
-  - [Admin Portal](#admin-portal)
+- [Package Surfaces](#package-surfaces)
+- [Nuxt Quick Start (Headless API)](#nuxt-quick-start-headless-api)
+- [Vue 3 UI Quick Start](#vue-3-ui-quick-start)
   - [AI Enhancement Workflow](#ai-enhancement-workflow)
 - [API and Server Actions](#api-and-server-actions)
   - [Create changelog](#create-changelog)
@@ -194,6 +192,160 @@ npm run dev
 - `changelog-sdk` or `changelog-sdk/core` → framework-agnostic core service, ports, and schemas
 - `changelog-sdk/next` → Next.js actions, middleware helper, and React UI components
 - `changelog-sdk/mongoose` → MongoDB repository adapters for core ports
+- `changelog-sdk/nuxt` → Nuxt/Nitro server handlers (headless API)
+- `changelog-sdk/vue` → Vue 3 UI components (headless API client)
+
+## Nuxt Quick Start (Headless API)
+
+### 1) Install the package
+
+```bash
+bun add github:SebghatYusuf/changelog-sdk#master
+# or
+npm install github:SebghatYusuf/changelog-sdk#master
+```
+
+### 2) Install peer dependencies
+
+Nuxt adapter requires `h3` and `vue`:
+
+```bash
+bun add h3 vue
+```
+
+### 3) Configure environment variables
+
+Create `.env` in your project root:
+
+```env
+# MongoDB
+CHANGELOG_MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/changelog?retryWrites=true&w=majority
+
+# Admin password (bcryptjs hash only)
+CHANGELOG_ADMIN_PASSWORD=$2a$10$...
+
+# AI provider: openai | gemini | ollama
+CHANGELOG_AI_PROVIDER=openai
+
+# Provider keys
+OPENAI_API_KEY=sk-...
+GOOGLE_GENERATIVE_AI_API_KEY=...
+OLLAMA_BASE_URL=http://localhost:11434
+```
+
+### 4) Define server routes
+
+Define server routes in `server/api/changelog/` and wire to the handlers:
+
+```ts
+// server/api/changelog/feed.get.ts
+import { createNuxtChangelogHandlers } from 'changelog-sdk/nuxt'
+
+const handlers = createNuxtChangelogHandlers()
+export default handlers.getPublishedFeed
+```
+
+```ts
+// server/api/changelog/entries.post.ts
+import { createNuxtChangelogHandlers } from 'changelog-sdk/nuxt'
+
+const handlers = createNuxtChangelogHandlers()
+export default handlers.createEntry
+```
+
+```ts
+// server/api/changelog/entries/[id].delete.ts
+import { createNuxtChangelogHandlers } from 'changelog-sdk/nuxt'
+
+const handlers = createNuxtChangelogHandlers()
+export default handlers.deleteEntry
+```
+
+```ts
+// server/api/changelog/admin/login.post.ts
+import { createNuxtChangelogHandlers } from 'changelog-sdk/nuxt'
+
+const handlers = createNuxtChangelogHandlers()
+export default handlers.login
+```
+
+Endpoints return the same payloads as the Next adapter actions.
+
+### 5) Use the Vue UI
+
+Once the API is set up, you can use the Vue components:
+
+```ts
+// In your Vue page
+import { ChangelogManager } from 'changelog-sdk/vue'
+
+// Extract route params from Nuxt
+const route = useRoute()
+const params = { 
+  route: Array.isArray(route.params.route) ? route.params.route : [String(route.params.route || '')] 
+}
+const searchParams = route.query as { page?: string; tags?: string; search?: string }
+```
+
+```html
+<template>
+  <ChangelogManager :params="params" :searchParams="searchParams" />
+</template>
+```
+
+## Vue 3 UI Quick Start
+
+### 1) Install the package
+
+```bash
+bun add github:SebghatYusuf/changelog-sdk#master
+# or
+npm install github:SebghatYusuf/changelog-sdk#master
+```
+
+### 2) Wire the SDK styles
+
+```ts
+import 'changelog-sdk/styles'
+import { ChangelogManager } from 'changelog-sdk/vue'
+```
+
+### 3) Render with route params
+
+Use Vue Router to extract params and pass them to the manager:
+
+```ts
+// Example: in a Vue SFC setup()
+import { useRoute } from 'vue-router'
+import { ChangelogManager } from 'changelog-sdk/vue'
+
+const route = useRoute()
+const params = { 
+  route: Array.isArray(route.params.route) ? route.params.route : [String(route.params.route || '')] 
+}
+const searchParams = route.query as { page?: string; tags?: string; search?: string }
+```
+
+```html
+<template>
+  <ChangelogManager :params="params" :searchParams="searchParams" />
+</template>
+```
+
+### 4) Configure API endpoint
+
+The Vue UI expects a Nuxt/Vue API at `/api/changelog`. You can override it with:
+
+```html
+<ChangelogManager 
+  apiBasePath="/your-api" 
+  baseUrl="https://api.example.com" 
+/>
+```
+
+### 5) Environment variables
+
+Ensure your backend (Nuxt server or other) has the same MongoDB and auth configuration as the Next.js adapter.
 
 ## Routing Setup
 
