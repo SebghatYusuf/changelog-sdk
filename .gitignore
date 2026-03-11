@@ -16,7 +16,6 @@ bun.lockb
 .next/
 dist/
 build/
-example/out/
 *.tsbuildinfo
 
 # IDE

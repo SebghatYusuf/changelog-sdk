@@ -1,8 +1,7 @@
 import connectDB from '../db/mongoose'
 import AISettings from '../db/models/AISettings'
 import { AIProviderConfig } from './provider'
-import type { AIProvider } from './constants'
-import { DEFAULT_AI_MODELS } from './constants'
+import { AIProvider, DEFAULT_AI_MODELS } from './constants'
 
 export interface PersistedAISettings {
   provider: AIProvider
@@ -35,11 +34,9 @@ export async function getAISettings(): Promise<PersistedAISettings> {
     return getDefaultSettings()
   }
 
-  const provider = (settings.provider || DEFAULT_SETTINGS.provider) as AIProvider
-
   return {
-    provider,
-    model: settings.model || DEFAULT_AI_MODELS[provider],
+    provider: settings.provider || DEFAULT_SETTINGS.provider,
+    model: settings.model || DEFAULT_AI_MODELS[settings.provider || DEFAULT_SETTINGS.provider],
     openaiApiKey: settings.openaiApiKey || '',
     geminiApiKey: settings.geminiApiKey || '',
     ollamaBaseUrl: settings.ollamaBaseUrl || DEFAULT_SETTINGS.ollamaBaseUrl,
