@@ -4,35 +4,35 @@
   "private": false,
   "type": "module",
   "description": "Framework-agnostic changelog core with Next.js adapter and MongoDB adapter",
-  "main": "./lib/index.ts",
-  "module": "./lib/index.ts",
-  "types": "./lib/index.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./lib/index.ts",
-      "default": "./lib/index.ts"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./core": {
-      "types": "./lib/core/index.ts",
-      "default": "./lib/core/index.ts"
+      "types": "./dist/core/index.d.ts",
+      "default": "./dist/core/index.js"
     },
     "./next": {
-      "types": "./lib/next/index.ts",
-      "default": "./lib/next/index.ts"
+      "types": "./dist/next/index.d.ts",
+      "default": "./dist/next/index.js"
     },
     "./mongoose": {
-      "types": "./lib/mongoose/index.ts",
-      "default": "./lib/mongoose/index.ts"
+      "types": "./dist/mongoose/index.d.ts",
+      "default": "./dist/mongoose/index.js"
     },
     "./nuxt": {
-      "types": "./lib/nuxt/index.ts",
-      "default": "./lib/nuxt/index.ts"
+      "types": "./dist/nuxt/index.d.ts",
+      "default": "./dist/nuxt/index.js"
     },
     "./vue": {
-      "types": "./lib/vue/index.ts",
-      "default": "./lib/vue/index.ts"
+      "types": "./dist/vue/index.d.ts",
+      "default": "./dist/vue/index.js"
     },
-    "./styles": "./lib/changelog-platform/styles/changelog-ui.css"
+    "./styles": "./dist/styles/changelog-ui.css"
   },
   "sideEffects": [
     "./dist/styles/changelog-ui.css"

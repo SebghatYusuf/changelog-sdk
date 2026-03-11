@@ -1,0 +1,398 @@
+.page {
+  --paper: #f6efe3;
+  --paper-strong: #efe1c8;
+  --ink: #181311;
+  --muted: #6b5a4e;
+  --accent: #cb5d2f;
+  --accent-soft: #f2b07a;
+  --line: rgba(24, 19, 17, 0.12);
+  min-height: 100vh;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(203, 93, 47, 0.18), transparent 28%),
+    radial-gradient(circle at 85% 12%, rgba(65, 102, 84, 0.18), transparent 24%),
+    linear-gradient(180deg, #f9f4ea 0%, var(--paper) 48%, #efe5d4 100%);
+}
+
+.shell {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 32px 0 48px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 36px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.brandMark {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 6px 18px rgba(24, 19, 17, 0.08);
+  font-weight: 700;
+}
+
+.topNote {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.85fr);
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.heroPanel,
+.statusPanel,
+.detailCard,
+.routeCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 244, 0.76);
+  box-shadow: 0 16px 60px rgba(24, 19, 17, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+.heroPanel {
+  padding: 2rem;
+  border-radius: 28px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 6px rgba(203, 93, 47, 0.14);
+}
+
+.headline {
+  max-width: 12ch;
+  margin: 0;
+  font-size: clamp(3.2rem, 7vw, 6.6rem);
+  line-height: 0.93;
+  letter-spacing: -0.05em;
+}
+
+.lede {
+  max-width: 56ch;
+  margin: 1.25rem 0 0;
+  color: var(--muted);
+  font-size: 1.08rem;
+  line-height: 1.7;
+}
+
+.heroFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+.primaryLink,
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  border-radius: 999px;
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.primaryLink {
+  padding: 0.95rem 1.35rem;
+  background: var(--ink);
+  color: #fff6ef;
+  box-shadow: 0 10px 24px rgba(24, 19, 17, 0.16);
+}
+
+.secondaryLink {
+  padding: 0.9rem 1.25rem;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.primaryLink:hover,
+.secondaryLink:hover,
+.routeCard:hover {
+  transform: translateY(-2px);
+}
+
+.signalStrip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-top: 2rem;
+}
+
+.signal {
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.46);
+  border: 1px solid rgba(24, 19, 17, 0.08);
+}
+
+.signalLabel {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.signalValue {
+  font-size: 1rem;
+}
+
+.statusPanel {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 24px;
+  align-content: start;
+}
+
+.statusHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.statusTitle {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.statusBadge {
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(203, 93, 47, 0.12);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.codeWindow {
+  padding: 1rem;
+  border-radius: 20px;
+  background: #1f1917;
+  color: #f7e9d8;
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 1.8;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.codeWindow code {
+  white-space: pre-wrap;
+}
+
+.statusList {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.statusItem {
+  display: grid;
+  gap: 0.2rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.statusItem strong {
+  font-size: 0.98rem;
+}
+
+.statusItem span {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.detailCard {
+  padding: 1.6rem;
+  border-radius: 24px;
+}
+
+.sectionLabel {
+  display: inline-block;
+  margin-bottom: 0.85rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.detailTitle {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+  line-height: 1.02;
+}
+
+.detailBody {
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.routeGrid {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.routeCard {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.05rem;
+  border-radius: 20px;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.routeCard:hover {
+  border-color: rgba(24, 19, 17, 0.22);
+  box-shadow: 0 18px 30px rgba(24, 19, 17, 0.08);
+}
+
+.routeIndex {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  background: rgba(24, 19, 17, 0.06);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.routeText {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.routeLabel {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.routePath {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.routeArrow {
+  color: var(--accent);
+  font-size: 1.2rem;
+}
+
+.ambientRing,
+.ambientBar {
+  position: absolute;
+  pointer-events: none;
+}
+
+.ambientRing {
+  top: -3rem;
+  right: -2rem;
+  width: 12rem;
+  height: 12rem;
+  border: 1px solid rgba(24, 19, 17, 0.1);
+  border-radius: 999px;
+}
+
+.ambientBar {
+  right: 1.5rem;
+  bottom: 1.5rem;
+  width: 7rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-soft));
+}
+
+@media (max-width: 980px) {
+  .hero,
+  .details {
+    grid-template-columns: 1fr;
+  }
+
+  .headline {
+    max-width: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .shell {
+    width: min(100% - 1rem, 1180px);
+    padding-top: 18px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+
+  .heroPanel,
+  .statusPanel,
+  .detailCard {
+    padding: 1.25rem;
+    border-radius: 22px;
+  }
+
+  .signalStrip {
+    grid-template-columns: 1fr;
+  }
+
+  .routeCard {
+    grid-template-columns: auto 1fr;
+  }
+
+  .routeArrow {
+    display: none;
+  }
+}
