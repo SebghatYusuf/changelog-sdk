@@ -12,6 +12,8 @@ export {
   fetchAdminChangelogById,
   runAIEnhance,
   loginAdmin,
+  registerAdmin,
+  canRegisterAdmin,
   logoutAdmin,
   checkAdminAuth,
   fetchAISettings,

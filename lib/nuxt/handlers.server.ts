@@ -16,6 +16,8 @@ export interface NuxtHandlers {
   getAdminFeed: EventHandler
   getAdminEntryById: EventHandler
   login: EventHandler
+  register: EventHandler
+  canRegister: EventHandler
   logout: EventHandler
   enhance: EventHandler
   getAISettings: EventHandler
@@ -104,9 +106,23 @@ export function createNuxtChangelogHandlers(options: NuxtAdapterOptions = {}): N
 
     async login(event) {
       const service = withService(event)
-      const body = (await readBody(event)) as { password?: string }
-      const password = body?.password as string
-      return service.loginAdmin(password)
+      const body = (await readBody(event)) as { email?: string; password?: string }
+      return service.loginAdmin({ email: body?.email || '', password: body?.password || '' })
+    },
+
+    async register(event) {
+      const service = withService(event)
+      const body = (await readBody(event)) as { email?: string; password?: string; displayName?: string }
+      return service.registerAdmin({
+        email: body?.email || '',
+        password: body?.password || '',
+        displayName: body?.displayName,
+      })
+    },
+
+    async canRegister(event) {
+      const service = withService(event)
+      return service.canRegisterAdmin()
     },
 
     async logout(event) {

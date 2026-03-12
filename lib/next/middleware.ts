@@ -9,8 +9,6 @@ function getSessionSecret(): string | undefined {
     [
       process.env.CHANGELOG_SESSION_SECRET,
       process.env.NEXTAUTH_SECRET,
-      process.env.CHANGELOG_ADMIN_PASSWORD,
-      process.env.ADMIN_PASSWORD,
     ],
     MIN_SESSION_SECRET_LENGTH
   )

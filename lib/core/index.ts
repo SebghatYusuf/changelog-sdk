@@ -1,6 +1,7 @@
 export { createChangelogService } from './service'
 
 export type {
+  AdminUser,
   ChangelogEntry,
   ChangelogStatus,
   ChangelogTag,
@@ -10,6 +11,8 @@ export type {
   EnhanceChangelogOutput,
   FeedResponse,
   ApiError,
+  LoginInput,
+  RegisterAdminInput,
   AISettingsInput,
   AIModelOption,
   AIProviderKind,
@@ -19,13 +22,13 @@ export type {
 } from './types'
 
 export type {
+  AdminUserRepository,
   ChangelogRepository,
   SettingsRepository,
   AISettingsRepository,
   SessionPort,
   CacheInvalidationPort,
   AIProviderPort,
-  CoreConfig,
 } from './ports'
 
 export {
@@ -36,6 +39,7 @@ export {
   UpdateChangelogSchema,
   EnhanceChangelogSchema,
   LoginSchema,
+  RegisterAdminSchema,
   FeedFiltersSchema,
   AIProviderEnum,
   AISettingsSchema,

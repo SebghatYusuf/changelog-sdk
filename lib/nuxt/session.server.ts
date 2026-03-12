@@ -11,8 +11,6 @@ function getSessionSecret(): string | undefined {
     [
       process.env.CHANGELOG_SESSION_SECRET,
       process.env.NUXT_SESSION_PASSWORD,
-      process.env.CHANGELOG_ADMIN_PASSWORD,
-      process.env.ADMIN_PASSWORD,
     ],
     MIN_SESSION_SECRET_LENGTH
   )

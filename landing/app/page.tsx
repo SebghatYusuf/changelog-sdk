@@ -117,7 +117,7 @@ const STEPS = [
   },
   {
     title: 'Configure environment variables',
-    desc: 'Set CHANGELOG_MONGODB_URI, CHANGELOG_ADMIN_PASSWORD, and optionally your AI provider key.',
+    desc: 'Set CHANGELOG_MONGODB_URI, CHANGELOG_SESSION_SECRET, and optionally your AI provider key.',
   },
 ]
 

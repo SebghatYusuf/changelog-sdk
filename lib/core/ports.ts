@@ -1,4 +1,5 @@
 import type {
+  AdminUser,
   AIModelOption,
   ChangelogEntry,
   ChangelogSettingsInput,
@@ -6,8 +7,10 @@ import type {
   CreateChangelogInput,
   EnhanceChangelogOutput,
   FeedResponse,
+  LoginInput,
   PersistedAISettings,
   PersistedChangelogSettings,
+  RegisterAdminInput,
   UpdateChangelogInput,
 } from './types'
 import type { AIProviderKind } from './constants'
@@ -34,6 +37,12 @@ export interface AISettingsRepository {
   save(input: PersistedAISettings): Promise<PersistedAISettings>
 }
 
+export interface AdminUserRepository {
+  create(input: { email: string; passwordHash: string; displayName: string }): Promise<AdminUser>
+  findByEmail(email: string): Promise<AdminUser | null>
+  hasAnyUsers(): Promise<boolean>
+}
+
 export interface SessionPort {
   setAdminSession(): Promise<void>
   clearAdminSession(): Promise<void>
@@ -49,6 +58,5 @@ export interface AIProviderPort {
   listModels(input: { provider: AIProviderKind; ollamaBaseUrl?: string }): Promise<AIModelOption[]>
 }
 
-export interface CoreConfig {
-  getAdminPassword: () => string | undefined
-}
+export type LoginAdminPayload = LoginInput
+export type RegisterAdminPayload = RegisterAdminInput

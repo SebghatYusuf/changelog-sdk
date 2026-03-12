@@ -7,6 +7,7 @@ import {
   CreateChangelogSchema,
   EnhanceChangelogSchema,
   LoginSchema,
+  RegisterAdminSchema,
   UpdateChangelogSchema,
 } from './schemas'
 import type {
@@ -19,10 +20,10 @@ import type {
 } from './types'
 import type {
   AIProviderPort,
+  AdminUserRepository,
   AISettingsRepository,
   CacheInvalidationPort,
   ChangelogRepository,
-  CoreConfig,
   SessionPort,
   SettingsRepository,
 } from './ports'
@@ -32,10 +33,11 @@ export interface ChangelogServiceDeps {
   changelogRepository: ChangelogRepository
   settingsRepository: SettingsRepository
   aiSettingsRepository: AISettingsRepository
+  adminUserRepository: AdminUserRepository
+  allowAdminRegistration?: boolean
   session: SessionPort
   aiProvider: AIProviderPort
   cacheInvalidation?: CacheInvalidationPort
-  config: CoreConfig
 }
 
 export function createChangelogService(deps: ChangelogServiceDeps) {
@@ -84,6 +86,22 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
     if (typeof value !== 'string') return undefined
     const normalized = value.trim()
     return normalized ? normalized.slice(0, maxLength) : undefined
+  }
+
+  function sanitizeEmail(value: string): string {
+    const normalized = value.trim().toLowerCase()
+    if (!normalized) {
+      throw new Error('Email is required')
+    }
+    return normalized.slice(0, 320)
+  }
+
+  function sanitizeDisplayName(value: string | undefined, email: string): string {
+    const normalized = value?.trim()
+    if (normalized) return normalized.slice(0, 120)
+
+    const localPart = email.split('@')[0]
+    return localPart ? localPart.slice(0, 120) : 'Admin'
   }
 
   function sanitizeIdentifier(value: string, field: string): string {
@@ -238,29 +256,63 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
       }
     },
 
-    async loginAdmin(password: string): Promise<{ success: boolean; error?: string }> {
+    async loginAdmin(input: unknown): Promise<{ success: boolean; error?: string }> {
       try {
-        const validated = LoginSchema.parse({ password })
-        const adminPassword = deps.config.getAdminPassword()?.trim()
+        const validated = LoginSchema.parse(input)
+        const email = sanitizeEmail(validated.email)
+        const adminUser = await deps.adminUserRepository.findByEmail(email)
 
-        if (!adminPassword) {
-          return {
-            success: false,
-            error: 'Admin password not configured. If using a bcrypt hash in .env.local, escape "$" as "\\$".',
-          }
+        if (!adminUser) {
+          return { success: false, error: 'Invalid email or password' }
         }
 
-        const isBcryptHash = /^\$2[aby]\$\d{2}\$/.test(adminPassword)
-        const isValid = isBcryptHash ? await bcryptjs.compare(validated.password, adminPassword) : validated.password === adminPassword
+        const isValid = await bcryptjs.compare(validated.password, adminUser.passwordHash)
 
         if (!isValid) {
-          return { success: false, error: 'Invalid password' }
+          return { success: false, error: 'Invalid email or password' }
         }
 
         await deps.session.setAdminSession()
         return { success: true }
       } catch {
         return { success: false, error: 'Authentication failed' }
+      }
+    },
+
+    async registerAdmin(input: unknown): Promise<{ success: boolean; error?: string }> {
+      try {
+        const hasUsers = await deps.adminUserRepository.hasAnyUsers()
+        const canRegister = Boolean(deps.allowAdminRegistration) || !hasUsers
+        if (!canRegister) {
+          return {
+            success: false,
+            error: 'Admin registration is disabled. Ask the site owner to enable CHANGELOG_ALLOW_ADMIN_REGISTRATION.',
+          }
+        }
+
+        const validated = RegisterAdminSchema.parse(input)
+        const email = sanitizeEmail(validated.email)
+        const existing = await deps.adminUserRepository.findByEmail(email)
+        if (existing) {
+          return { success: false, error: 'An admin account with this email already exists' }
+        }
+
+        const passwordHash = await bcryptjs.hash(validated.password, 10)
+        const displayName = sanitizeDisplayName(validated.displayName, email)
+        await deps.adminUserRepository.create({ email, passwordHash, displayName })
+        await deps.session.setAdminSession()
+        return { success: true }
+      } catch (error) {
+        return { success: false, error: wrapError(error, 'Failed to create admin account') }
+      }
+    },
+
+    async canRegisterAdmin(): Promise<{ success: boolean; data?: { canRegister: boolean }; error?: string }> {
+      try {
+        const hasUsers = await deps.adminUserRepository.hasAnyUsers()
+        return { success: true, data: { canRegister: Boolean(deps.allowAdminRegistration) || !hasUsers } }
+      } catch (error) {
+        return { success: false, error: wrapError(error, 'Failed to check admin registration') }
       }
     },
 

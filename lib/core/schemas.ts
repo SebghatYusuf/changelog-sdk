@@ -44,7 +44,14 @@ export const EnhanceChangelogSchema = z.object({
 })
 
 export const LoginSchema = z.object({
+  email: z.email('Valid email is required').max(320, 'Email must be less than 320 characters'),
   password: z.string().min(1, 'Password is required'),
+})
+
+export const RegisterAdminSchema = z.object({
+  email: z.email('Valid email is required').max(320, 'Email must be less than 320 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters').max(128, 'Password must be less than 128 characters'),
+  displayName: z.string().trim().min(1, 'Display name is required').max(120, 'Display name must be less than 120 characters').optional(),
 })
 
 export const FeedFiltersSchema = z.object({
@@ -80,6 +87,7 @@ export type CreateChangelogType = z.infer<typeof CreateChangelogSchema>
 export type UpdateChangelogType = z.infer<typeof UpdateChangelogSchema>
 export type EnhanceChangelogType = z.infer<typeof EnhanceChangelogSchema>
 export type LoginType = z.infer<typeof LoginSchema>
+export type RegisterAdminType = z.infer<typeof RegisterAdminSchema>
 export type FeedFiltersType = z.infer<typeof FeedFiltersSchema>
 export type AISettingsType = z.infer<typeof AISettingsSchema>
 export type AIModelListRequestType = z.infer<typeof AIModelListRequestSchema>

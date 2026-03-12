@@ -51,6 +51,7 @@
     "type-check": "tsc --noEmit",
     "check:mongo": "node scripts/check-mongodb.js",
     "hash:password": "node scripts/hash-password.js",
+    "create:admin": "node scripts/create-admin-user.js",
     "example:install": "cd example && bun install",
     "example:dev": "cd example && bun run dev",
     "example:build": "cd example && bun run build",

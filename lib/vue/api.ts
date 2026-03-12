@@ -56,10 +56,28 @@ export function createChangelogApi(options: HttpOptions = {}) {
       })
     },
 
-    login(password: string) {
+    login(input: { email: string; password: string }) {
       return request<{ success: boolean; error?: string }>(`/admin/login`, {
         method: 'POST',
-        body: JSON.stringify({ password }),
+        body: JSON.stringify(input),
+      })
+    },
+
+    register(input: { email: string; password: string; displayName?: string }) {
+      return request<{ success: boolean; error?: string }>(`/admin/register`, {
+        method: 'POST',
+        body: JSON.stringify(input),
+      })
+    },
+
+    canRegister() {
+      return request<{ success: boolean; data?: { canRegister: boolean }; error?: string }>(`/admin/can-register`)
+    },
+
+    createAdminAccount(input: { email: string; password: string; displayName?: string }) {
+      return request<{ success: boolean; error?: string }>(`/admin/register`, {
+        method: 'POST',
+        body: JSON.stringify(input),
       })
     },
 
