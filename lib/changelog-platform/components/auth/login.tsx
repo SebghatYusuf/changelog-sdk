@@ -13,7 +13,7 @@ import { useRouter } from 'next/navigation'
 export default function LoginForm() {
   const router = useRouter()
   const [error, setError] = useState<string>('')
-  const [canRegister, setCanRegister] = useState(false)
+  const [canRegister, setCanRegister] = useState<boolean | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -102,7 +102,7 @@ export default function LoginForm() {
 
         {/* Submit Button */}
         <SubmitButton />
-        {canRegister && (
+        {canRegister === true && (
           <a href="/changelog/register" className="cl-btn cl-btn-secondary cl-login-submit">
             Create Admin Account
           </a>

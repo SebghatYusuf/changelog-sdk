@@ -2,81 +2,82 @@
 
 import { createNextChangelogAdapter } from './create-adapter'
 
-const adapter = createNextChangelogAdapter()
-const actions = adapter.actions
+function getActions() {
+  return createNextChangelogAdapter().actions
+}
 
 export async function createChangelog(input: unknown) {
-  return actions.createChangelog(input)
+  return getActions().createChangelog(input)
 }
 
 export async function updateChangelog(input: unknown) {
-  return actions.updateChangelog(input)
+  return getActions().updateChangelog(input)
 }
 
 export async function deleteChangelog(id: string) {
-  return actions.deleteChangelog(id)
+  return getActions().deleteChangelog(id)
 }
 
 export async function fetchChangelogBySlug(slug: string) {
-  return actions.fetchChangelogBySlug(slug)
+  return getActions().fetchChangelogBySlug(slug)
 }
 
 export async function fetchPublishedChangelogs(page = 1, limit = 10, tags?: string[], search?: string) {
-  return actions.fetchPublishedChangelogs(page, limit, tags, search)
+  return getActions().fetchPublishedChangelogs(page, limit, tags, search)
 }
 
 export async function fetchAdminChangelogs(page = 1, limit = 20) {
-  return actions.fetchAdminChangelogs(page, limit)
+  return getActions().fetchAdminChangelogs(page, limit)
 }
 
 export async function fetchAdminChangelogById(id: string) {
-  return actions.fetchAdminChangelogById(id)
+  return getActions().fetchAdminChangelogById(id)
 }
 
 export async function runAIEnhance(input: unknown) {
-  return actions.runAIEnhance(input)
+  return getActions().runAIEnhance(input)
 }
 
 export async function loginAdmin(input: { email: string; password: string }) {
-  return actions.loginAdmin(input)
+  return getActions().loginAdmin(input)
 }
 
 export async function registerAdmin(input: { email: string; password: string; displayName?: string }) {
-  return actions.registerAdmin(input)
+  return getActions().registerAdmin(input)
 }
 
 export async function canRegisterAdmin() {
-  return actions.canRegisterAdmin()
+  return getActions().canRegisterAdmin()
 }
 
 export async function logoutAdmin() {
-  return actions.logoutAdmin()
+  return getActions().logoutAdmin()
 }
 
 export async function checkAdminAuth() {
-  return actions.checkAdminAuth()
+  return getActions().checkAdminAuth()
 }
 
 export async function fetchAISettings() {
-  return actions.fetchAISettings()
+  return getActions().fetchAISettings()
 }
 
 export async function fetchAIProviderModels(input: unknown) {
-  return actions.fetchAIProviderModels(input)
+  return getActions().fetchAIProviderModels(input)
 }
 
 export async function updateAISettings(input: unknown) {
-  return actions.updateAISettings(input)
+  return getActions().updateAISettings(input)
 }
 
 export async function fetchLatestPublishedVersion() {
-  return actions.fetchLatestPublishedVersion()
+  return getActions().fetchLatestPublishedVersion()
 }
 
 export async function fetchChangelogSettings() {
-  return actions.fetchChangelogSettings()
+  return getActions().fetchChangelogSettings()
 }
 
 export async function updateChangelogSettings(input: unknown) {
-  return actions.updateChangelogSettings(input)
+  return getActions().updateChangelogSettings(input)
 }

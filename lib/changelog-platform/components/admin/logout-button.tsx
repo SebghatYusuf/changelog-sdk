@@ -13,8 +13,8 @@ export default function LogoutButton() {
 
   async function handleLogout(_formData: FormData) {
     await handleLogoutAction()
-    // Redirect to home
-    router.push('/changelog')
+    router.refresh()
+    router.push('/changelog/login')
   }
 
   return (
