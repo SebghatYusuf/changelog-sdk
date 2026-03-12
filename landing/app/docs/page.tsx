@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { toSitePath } from '../../src/site-paths'
 
@@ -92,6 +92,17 @@ function InstallBlock() {
 
 // ── Framework Code Examples ──────────────────────────────────────────────────
 const FW_TABS = ['Next.js', 'Nuxt 3', 'Vue 3', 'Express'] as const
+const SECTION_IDS = [
+  'introduction',
+  'installation',
+  'env-vars',
+  'frameworks',
+  'api-actions',
+  'api-types',
+  'ai-guide',
+  'repo-guide',
+  'styling',
+] as const
 
 const NEXTJS_LAYOUT = `// app/changelog/layout.tsx
 import 'changelog-sdk/styles'
@@ -266,6 +277,7 @@ const ENV_VARS = [
   { key: 'CHANGELOG_MONGODB_URI',          req: 'Required',     desc: 'MongoDB connection string (Atlas or self-hosted)' },
   { key: 'CHANGELOG_SESSION_SECRET',        req: 'Recommended',  desc: 'Session signing secret (min 32 characters)' },
   { key: 'CHANGELOG_ALLOW_ADMIN_REGISTRATION', req: 'Optional',  desc: 'Set to true to keep admin registration available in the login UI' },
+  { key: 'CHANGELOG_ENCRYPTION_KEY',        req: 'Required (repo tokens)',  desc: '32-byte key used to encrypt repository access tokens' },
   { key: 'CHANGELOG_AI_PROVIDER',           req: 'Optional',     desc: 'AI provider: openai, gemini, or ollama' },
   { key: 'OPENAI_API_KEY',                  req: 'If OpenAI',    desc: 'API key for OpenAI provider' },
   { key: 'GOOGLE_GENERATIVE_AI_API_KEY',    req: 'If Gemini',    desc: 'API key for Google Gemini provider' },
@@ -283,6 +295,49 @@ export default function DocsPage() {
     const el = document.getElementById(id)
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+
+  useEffect(() => {
+    const resolveFrameworkId = () => {
+      if (activeFramework === 'Nuxt 3') return 'nuxt'
+      if (activeFramework === 'Vue 3') return 'vue'
+      if (activeFramework === 'Express') return 'express'
+      return 'nextjs'
+    }
+
+    let ticking = false
+    const updateActiveSection = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        const offset = 140
+        let current = SECTION_IDS[0]
+        for (const id of SECTION_IDS) {
+          const section = document.getElementById(id)
+          if (!section) continue
+          const top = section.getBoundingClientRect().top
+          if (top - offset <= 0) {
+            current = id
+          }
+        }
+
+        if (current === 'frameworks') {
+          setActiveSidebarItem(resolveFrameworkId())
+        } else {
+          setActiveSidebarItem(current)
+        }
+        ticking = false
+      })
+    }
+
+    updateActiveSection()
+    window.addEventListener('scroll', updateActiveSection, { passive: true })
+    window.addEventListener('resize', updateActiveSection)
+
+    return () => {
+      window.removeEventListener('scroll', updateActiveSection)
+      window.removeEventListener('resize', updateActiveSection)
+    }
+  }, [activeFramework])
 
   return (
     <div className="docs-page">
@@ -327,6 +382,7 @@ export default function DocsPage() {
           <div className="sidebar-group">
             <div className="sidebar-group-title">Guides</div>
             <button className={`sidebar-link${activeSidebarItem === 'ai-guide' ? ' active' : ''}`} onClick={() => scrollTo('ai-guide')}>AI Enhancement</button>
+            <button className={`sidebar-link${activeSidebarItem === 'repo-guide' ? ' active' : ''}`} onClick={() => scrollTo('repo-guide')}>Repository Integration</button>
             <button className={`sidebar-link${activeSidebarItem === 'styling' ? ' active' : ''}`} onClick={() => scrollTo('styling')}>Styling & Isolation</button>
           </div>
         </aside>
@@ -369,6 +425,7 @@ export default function DocsPage() {
               <li><code className="docs-code-inline">/changelog</code> — public changelog timeline with search, tag filters, pagination</li>
               <li><code className="docs-code-inline">/changelog/login</code> — admin login</li>
               <li><code className="docs-code-inline">/changelog/admin</code> — admin dashboard: create, edit, delete, AI-enhance</li>
+              <li><code className="docs-code-inline">/changelog/admin/repo</code> — repository connection & commit generator</li>
             </ul>
           </section>
 
@@ -403,6 +460,9 @@ CHANGELOG_MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/changelog
 
 # Session signing secret (min 32 characters)
 CHANGELOG_SESSION_SECRET=your-random-secret-at-least-32-chars
+
+# Encryption key for repository tokens (32 bytes, base64 or hex)
+CHANGELOG_ENCRYPTION_KEY=base64:your-32-byte-key
 
 # Create the first admin account:
 # bun run create:admin your-admin@email.com your-password "Admin"
@@ -605,6 +665,31 @@ const result = await runAIEnhance({
             <div className="api-card">
               <div className="api-card-header">
                 <span className="api-method api-method-async">async</span>
+                <span className="api-fn-name">generateChangelogFromCommits(input)</span>
+              </div>
+              <div className="api-card-body">
+                <p className="docs-p" style={{ marginBottom: '0.75rem' }}>Generate a draft changelog from a repository commit range.</p>
+                <CodeBlock code={`import { generateChangelogFromCommits, updateRepoSettings } from 'changelog-sdk/next'
+
+await updateRepoSettings({
+  provider: 'git',
+  repoUrl: 'https://github.com/org/repo',
+  branch: 'main',
+  token: 'ghp_...',
+  enabled: true,
+})
+
+const result = await generateChangelogFromCommits({
+  since: '2025-01-01',
+  until: '2025-01-07',
+  limit: 50,
+})`} />
+              </div>
+            </div>
+
+            <div className="api-card">
+              <div className="api-card-header">
+                <span className="api-method api-method-async">async</span>
                 <span className="api-fn-name">loginAdmin / logoutAdmin / checkAdminAuth</span>
               </div>
               <div className="api-card-body">
@@ -669,6 +754,28 @@ await logoutAdmin()`} />
 OLLAMA_BASE_URL=http://localhost:11434`} filename=".env.local" />
           </section>
 
+          {/* Repository Integration Guide */}
+          <section id="repo-guide" className="docs-section">
+            <h2 className="docs-h2">Repository Integration</h2>
+            <p className="docs-p">
+              Connect GitHub or Bitbucket repositories and generate clean release notes from commit history. Tokens are stored encrypted in MongoDB using <code className="docs-code-inline">CHANGELOG_ENCRYPTION_KEY</code>.
+            </p>
+
+            <h3 className="docs-h3">Setup</h3>
+            <ul className="docs-ul">
+              <li>Open <code className="docs-code-inline">/changelog/admin/repo</code> and add your repository details</li>
+              <li>Paste an access token with read access to commits</li>
+              <li>Save to enable the commit generator in the editor</li>
+            </ul>
+
+            <h3 className="docs-h3">Generate from commits</h3>
+            <ul className="docs-ul">
+              <li>Open the commit generator modal in the admin editor</li>
+              <li>Select a date range to keep the draft concise</li>
+              <li>Optionally enable AI polish for standardized formatting</li>
+            </ul>
+          </section>
+
           {/* Styling */}
           <section id="styling" className="docs-section">
             <h2 className="docs-h2">Styling & CSS Isolation</h2>
@@ -697,19 +804,20 @@ OLLAMA_BASE_URL=http://localhost:11434`} filename=".env.local" />
         {/* ── TOC ── */}
         <nav className="docs-toc">
           <div className="toc-label">On this page</div>
-          <button className="toc-link" onClick={() => scrollTo('introduction')}>Introduction</button>
-          <button className="toc-link toc-link-sub" onClick={() => scrollTo('introduction')}>Package surfaces</button>
-          <button className="toc-link" onClick={() => scrollTo('installation')}>Installation</button>
-          <button className="toc-link" onClick={() => scrollTo('env-vars')}>Environment Variables</button>
-          <button className="toc-link" onClick={() => scrollTo('frameworks')}>Framework Setup</button>
-          <button className="toc-link toc-link-sub" onClick={() => { setActiveFramework('Next.js'); scrollTo('frameworks') }}>Next.js</button>
-          <button className="toc-link toc-link-sub" onClick={() => { setActiveFramework('Nuxt 3'); scrollTo('frameworks') }}>Nuxt 3</button>
-          <button className="toc-link toc-link-sub" onClick={() => { setActiveFramework('Vue 3'); scrollTo('frameworks') }}>Vue 3</button>
-          <button className="toc-link toc-link-sub" onClick={() => { setActiveFramework('Express'); scrollTo('frameworks') }}>Express</button>
-          <button className="toc-link" onClick={() => scrollTo('api-actions')}>Server Actions</button>
-          <button className="toc-link" onClick={() => scrollTo('api-types')}>TypeScript Types</button>
-          <button className="toc-link" onClick={() => scrollTo('ai-guide')}>AI Enhancement</button>
-          <button className="toc-link" onClick={() => scrollTo('styling')}>Styling</button>
+          <button className={`toc-link${activeSidebarItem === 'introduction' ? ' active' : ''}`} onClick={() => scrollTo('introduction')}>Introduction</button>
+          <button className={`toc-link toc-link-sub${activeSidebarItem === 'introduction' ? ' active' : ''}`} onClick={() => scrollTo('introduction')}>Package surfaces</button>
+          <button className={`toc-link${activeSidebarItem === 'installation' ? ' active' : ''}`} onClick={() => scrollTo('installation')}>Installation</button>
+          <button className={`toc-link${activeSidebarItem === 'env-vars' ? ' active' : ''}`} onClick={() => scrollTo('env-vars')}>Environment Variables</button>
+          <button className={`toc-link${activeSidebarItem === 'nextjs' || activeSidebarItem === 'nuxt' || activeSidebarItem === 'vue' || activeSidebarItem === 'express' ? ' active' : ''}`} onClick={() => scrollTo('frameworks')}>Framework Setup</button>
+          <button className={`toc-link toc-link-sub${activeSidebarItem === 'nextjs' ? ' active' : ''}`} onClick={() => { setActiveFramework('Next.js'); scrollTo('frameworks') }}>Next.js</button>
+          <button className={`toc-link toc-link-sub${activeSidebarItem === 'nuxt' ? ' active' : ''}`} onClick={() => { setActiveFramework('Nuxt 3'); scrollTo('frameworks') }}>Nuxt 3</button>
+          <button className={`toc-link toc-link-sub${activeSidebarItem === 'vue' ? ' active' : ''}`} onClick={() => { setActiveFramework('Vue 3'); scrollTo('frameworks') }}>Vue 3</button>
+          <button className={`toc-link toc-link-sub${activeSidebarItem === 'express' ? ' active' : ''}`} onClick={() => { setActiveFramework('Express'); scrollTo('frameworks') }}>Express</button>
+          <button className={`toc-link${activeSidebarItem === 'api-actions' ? ' active' : ''}`} onClick={() => scrollTo('api-actions')}>Server Actions</button>
+          <button className={`toc-link${activeSidebarItem === 'api-types' ? ' active' : ''}`} onClick={() => scrollTo('api-types')}>TypeScript Types</button>
+          <button className={`toc-link${activeSidebarItem === 'ai-guide' ? ' active' : ''}`} onClick={() => scrollTo('ai-guide')}>AI Enhancement</button>
+          <button className={`toc-link${activeSidebarItem === 'repo-guide' ? ' active' : ''}`} onClick={() => scrollTo('repo-guide')}>Repository Integration</button>
+          <button className={`toc-link${activeSidebarItem === 'styling' ? ' active' : ''}`} onClick={() => scrollTo('styling')}>Styling</button>
         </nav>
       </div>
     </div>

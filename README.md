@@ -51,9 +51,11 @@ Framework-agnostic changelog SDK with a headless core plus first-party adapters 
   - [Public Feed](#public-feed)
   - [Admin Portal](#admin-portal)
   - [AI Enhancement Workflow](#ai-enhancement-workflow)
+  - [Repository to Changelog](#repository-to-changelog)
 - [API and Server Actions](#api-and-server-actions)
   - [Changelog CRUD](#changelog-crud)
   - [AI enhancement](#ai-enhancement)
+  - [Repository integration](#repository-integration)
   - [Authentication](#authentication)
   - [Settings](#settings)
 - [Advanced: Custom Adapter](#advanced-custom-adapter)
@@ -95,6 +97,7 @@ Framework-agnostic changelog SDK with a headless core plus first-party adapters 
 - **Public changelog feed** at `/changelog` with search, filtering, and pagination
 - **Admin portal** at `/changelog/admin` for creating, editing, and publishing entries
 - **AI-powered writing assistance** — turn raw notes into polished release updates
+- **Repository-to-changelog automation** — generate drafts from GitHub or Bitbucket commits
 - **Secure auth flow** using MongoDB-backed admin users and signed cookie sessions
 - **Type-safe API surface** with TypeScript and Zod schemas
 - **Adapter architecture**: `core`, `next`, `mongoose`, `nuxt`, and `vue` package surfaces
@@ -212,6 +215,9 @@ CHANGELOG_ALLOW_ADMIN_REGISTRATION=true
 # Session signing secret — minimum 32 characters, required for secure sessions
 CHANGELOG_SESSION_SECRET=your-random-secret-at-least-32-chars
 
+# Encryption key for repository tokens (32 bytes, base64 or hex)
+CHANGELOG_ENCRYPTION_KEY=base64:your-32-byte-key
+
 # AI provider: openai | gemini | ollama
 CHANGELOG_AI_PROVIDER=openai
 
@@ -278,6 +284,7 @@ Create `.env` in your project root (same variables as the Next.js adapter):
 ```env
 CHANGELOG_MONGODB_URI=mongodb+srv://...
 CHANGELOG_SESSION_SECRET=your-random-secret-at-least-32-chars
+CHANGELOG_ENCRYPTION_KEY=base64:your-32-byte-key
 CHANGELOG_AI_PROVIDER=openai
 OPENAI_API_KEY=sk-...
 ```
@@ -464,6 +471,7 @@ Once configured, the following routes are available out of the box:
 | `/changelog/admin` | Admin dashboard — publishing |
 | `/changelog/admin/ai` | Admin AI provider settings |
 | `/changelog/admin/changelog-settings` | Admin feed and publishing defaults |
+| `/changelog/admin/repo` | Admin repository settings |
 | `/changelog/admin/presets` | Admin entry presets |
 
 ## Environment Variables
@@ -473,6 +481,7 @@ Once configured, the following routes are available out of the box:
 | `CHANGELOG_MONGODB_URI` | Yes | MongoDB connection string |
 | `CHANGELOG_SESSION_SECRET` | Recommended | HMAC signing secret (min 32 chars). Falls back to `NEXTAUTH_SECRET` or `NUXT_SESSION_PASSWORD`. A missing or short secret degrades session security. |
 | `CHANGELOG_ALLOW_ADMIN_REGISTRATION` | No | Set to `true` to allow creating admin accounts from `/changelog/login` even after the first admin exists |
+| `CHANGELOG_ENCRYPTION_KEY` | Required for repo tokens | 32-byte key used to encrypt repository access tokens (prefix with `base64:` or `hex:`) |
 | `CHANGELOG_AI_PROVIDER` | No | `openai`, `gemini`, or `ollama` |
 | `OPENAI_API_KEY` | If OpenAI | API key for OpenAI |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | If Gemini | API key for Google Gemini |
@@ -496,6 +505,7 @@ Once configured, the following routes are available out of the box:
 - Publish and manage entries at `/changelog/admin`
 - Configure AI settings at `/changelog/admin/ai`
 - Adjust feed defaults at `/changelog/admin/changelog-settings`
+- Connect repositories at `/changelog/admin/repo` to generate drafts from commits
 
 ![Admin — New Entry Form](./site/images/admin-new-entry.png)
 
@@ -513,6 +523,13 @@ bun run create:admin your-admin@email.com your-password "Admin"
 4. Edit as needed and publish
 
 ![AI Provider Settings](./site/images/ai-settings.png)
+
+### Repository to Changelog
+
+1. Add a GitHub repository URL or Bitbucket workspace/slug in `/changelog/admin/repo`
+2. Provide an access token (stored encrypted in MongoDB)
+3. Open **Generate from commits** in the editor to select a date range
+4. Optionally enable AI polish for a standardized release-note format
 
 ## API and Server Actions
 
@@ -573,6 +590,28 @@ const result = await runAIEnhance({
   currentVersion: '1.2.0',
 })
 // result.data → { title, content, tags }
+```
+
+### Repository integration
+
+```ts
+import {
+  fetchRepoSettings,
+  updateRepoSettings,
+  previewRepoCommits,
+  generateChangelogFromCommits,
+} from 'changelog-sdk/next'
+
+await updateRepoSettings({
+  provider: 'git',
+  repoUrl: 'https://github.com/org/repo',
+  branch: 'main',
+  token: 'ghp_...',
+  enabled: true,
+})
+
+const commits = await previewRepoCommits({ since: '2025-01-01', until: '2025-01-07', limit: 50 })
+const draft = await generateChangelogFromCommits({ since: '2025-01-01', until: '2025-01-07', limit: 50 })
 ```
 
 ### Authentication
@@ -742,6 +781,7 @@ Avoid overriding `cl-` prefixed selectors globally in your host app.
 - Bcrypt password hashing and verification (`bcryptjs`)
 - Configurable AI request rate limiting
 - Input sanitization and bounded pagination on all repository-touching service methods
+- Repository access tokens are encrypted at rest with `CHANGELOG_ENCRYPTION_KEY` (AES-256-GCM)
 - MongoDB search inputs are regex-escaped and length-limited before use in `$regex` queries
 - Semver comparison prevents publishing lower or duplicate versions
 
