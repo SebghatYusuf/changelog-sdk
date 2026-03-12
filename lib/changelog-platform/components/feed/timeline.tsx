@@ -26,6 +26,11 @@ export default async function ChangelogFeed({
   return (
     <div className="cl-root cl-feed-wrap">
       <div className="cl-feed-hero">
+        <div className="cl-feed-topbar">
+          <a href="/changelog/admin" className="cl-btn cl-btn-secondary cl-btn-compact cl-feed-admin-link">
+            Admin
+          </a>
+        </div>
         <div className="cl-feed-kicker">
           <span className="cl-feed-kicker-dot" />
           Product Updates

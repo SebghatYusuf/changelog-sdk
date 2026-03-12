@@ -387,6 +387,16 @@
   z-index: 2;
 }
 
+.cl-feed-topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.875rem;
+}
+
+.cl-feed-admin-link {
+  text-decoration: none;
+}
+
 .cl-feed-kicker {
   display: inline-flex;
   align-items: center;
