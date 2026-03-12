@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "node ./node_modules/next/dist/bin/next dev --webpack",
+    "build": "NODE_ENV=production node ./node_modules/next/dist/bin/next build --webpack",
+    "start": "NODE_ENV=production node ./node_modules/next/dist/bin/next start",
+    "lint": "node ./node_modules/next/dist/bin/next lint"
   },
   "dependencies": {
-    "@next/font": "14.2.15",
-    "@types/node": "25.4.0",
+    "changelog-sdk": "file:..",
+    "@types-node": "25.4.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "eslint": "9.39.4",
