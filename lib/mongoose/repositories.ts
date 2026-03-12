@@ -3,10 +3,13 @@ import { Changelog } from '../changelog-platform/db/models/Changelog'
 import AISettings from '../changelog-platform/db/models/AISettings'
 import ChangelogSettings from '../changelog-platform/db/models/ChangelogSettings'
 import AdminUser from '../changelog-platform/db/models/AdminUser'
+import RepoSettings from '../changelog-platform/db/models/RepoSettings'
+import { decryptSecret, encryptSecret } from '../core/crypto'
 import type {
   AdminUserRepository,
   AISettingsRepository,
   ChangelogRepository,
+  RepoSettingsRepository,
   SettingsRepository,
 } from '../core/ports'
 import type {
@@ -16,6 +19,8 @@ import type {
   FeedResponse,
   PersistedAISettings,
   PersistedChangelogSettings,
+  PersistedRepoSettings,
+  RepoSettingsInput,
   UpdateChangelogInput,
 } from '../core/types'
 import { DEFAULT_AI_MODELS } from '../core/constants'
@@ -263,6 +268,110 @@ export function createMongooseAISettingsRepository(): AISettingsRepository {
           openaiApiKey: normalized.openaiApiKey || null,
           geminiApiKey: normalized.geminiApiKey || null,
           ollamaBaseUrl: normalized.ollamaBaseUrl || null,
+        },
+        { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
+      )
+
+      return normalized
+    },
+  }
+}
+
+const DEFAULT_REPO_SETTINGS: PersistedRepoSettings = {
+  provider: 'git',
+  repoUrl: '',
+  workspace: '',
+  repoSlug: '',
+  branch: 'main',
+  token: '',
+  enabled: false,
+}
+
+function normalizeRepoSettings(input: Partial<PersistedRepoSettings>): PersistedRepoSettings {
+  return {
+    provider: input.provider || DEFAULT_REPO_SETTINGS.provider,
+    repoUrl: input.repoUrl || '',
+    workspace: input.workspace || '',
+    repoSlug: input.repoSlug || '',
+    branch: input.branch || DEFAULT_REPO_SETTINGS.branch,
+    token: input.token || '',
+    enabled: typeof input.enabled === 'boolean' ? input.enabled : DEFAULT_REPO_SETTINGS.enabled,
+  }
+}
+
+export function createMongooseRepoSettingsRepository(): RepoSettingsRepository {
+  return {
+    async get() {
+      await connectDB()
+      const settings = await RepoSettings.findOne({ key: 'default' }).lean()
+
+      if (!settings) {
+        return DEFAULT_REPO_SETTINGS
+      }
+
+      let token = ''
+      if (settings.tokenEncrypted && settings.tokenIv && settings.tokenTag) {
+        token = decryptSecret({
+          encrypted: settings.tokenEncrypted,
+          iv: settings.tokenIv,
+          tag: settings.tokenTag,
+        })
+      }
+
+      return normalizeRepoSettings({
+        provider: settings.provider,
+        repoUrl: settings.repoUrl || '',
+        workspace: settings.workspace || '',
+        repoSlug: settings.repoSlug || '',
+        branch: settings.branch || DEFAULT_REPO_SETTINGS.branch,
+        token,
+        enabled: settings.enabled,
+      })
+    },
+
+    async save(input: RepoSettingsInput) {
+      await connectDB()
+      const existing = await RepoSettings.findOne({ key: 'default' }).lean()
+
+      let existingToken = ''
+      if (existing?.tokenEncrypted && existing.tokenIv && existing.tokenTag) {
+        existingToken = decryptSecret({
+          encrypted: existing.tokenEncrypted,
+          iv: existing.tokenIv,
+          tag: existing.tokenTag,
+        })
+      }
+
+      const token =
+        input.clearToken ? '' : typeof input.token === 'string' ? input.token : existingToken
+
+      const normalized = normalizeRepoSettings({
+        provider: input.provider,
+        repoUrl: input.repoUrl || '',
+        workspace: input.workspace || '',
+        repoSlug: input.repoSlug || '',
+        branch: input.branch || DEFAULT_REPO_SETTINGS.branch,
+        token,
+        enabled: typeof input.enabled === 'boolean' ? input.enabled : DEFAULT_REPO_SETTINGS.enabled,
+      })
+
+      const encrypted: { encrypted: string | null; iv: string | null; tag: string | null } = normalized.token
+        ? encryptSecret(normalized.token)
+        : { encrypted: null, iv: null, tag: null }
+
+      await RepoSettings.findOneAndUpdate(
+        { key: 'default' },
+        {
+          key: 'default',
+          provider: normalized.provider,
+          repoUrl: normalized.repoUrl || null,
+          workspace: normalized.workspace || null,
+          repoSlug: normalized.repoSlug || null,
+          branch: normalized.branch,
+          tokenEncrypted: encrypted.encrypted,
+          tokenIv: encrypted.iv,
+          tokenTag: encrypted.tag,
+          enabled: normalized.enabled,
         },
         { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
       )

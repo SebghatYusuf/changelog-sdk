@@ -2,6 +2,7 @@ import {
   createChangelogService,
   type ChangelogRepository,
   type AISettingsRepository,
+  type RepoSettingsRepository,
   type SettingsRepository,
   type AdminUserRepository,
 } from '../core'
@@ -9,6 +10,7 @@ import {
   createMongooseAdminUserRepository,
   createMongooseAISettingsRepository,
   createMongooseChangelogRepository,
+  createMongooseRepoSettingsRepository,
   createMongooseSettingsRepository,
 } from '../mongoose'
 import {
@@ -17,12 +19,14 @@ import {
   createNextCacheInvalidationPort,
   createNextSessionPort,
 } from './ports.server'
+import { createDefaultRepoProviderPort } from '../adapters/repo-provider'
 
 export interface NextAdapterOptions {
   changelogRepository?: ChangelogRepository
   settingsRepository?: SettingsRepository
   aiSettingsRepository?: AISettingsRepository
   adminUserRepository?: AdminUserRepository
+  repoSettingsRepository?: RepoSettingsRepository
   allowAdminRegistration?: boolean
   revalidatePathname?: string
   sessionCookieName?: string
@@ -38,16 +42,19 @@ export function createNextChangelogAdapter(options: NextAdapterOptions = {}) {
   const sessionCookieName = options.sessionCookieName || DEFAULT_SESSION_COOKIE
   const aiSettingsRepository = options.aiSettingsRepository || createMongooseAISettingsRepository()
   const adminUserRepository = options.adminUserRepository || createMongooseAdminUserRepository()
+  const repoSettingsRepository = options.repoSettingsRepository || createMongooseRepoSettingsRepository()
 
   const service = createChangelogService({
     changelogRepository: options.changelogRepository || createMongooseChangelogRepository(),
     settingsRepository: options.settingsRepository || createMongooseSettingsRepository(),
     aiSettingsRepository,
     adminUserRepository,
+    repoSettingsRepository,
     allowAdminRegistration: options.allowAdminRegistration ?? isRegistrationEnabledByEnv(),
     session: createNextSessionPort(sessionCookieName),
     cacheInvalidation: createNextCacheInvalidationPort(options.revalidatePathname || '/changelog'),
     aiProvider: createNextAIProviderPort(aiSettingsRepository),
+    repoProvider: createDefaultRepoProviderPort(),
   })
 
   return {
@@ -71,6 +78,10 @@ export function createNextChangelogAdapter(options: NextAdapterOptions = {}) {
       fetchLatestPublishedVersion: service.getLatestPublishedVersion,
       fetchChangelogSettings: service.getChangelogSettings,
       updateChangelogSettings: service.updateChangelogSettings,
+      fetchRepoSettings: service.getRepoSettings,
+      updateRepoSettings: service.updateRepoSettings,
+      previewRepoCommits: service.previewRepoCommits,
+      generateChangelogFromCommits: service.generateChangelogFromCommits,
     },
   }
 }

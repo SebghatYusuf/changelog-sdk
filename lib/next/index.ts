@@ -22,6 +22,10 @@ export {
   fetchLatestPublishedVersion,
   fetchChangelogSettings,
   updateChangelogSettings,
+  fetchRepoSettings,
+  updateRepoSettings,
+  previewRepoCommits,
+  generateChangelogFromCommits,
 } from './actions'
 
 export { authMiddleware } from './middleware'

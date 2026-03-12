@@ -81,3 +81,19 @@ export async function fetchChangelogSettings() {
 export async function updateChangelogSettings(input: unknown) {
   return getActions().updateChangelogSettings(input)
 }
+
+export async function fetchRepoSettings() {
+  return getActions().fetchRepoSettings()
+}
+
+export async function updateRepoSettings(input: unknown) {
+  return getActions().updateRepoSettings(input)
+}
+
+export async function previewRepoCommits(input: unknown) {
+  return getActions().previewRepoCommits(input)
+}
+
+export async function generateChangelogFromCommits(input: unknown) {
+  return getActions().generateChangelogFromCommits(input)
+}

@@ -3,4 +3,5 @@ export {
   createMongooseSettingsRepository,
   createMongooseAISettingsRepository,
   createMongooseAdminUserRepository,
+  createMongooseRepoSettingsRepository,
 } from './repositories'

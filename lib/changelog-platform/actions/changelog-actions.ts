@@ -20,6 +20,10 @@ import {
   updateAISettings as updateAISettingsAction,
   updateChangelog as updateChangelogAction,
   updateChangelogSettings as updateChangelogSettingsAction,
+  fetchRepoSettings as fetchRepoSettingsAction,
+  updateRepoSettings as updateRepoSettingsAction,
+  previewRepoCommits as previewRepoCommitsAction,
+  generateChangelogFromCommits as generateChangelogFromCommitsAction,
 } from '../../next/actions'
 
 export async function createChangelog(input: unknown) {
@@ -96,4 +100,20 @@ export async function fetchChangelogSettings() {
 
 export async function updateChangelogSettings(input: unknown) {
   return updateChangelogSettingsAction(input)
+}
+
+export async function fetchRepoSettings() {
+  return fetchRepoSettingsAction()
+}
+
+export async function updateRepoSettings(input: unknown) {
+  return updateRepoSettingsAction(input)
+}
+
+export async function previewRepoCommits(input: unknown) {
+  return previewRepoCommitsAction(input)
+}
+
+export async function generateChangelogFromCommits(input: unknown) {
+  return generateChangelogFromCommitsAction(input)
 }

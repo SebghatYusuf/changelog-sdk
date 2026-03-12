@@ -11,6 +11,10 @@ import type {
   PersistedAISettings,
   PersistedChangelogSettings,
   RegisterAdminInput,
+  RepoCommit,
+  RepoCommitQuery,
+  RepoSettingsInput,
+  PersistedRepoSettings,
   UpdateChangelogInput,
 } from './types'
 import type { AIProviderKind } from './constants'
@@ -43,6 +47,11 @@ export interface AdminUserRepository {
   hasAnyUsers(): Promise<boolean>
 }
 
+export interface RepoSettingsRepository {
+  get(): Promise<PersistedRepoSettings>
+  save(input: RepoSettingsInput): Promise<PersistedRepoSettings>
+}
+
 export interface SessionPort {
   setAdminSession(): Promise<void>
   clearAdminSession(): Promise<void>
@@ -56,6 +65,13 @@ export interface CacheInvalidationPort {
 export interface AIProviderPort {
   enhance(rawNotes: string, currentVersion?: string): Promise<EnhanceChangelogOutput>
   listModels(input: { provider: AIProviderKind; ollamaBaseUrl?: string }): Promise<AIModelOption[]>
+}
+
+export interface RepoProviderPort {
+  listCommits(input: {
+    settings: PersistedRepoSettings
+    query: RepoCommitQuery
+  }): Promise<RepoCommit[]>
 }
 
 export type LoginAdminPayload = LoginInput

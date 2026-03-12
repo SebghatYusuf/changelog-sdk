@@ -11,4 +11,10 @@ export type {
   AIModelOption,
   AIProviderKind,
   ChangelogSettingsInput,
+  RepoProviderKind,
+  RepoSettingsInput,
+  RepoSettingsView,
+  RepoCommit,
+  RepoCommitQuery,
+  GenerateChangelogFromCommitsOutput,
 } from '../core'

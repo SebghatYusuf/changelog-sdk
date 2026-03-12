@@ -26,6 +26,10 @@ export interface NuxtHandlers {
   getChangelogSettings: EventHandler
   updateChangelogSettings: EventHandler
   getLatestPublishedVersion: EventHandler
+  getRepoSettings: EventHandler
+  updateRepoSettings: EventHandler
+  previewRepoCommits: EventHandler
+  generateChangelogFromCommits: EventHandler
 }
 
 function parseNumber(value: unknown, fallback: number): number {
@@ -167,6 +171,29 @@ export function createNuxtChangelogHandlers(options: NuxtAdapterOptions = {}): N
     async getLatestPublishedVersion(event) {
       const service = withService(event)
       return service.getLatestPublishedVersion()
+    },
+
+    async getRepoSettings(event) {
+      const service = withService(event)
+      return service.getRepoSettings()
+    },
+
+    async updateRepoSettings(event) {
+      const service = withService(event)
+      const body = await readBody(event)
+      return service.updateRepoSettings(body)
+    },
+
+    async previewRepoCommits(event) {
+      const service = withService(event)
+      const body = await readBody(event)
+      return service.previewRepoCommits(body)
+    },
+
+    async generateChangelogFromCommits(event) {
+      const service = withService(event)
+      const body = await readBody(event)
+      return service.generateChangelogFromCommits(body)
     },
   }
 }

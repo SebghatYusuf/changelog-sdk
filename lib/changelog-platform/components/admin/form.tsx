@@ -4,8 +4,16 @@ import { useEffect, useRef, useState } from 'react'
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { Sparkles } from 'lucide-react'
-import { createChangelog, fetchAISettings, fetchLatestPublishedVersion, runAIEnhance, updateChangelog } from '../../actions/changelog-actions'
-import { ChangelogEntry, ChangelogTag } from '../../types/changelog'
+import {
+  createChangelog,
+  fetchAISettings,
+  fetchLatestPublishedVersion,
+  fetchRepoSettings,
+  generateChangelogFromCommits,
+  runAIEnhance,
+  updateChangelog,
+} from '../../actions/changelog-actions'
+import { ChangelogEntry, ChangelogTag, RepoCommit, RepoSettingsView } from '../../types/changelog'
 import { useToast } from '../toast/provider'
 import Tooltip from '../tooltip/tooltip'
 import { buildChangelogPath } from '../paths'
@@ -82,6 +90,13 @@ function formatProviderName(provider: 'openai' | 'gemini' | 'ollama'): string {
   return 'Ollama'
 }
 
+function formatDateInput(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export default function CreateForm({ initialEntry, preset, basePath }: CreateFormProps) {
   const isEditing = Boolean(initialEntry?._id)
   const successMessage = isEditing ? 'Changelog updated successfully!' : 'Changelog created successfully!'
@@ -128,6 +143,20 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
   const [versionValue, setVersionValue] = useState(initialEntry?.version || '1.0.0')
   const [versionError, setVersionError] = useState('')
   const [loadingVersionDefaults, setLoadingVersionDefaults] = useState(true)
+  const [repoSettings, setRepoSettings] = useState<RepoSettingsView | null>(null)
+  const [repoLoading, setRepoLoading] = useState(true)
+  const [commitSince, setCommitSince] = useState(() => {
+    const date = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    return formatDateInput(date)
+  })
+  const [commitUntil, setCommitUntil] = useState(() => formatDateInput(new Date()))
+  const [commitLimit, setCommitLimit] = useState(50)
+  const [includeMerges, setIncludeMerges] = useState(false)
+  const [commitError, setCommitError] = useState('')
+  const [commitLoading, setCommitLoading] = useState(false)
+  const [commitPreview, setCommitPreview] = useState<RepoCommit[]>([])
+  const [commitModalOpen, setCommitModalOpen] = useState(false)
+  const [polishWithAI, setPolishWithAI] = useState(true)
   const lastAIErrorToastRef = useRef('')
   const aiEnhanceBusyRef = useRef(false)
   const aiEnhanceRequestIdRef = useRef(0)
@@ -161,6 +190,11 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
     showToast(aiError, 'error')
     lastAIErrorToastRef.current = aiError
   }, [aiError, showToast])
+
+  useEffect(() => {
+    if (!commitError) return
+    showToast(commitError, 'error')
+  }, [commitError, showToast])
 
   useEffect(() => {
     titleValueRef.current = titleValue
@@ -213,6 +247,25 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
       const providerName = formatProviderName(result.data.provider)
       const modelName = result.data.model?.trim() || 'default'
       setAiRuntimeLabel(`${providerName} · ${modelName}`)
+    })()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let isMounted = true
+
+    ;(async () => {
+      const result = await fetchRepoSettings()
+      if (!isMounted) return
+
+      if (result.success && result.data) {
+        setRepoSettings(result.data)
+      }
+
+      setRepoLoading(false)
     })()
 
     return () => {
@@ -300,6 +353,62 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
 
     setVersionError('')
     setVersionValue(nextVersion)
+  }
+
+  const handleGenerateFromCommits = async () => {
+    if (!repoSettings?.enabled) {
+      setCommitError('Repository integration is not enabled.')
+      return
+    }
+
+    if (commitSince && commitUntil) {
+      const sinceDate = new Date(`${commitSince}T00:00:00.000Z`)
+      const untilDate = new Date(`${commitUntil}T00:00:00.000Z`)
+      if (!Number.isNaN(sinceDate.getTime()) && !Number.isNaN(untilDate.getTime()) && untilDate < sinceDate) {
+        setCommitError('The "Until" date must be on or after the "Since" date.')
+        return
+      }
+    }
+
+    setCommitLoading(true)
+    setCommitError('')
+
+    const payload = {
+      since: commitSince || undefined,
+      until: commitUntil || undefined,
+      limit: commitLimit,
+      includeMerges,
+    }
+
+    const result = await generateChangelogFromCommits(payload)
+    if (!result.success || !result.data) {
+      setCommitLoading(false)
+      setCommitError(result.error || 'Failed to generate changelog from commits')
+      return
+    }
+
+    let title = result.data.title
+    let content = result.data.content
+    let tags = result.data.tags
+
+    if (polishWithAI) {
+      const enhance = await runAIEnhance({ rawNotes: result.data.content, currentVersion: versionValue || undefined })
+      if (enhance.success && enhance.data) {
+        title = enhance.data.title
+        content = enhance.data.content
+        tags = enhance.data.tags
+      } else if (!enhance.success) {
+        showToast(enhance.error || 'AI polish failed, using raw commit summary.', 'error')
+      }
+    }
+
+    setTitleValue(title)
+    setContentValue(content)
+    setSelectedTags(tags)
+    setCommitPreview(result.data.commits)
+    setCommitLoading(false)
+    setCommitModalOpen(false)
+    showToast(polishWithAI ? 'Generated and polished release notes.' : 'Generated content from commits.', 'success')
   }
 
   return (
@@ -402,6 +511,48 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
           </p>
         </div>
 
+        <div className="cl-form-group cl-commit-launch">
+          <div className="cl-commit-launch-row">
+            <div>
+              <p className="cl-commit-launch-title">Generate from commits</p>
+              <p className="cl-form-help-text">Open the commit generator to draft a clean release note.</p>
+            </div>
+            <button
+              type="button"
+              className="cl-btn cl-btn-secondary cl-btn-sm"
+              onClick={() => setCommitModalOpen(true)}
+              disabled={repoLoading || !repoSettings?.enabled}
+            >
+              Open generator
+            </button>
+          </div>
+
+          {!repoLoading && !repoSettings?.enabled ? (
+            <div className="cl-alert cl-alert-info">
+              <div className="cl-alert-description">
+                Repository integration is not configured. Add credentials in the Repository settings panel first.
+              </div>
+            </div>
+          ) : null}
+
+          {commitPreview.length > 0 ? (
+            <div className="cl-commit-preview">
+              <p className="cl-commit-preview-title">Last generated from commits</p>
+              <ul className="cl-commit-list">
+                {commitPreview.slice(0, 4).map((commit) => (
+                  <li key={commit.id} className="cl-commit-item">
+                    <span className="cl-commit-summary">{commit.summary}</span>
+                    <span className="cl-commit-meta">
+                      {commit.author ? `${commit.author} · ` : ''}
+                      {commit.date ? commit.date.slice(0, 10) : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+
         <div className="cl-form-group">
           <div className="cl-field-label-row">
             <label className="cl-form-label" htmlFor="content">
@@ -468,6 +619,156 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
           ) : null}
         </div>
       </div>
+
+      {commitModalOpen ? (
+        <div className="cl-modal-backdrop" role="dialog" aria-modal="true" onClick={() => setCommitModalOpen(false)}>
+          <div className="cl-modal-card" onClick={(event) => event.stopPropagation()}>
+            <div className="cl-modal-header">
+              <div>
+                <p className="cl-modal-eyebrow">Commit generator</p>
+                <h4 className="cl-modal-title">Draft a release note from commits</h4>
+                <p className="cl-modal-subtitle">Choose a date range and we will summarize commit history into structured notes.</p>
+              </div>
+              <button type="button" className="cl-modal-close" onClick={() => setCommitModalOpen(false)}>
+                Close
+              </button>
+            </div>
+
+            <div className="cl-modal-body">
+              <div className="cl-modal-section">
+                <p className="cl-modal-section-title">Quick ranges</p>
+                <div className="cl-commit-presets">
+                  <button
+                    type="button"
+                    className="cl-btn cl-btn-secondary cl-btn-sm"
+                    onClick={() => {
+                      const today = formatDateInput(new Date())
+                      setCommitSince(today)
+                      setCommitUntil(today)
+                    }}
+                  >
+                    Today
+                  </button>
+                  <button
+                    type="button"
+                    className="cl-btn cl-btn-secondary cl-btn-sm"
+                    onClick={() => {
+                      const date = new Date(Date.now() - 24 * 60 * 60 * 1000)
+                      const value = formatDateInput(date)
+                      setCommitSince(value)
+                      setCommitUntil(value)
+                    }}
+                  >
+                    Yesterday
+                  </button>
+                  <button
+                    type="button"
+                    className="cl-btn cl-btn-secondary cl-btn-sm"
+                    onClick={() => {
+                      const today = new Date()
+                      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                      setCommitSince(formatDateInput(since))
+                      setCommitUntil(formatDateInput(today))
+                    }}
+                  >
+                    Last 7 days
+                  </button>
+                </div>
+              </div>
+
+              <div className="cl-modal-grid">
+                <div className="cl-modal-field">
+                  <label className="cl-form-label" htmlFor="commit-since">
+                    Since
+                  </label>
+                  <input
+                    id="commit-since"
+                    className="cl-input"
+                    type="date"
+                    value={commitSince}
+                    onChange={(e) => setCommitSince(e.target.value)}
+                  />
+                </div>
+                <div className="cl-modal-field">
+                  <label className="cl-form-label" htmlFor="commit-until">
+                    Until
+                  </label>
+                  <input
+                    id="commit-until"
+                    className="cl-input"
+                    type="date"
+                    value={commitUntil}
+                    onChange={(e) => setCommitUntil(e.target.value)}
+                  />
+                </div>
+                <div className="cl-modal-field">
+                  <label className="cl-form-label" htmlFor="commit-limit">
+                    Commit limit
+                  </label>
+                  <input
+                    id="commit-limit"
+                    className="cl-input"
+                    type="number"
+                    min={1}
+                    max={200}
+                    value={commitLimit}
+                    onChange={(e) => setCommitLimit(Number(e.target.value) || 50)}
+                  />
+                </div>
+                <div className="cl-modal-field">
+                  <label className="cl-form-label" htmlFor="commit-merges">
+                    Include merges
+                  </label>
+                  <select
+                    id="commit-merges"
+                    className="cl-select"
+                    value={includeMerges ? 'yes' : 'no'}
+                    onChange={(e) => setIncludeMerges(e.target.value === 'yes')}
+                  >
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="cl-modal-toggle">
+                <div>
+                  <p className="cl-modal-toggle-title">Polish with AI</p>
+                  <p className="cl-modal-toggle-subtitle">Improve formatting and keep the tone standard.</p>
+                </div>
+                <label className="cl-switch">
+                  <input
+                    type="checkbox"
+                    checked={polishWithAI}
+                    onChange={(e) => setPolishWithAI(e.target.checked)}
+                  />
+                  <span className="cl-switch-track" />
+                </label>
+              </div>
+
+              {commitError ? (
+                <div className="cl-alert cl-alert-error">
+                  <div className="cl-alert-description">{commitError}</div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="cl-modal-footer">
+              <button type="button" className="cl-btn cl-btn-ghost" onClick={() => setCommitModalOpen(false)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="cl-btn cl-btn-primary"
+                onClick={handleGenerateFromCommits}
+                disabled={commitLoading}
+              >
+                {commitLoading ? 'Generating...' : 'Generate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </form>
   )
 }

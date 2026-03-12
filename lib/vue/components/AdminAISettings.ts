@@ -2,7 +2,7 @@ import { defineComponent, h, onMounted, ref } from 'vue'
 import type { AIModelOption, AIProviderKind } from '../types'
 import { createChangelogApi } from '../api'
 import { useToast } from '../composables/toast'
-import { DEFAULT_AI_MODELS } from '../../core'
+import { DEFAULT_AI_MODELS } from '../../core/constants'
 
 export const AdminAISettings = defineComponent({
   name: 'AdminAISettings',

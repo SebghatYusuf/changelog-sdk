@@ -26,6 +26,12 @@ export type {
   AIModelOption,
   AIProviderKind,
   ChangelogSettingsInput,
+  RepoProviderKind,
+  RepoSettingsInput,
+  RepoSettingsView,
+  RepoCommit,
+  RepoCommitQuery,
+  GenerateChangelogFromCommitsOutput,
 } from './types/changelog'
 
 // ===== SERVER ACTIONS (Private by default, opt-in imports) =====
@@ -53,6 +59,10 @@ export {
   fetchLatestPublishedVersion,
   fetchChangelogSettings,
   updateChangelogSettings,
+  fetchRepoSettings,
+  updateRepoSettings,
+  previewRepoCommits,
+  generateChangelogFromCommits,
 } from './actions/changelog-actions'
 
 // ===== SCHEMAS (Validation) =====
@@ -70,6 +80,9 @@ export {
   AISettingsSchema,
   AIModelListRequestSchema,
   ChangelogSettingsSchema,
+  RepoProviderEnum,
+  RepoSettingsSchema,
+  RepoCommitQuerySchema,
 } from './schemas/changelog'
 
 // ===== DATABASE (Advanced users only) =====
