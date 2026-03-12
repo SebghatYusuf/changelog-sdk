@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const ChangelogTagEnum = z.enum(['Features', 'Fixes', 'Improvements', 'Breaking', 'Security', 'Performance', 'Docs'])
 export const ChangelogStatusEnum = z.enum(['draft', 'published'])
 export const AIProviderEnum = z.enum(['openai', 'gemini', 'ollama'])
+export const RepoProviderEnum = z.enum(['git', 'bitbucket'])
 
 export const ChangelogEntrySchema = z.object({
   _id: z.string(),
@@ -82,6 +83,24 @@ export const ChangelogSettingsSchema = z.object({
   autoPublish: z.boolean(),
 })
 
+export const RepoSettingsSchema = z.object({
+  provider: RepoProviderEnum,
+  repoUrl: z.string().trim().min(1).optional(),
+  workspace: z.string().trim().min(1).optional(),
+  repoSlug: z.string().trim().min(1).optional(),
+  branch: z.string().trim().min(1).optional(),
+  token: z.string().optional(),
+  enabled: z.boolean().optional().default(true),
+  clearToken: z.boolean().optional(),
+})
+
+export const RepoCommitQuerySchema = z.object({
+  since: z.string().optional(),
+  until: z.string().optional(),
+  limit: z.number().int().min(1).max(200).optional(),
+  includeMerges: z.boolean().optional(),
+})
+
 export type ChangelogEntryType = z.infer<typeof ChangelogEntrySchema>
 export type CreateChangelogType = z.infer<typeof CreateChangelogSchema>
 export type UpdateChangelogType = z.infer<typeof UpdateChangelogSchema>
@@ -92,3 +111,5 @@ export type FeedFiltersType = z.infer<typeof FeedFiltersSchema>
 export type AISettingsType = z.infer<typeof AISettingsSchema>
 export type AIModelListRequestType = z.infer<typeof AIModelListRequestSchema>
 export type ChangelogSettingsType = z.infer<typeof ChangelogSettingsSchema>
+export type RepoSettingsType = z.infer<typeof RepoSettingsSchema>
+export type RepoCommitQueryType = z.infer<typeof RepoCommitQuerySchema>

@@ -4,6 +4,7 @@ import { AdminForm } from './AdminForm'
 import { AdminList } from './AdminList'
 import { AdminAISettings } from './AdminAISettings'
 import { AdminChangelogSettings } from './AdminChangelogSettings'
+import { AdminRepoSettings } from './AdminRepoSettings'
 import { AdminLogoutButton } from './AdminLogoutButton'
 import type { ChangelogEntry } from '../types'
 
@@ -35,6 +36,10 @@ export const AdminPortal = defineComponent({
 
       if (props.section === 'changelog-settings') {
         return h(AdminChangelogSettings, { baseUrl: props.baseUrl, apiBasePath: props.apiBasePath })
+      }
+
+      if (props.section === 'repo') {
+        return h(AdminRepoSettings, { baseUrl: props.baseUrl, apiBasePath: props.apiBasePath })
       }
 
       if (props.section === 'edit' && props.editId) {
@@ -70,6 +75,7 @@ export const AdminPortal = defineComponent({
               h('a', { href: '/changelog/admin', class: `cl-admin-nav-item ${props.section === 'publish' ? 'is-active' : ''}` }, 'Publishing'),
               h('a', { href: '/changelog/admin/ai', class: `cl-admin-nav-item ${props.section === 'ai' ? 'is-active' : ''}` }, 'AI Settings'),
               h('a', { href: '/changelog/admin/changelog-settings', class: `cl-admin-nav-item ${props.section === 'changelog-settings' ? 'is-active' : ''}` }, 'Feed Settings'),
+              h('a', { href: '/changelog/admin/repo', class: `cl-admin-nav-item ${props.section === 'repo' ? 'is-active' : ''}` }, 'Repository'),
             ]),
           ]),
           h('main', { class: 'cl-admin-content' }, [renderContent()]),

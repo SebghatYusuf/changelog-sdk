@@ -12,7 +12,10 @@ export {
   AISettingsSchema,
   AIModelListRequestSchema,
   ChangelogSettingsSchema,
-} from '../../core'
+  RepoProviderEnum,
+  RepoSettingsSchema,
+  RepoCommitQuerySchema,
+} from '../../core/schemas'
 
 export type {
   ChangelogEntryType,
@@ -25,4 +28,6 @@ export type {
   AISettingsType,
   AIModelListRequestType,
   ChangelogSettingsType,
+  RepoSettingsType,
+  RepoCommitQueryType,
 } from '../../core/schemas'

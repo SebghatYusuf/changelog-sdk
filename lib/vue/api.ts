@@ -5,6 +5,9 @@ import type {
   ChangelogSettingsInput,
   EnhanceChangelogOutput,
   FeedResponse,
+  RepoSettingsView,
+  RepoCommit,
+  GenerateChangelogFromCommitsOutput,
 } from './types'
 import { createHttpClient, type HttpOptions } from './utils/http'
 
@@ -123,6 +126,31 @@ export function createChangelogApi(options: HttpOptions = {}) {
 
     getLatestPublishedVersion() {
       return request<{ success: boolean; data?: { version: string }; error?: string }>(`/admin/latest-version`)
+    },
+
+    getRepoSettings() {
+      return request<{ success: boolean; data?: RepoSettingsView; error?: string }>(`/admin/repo-settings`)
+    },
+
+    updateRepoSettings(input: unknown) {
+      return request<{ success: boolean; data?: unknown; error?: string }>(`/admin/repo-settings`, {
+        method: 'POST',
+        body: JSON.stringify(input),
+      })
+    },
+
+    previewRepoCommits(input: unknown) {
+      return request<{ success: boolean; data?: RepoCommit[]; error?: string }>(`/admin/repo-commits`, {
+        method: 'POST',
+        body: JSON.stringify(input),
+      })
+    },
+
+    generateChangelogFromCommits(input: unknown) {
+      return request<{ success: boolean; data?: GenerateChangelogFromCommitsOutput; error?: string }>(`/admin/repo-generate`, {
+        method: 'POST',
+        body: JSON.stringify(input),
+      })
     },
   }
 }

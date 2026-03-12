@@ -1,10 +1,11 @@
 import { Suspense } from 'react'
-import { ArrowLeft, FileText, LayoutGrid, Settings, Zap, type LucideIcon } from 'lucide-react'
+import { ArrowLeft, FileText, LayoutGrid, Settings, Zap, GitBranch, type LucideIcon } from 'lucide-react'
 import AdminList from './list'
 import CreateForm from './form'
 import LogoutButton from './logout-button'
 import AISettingsPanel from './ai-settings'
 import ChangelogSettingsPanel from './changelog-settings'
+import RepoSettingsPanel from './repo-settings'
 import { fetchAdminChangelogById } from '../../actions/changelog-actions'
 import { ChangelogEntry } from '../../types/changelog'
 import { buildChangelogPath } from '../paths'
@@ -13,7 +14,7 @@ import { buildChangelogPath } from '../paths'
  * Admin Portal Main Component - Server Component
  */
 
-type AdminSection = 'publish' | 'ai' | 'changelog-settings' | 'presets'
+type AdminSection = 'publish' | 'ai' | 'changelog-settings' | 'repo' | 'presets'
 
 interface AdminPortalProps {
   section?: string
@@ -26,11 +27,12 @@ const ADMIN_NAV_ITEMS: Array<{ id: AdminSection; label: string; description: str
   { id: 'publish', label: 'Publishing', description: 'Create and manage entries', icon: FileText },
   { id: 'ai', label: 'AI Settings', description: 'Provider, model, runtime', icon: Zap },
   { id: 'changelog-settings', label: 'Feed Settings', description: 'Feed and publishing defaults', icon: Settings },
+  { id: 'repo', label: 'Repository', description: 'Connect commits to changelogs', icon: GitBranch },
   { id: 'presets', label: 'Presets', description: 'Reusable templates', icon: LayoutGrid },
 ]
 
 function normalizeSection(section?: string): AdminSection {
-  if (section === 'ai' || section === 'changelog-settings' || section === 'presets') return section
+  if (section === 'ai' || section === 'changelog-settings' || section === 'repo' || section === 'presets') return section
   return 'publish'
 }
 
@@ -93,6 +95,8 @@ export default function AdminPortal({ section, editId, preset, basePath }: Admin
             <AISection />
           ) : activeSection === 'changelog-settings' ? (
             <ChangelogSettingsSection />
+          ) : activeSection === 'repo' ? (
+            <RepoSettingsSection />
           ) : (
             <PresetsSection basePath={basePath} />
           )}
@@ -177,6 +181,16 @@ function ChangelogSettingsSection() {
     <div className="cl-single-col">
       <Suspense fallback={<FormSkeleton />}>
         <ChangelogSettingsPanel />
+      </Suspense>
+    </div>
+  )
+}
+
+function RepoSettingsSection() {
+  return (
+    <div className="cl-single-col">
+      <Suspense fallback={<FormSkeleton />}>
+        <RepoSettingsPanel />
       </Suspense>
     </div>
   )

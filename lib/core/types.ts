@@ -2,6 +2,7 @@ import type { AIProviderKind } from './constants'
 
 export type ChangelogStatus = 'draft' | 'published'
 export type ChangelogTag = 'Features' | 'Fixes' | 'Improvements' | 'Breaking' | 'Security' | 'Performance' | 'Docs'
+export type RepoProviderKind = 'git' | 'bitbucket'
 
 export interface ChangelogEntry {
   _id: string
@@ -111,6 +112,60 @@ export interface PersistedAISettings {
 export interface PersistedChangelogSettings {
   defaultFeedPageSize: number
   autoPublish: boolean
+}
+
+export interface RepoCommit {
+  id: string
+  message: string
+  summary: string
+  author: string
+  date: string
+  url?: string
+}
+
+export interface RepoSettingsInput {
+  provider: RepoProviderKind
+  repoUrl?: string
+  workspace?: string
+  repoSlug?: string
+  branch?: string
+  token?: string
+  enabled?: boolean
+  clearToken?: boolean
+}
+
+export interface PersistedRepoSettings {
+  provider: RepoProviderKind
+  repoUrl: string
+  workspace: string
+  repoSlug: string
+  branch: string
+  token: string
+  enabled: boolean
+}
+
+export interface RepoSettingsView {
+  provider: RepoProviderKind
+  repoUrl?: string
+  workspace?: string
+  repoSlug?: string
+  branch?: string
+  enabled: boolean
+  hasToken: boolean
+}
+
+export interface RepoCommitQuery {
+  since?: string
+  until?: string
+  limit?: number
+  includeMerges?: boolean
+}
+
+export interface GenerateChangelogFromCommitsOutput {
+  title: string
+  content: string
+  tags: ChangelogTag[]
+  commits: RepoCommit[]
 }
 
 export type { AIProviderKind }

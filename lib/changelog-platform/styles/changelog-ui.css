@@ -1315,6 +1315,265 @@
   color: #8ea3bc;
 }
 
+.cl-commit-generator {
+  border: 1px dashed rgba(84, 160, 255, 0.35);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: rgba(16, 24, 39, 0.65);
+}
+
+.cl-commit-launch {
+  border: 1px solid rgba(120, 144, 174, 0.3);
+  padding: 1rem;
+  border-radius: 0.9rem;
+  background: rgba(12, 20, 34, 0.8);
+}
+
+.cl-commit-launch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cl-commit-launch-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.cl-commit-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.cl-commit-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cl-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 12, 22, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 50;
+}
+
+.cl-modal-card {
+  width: min(720px, 100%);
+  background: linear-gradient(140deg, rgba(15, 23, 42, 0.98), rgba(8, 15, 32, 0.98));
+  border-radius: 1.2rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 30px 80px rgba(2, 8, 23, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  color: #e2e8f0;
+  animation: cl-modal-in 0.28s ease;
+}
+
+@keyframes cl-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cl-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cl-modal-eyebrow {
+  margin: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #7dd3fc;
+}
+
+.cl-modal-title {
+  margin: 0.35rem 0 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.cl-modal-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.cl-modal-close {
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: transparent;
+  color: #cbd5f5;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.cl-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.cl-modal-section-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: #93c5fd;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.cl-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.cl-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cl-modal-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.cl-modal-toggle-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.cl-modal-toggle-subtitle {
+  margin: 0.1rem 0 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.cl-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.cl-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.cl-switch-track {
+  width: 46px;
+  height: 26px;
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.cl-switch-track::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0f172a;
+  top: 3px;
+  left: 3px;
+  transition: all 0.2s ease;
+}
+
+.cl-switch input:checked + .cl-switch-track {
+  background: linear-gradient(135deg, #38bdf8, #2563eb);
+}
+
+.cl-switch input:checked + .cl-switch-track::after {
+  transform: translateX(20px);
+  background: #0b1020;
+}
+
+.cl-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.cl-commit-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cl-commit-preview {
+  margin-top: 1rem;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(120, 144, 174, 0.3);
+  background: rgba(10, 18, 30, 0.7);
+}
+
+.cl-commit-preview-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #9cb0c8;
+}
+
+.cl-commit-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.cl-commit-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.cl-commit-summary {
+  font-weight: 600;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.cl-commit-meta {
+  font-size: 0.75rem;
+  color: #8ea3bc;
+}
+
 .cl-admin-form {
   display: flex;
   flex-direction: column;
@@ -1740,6 +1999,12 @@
   border-color: rgba(52, 211, 153, 0.45);
   background: rgba(52, 211, 153, 0.12);
   color: #86efac;
+}
+
+.cl-alert-info {
+  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(56, 189, 248, 0.12);
+  color: #bae6fd;
 }
 
 .cl-auth-guard-card {

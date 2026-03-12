@@ -17,8 +17,15 @@ export type {
   AIModelOption,
   AIProviderKind,
   ChangelogSettingsInput,
+  RepoCommit,
+  RepoCommitQuery,
+  RepoProviderKind,
+  RepoSettingsInput,
+  RepoSettingsView,
+  GenerateChangelogFromCommitsOutput,
   PersistedAISettings,
   PersistedChangelogSettings,
+  PersistedRepoSettings,
 } from './types'
 
 export type {
@@ -29,6 +36,8 @@ export type {
   SessionPort,
   CacheInvalidationPort,
   AIProviderPort,
+  RepoSettingsRepository,
+  RepoProviderPort,
 } from './ports'
 
 export {
@@ -45,6 +54,9 @@ export {
   AISettingsSchema,
   AIModelListRequestSchema,
   ChangelogSettingsSchema,
+  RepoProviderEnum,
+  RepoSettingsSchema,
+  RepoCommitQuerySchema,
 } from './schemas'
 
 export { DEFAULT_AI_MODELS } from './constants'
