@@ -189,6 +189,12 @@ async function ChangelogPageContent({ params, searchParams }: ChangelogPageProps
 }
 ```
 
+If your changelog is mounted under a nested route (for example `/members/changelog`), pass `basePath` so internal links and redirects stay scoped to that mount:
+
+```tsx
+return <ChangelogManager params={resolvedParams} searchParams={resolvedSearchParams} basePath="/members/changelog" />
+```
+
 ### 5) Configure environment variables
 
 Create `.env.local` in your project root:
@@ -228,7 +234,7 @@ import { authMiddleware } from 'changelog-sdk/next'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  return authMiddleware(request)
+  return authMiddleware(request, { basePath: '/changelog' })
 }
 
 export const config = {

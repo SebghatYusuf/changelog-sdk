@@ -5,12 +5,13 @@ import { useEffect } from 'react'
 import { useFormStatus } from 'react-dom'
 import { canRegisterAdmin, loginAdmin } from '../../actions/changelog-actions'
 import { useRouter } from 'next/navigation'
+import { buildChangelogPath } from '../paths'
 
 /**
  * Admin Login Form Component
  */
 
-export default function LoginForm() {
+export default function LoginForm({ basePath }: { basePath?: string }) {
   const router = useRouter()
   const [error, setError] = useState<string>('')
   const [canRegister, setCanRegister] = useState<boolean | null>(null)
@@ -53,7 +54,7 @@ export default function LoginForm() {
     }
 
     // Redirect to admin portal
-    router.push('/changelog/admin')
+    router.push(buildChangelogPath(basePath, 'admin'))
   }
 
   return (
@@ -103,7 +104,7 @@ export default function LoginForm() {
         {/* Submit Button */}
         <SubmitButton />
         {canRegister === true && (
-          <a href="/changelog/register" className="cl-btn cl-btn-secondary cl-login-submit">
+          <a href={buildChangelogPath(basePath, 'register')} className="cl-btn cl-btn-secondary cl-login-submit">
             Create Admin Account
           </a>
         )}

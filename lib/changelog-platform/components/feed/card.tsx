@@ -1,6 +1,7 @@
 import { ChangelogEntry } from '../../types/changelog'
 import Markdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
+import { buildChangelogPath } from '../paths'
 
 /**
  * Individual Changelog Card Component
@@ -8,9 +9,10 @@ import rehypeSanitize from 'rehype-sanitize'
 
 interface ChangelogCardProps {
   entry: ChangelogEntry
+  basePath?: string
 }
 
-export default function ChangelogCard({ entry }: ChangelogCardProps) {
+export default function ChangelogCard({ entry, basePath }: ChangelogCardProps) {
   const entryDate = new Date(entry.date)
   const dateFormatter = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
@@ -22,7 +24,7 @@ export default function ChangelogCard({ entry }: ChangelogCardProps) {
 
   return (
     <article className="cl-card cl-entry-card">
-      <a href={`/changelog/${entry.slug}`} className="cl-entry-link" aria-label={`Open changelog entry ${entry.title}`}>
+      <a href={buildChangelogPath(basePath, entry.slug)} className="cl-entry-link" aria-label={`Open changelog entry ${entry.title}`}>
         <div className="cl-card-header cl-entry-header">
           <div className="cl-entry-meta">
             <span className="cl-entry-version">v{entry.version}</span>

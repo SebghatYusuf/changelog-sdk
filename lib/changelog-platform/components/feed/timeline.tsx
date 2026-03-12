@@ -4,6 +4,7 @@ import { ChangelogEntry, ChangelogTag } from '../../types/changelog'
 import ChangelogCard from './card'
 import Filters from './filters'
 import Pagination from './pagination'
+import { buildChangelogPath } from '../paths'
 
 /**
  * Public Changelog Feed Timeline
@@ -13,12 +14,14 @@ interface TimelineProps {
   initialPage?: number
   initialTags?: ChangelogTag[]
   initialSearch?: string
+  basePath?: string
 }
 
 export default async function ChangelogFeed({
   initialPage = 1,
   initialTags = [],
   initialSearch = '',
+  basePath,
 }: TimelineProps) {
   const result = await fetchPublishedChangelogs(initialPage, 10, initialTags, initialSearch)
   const { entries, total, page, hasMore } = result.data
@@ -27,7 +30,7 @@ export default async function ChangelogFeed({
     <div className="cl-root cl-feed-wrap">
       <div className="cl-feed-hero">
         <div className="cl-feed-topbar">
-          <a href="/changelog/admin" className="cl-btn cl-btn-secondary cl-btn-compact cl-feed-admin-link">
+          <a href={buildChangelogPath(basePath, 'admin')} className="cl-btn cl-btn-secondary cl-btn-compact cl-feed-admin-link">
             Admin
           </a>
         </div>
@@ -63,13 +66,13 @@ export default async function ChangelogFeed({
         ) : (
           entries.map((entry: ChangelogEntry) => (
             <div key={entry._id} className="cl-timeline-item">
-              <ChangelogCard entry={entry} />
+              <ChangelogCard entry={entry} basePath={basePath} />
             </div>
           ))
         )}
       </div>
 
-      <Pagination currentPage={page} hasMore={hasMore} total={total} />
+      <Pagination currentPage={page} hasMore={hasMore} total={total} basePath={basePath} />
     </div>
   )
 }

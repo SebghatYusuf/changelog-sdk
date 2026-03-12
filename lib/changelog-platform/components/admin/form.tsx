@@ -8,6 +8,7 @@ import { createChangelog, fetchAISettings, fetchLatestPublishedVersion, runAIEnh
 import { ChangelogEntry, ChangelogTag } from '../../types/changelog'
 import { useToast } from '../toast/provider'
 import Tooltip from '../tooltip/tooltip'
+import { buildChangelogPath } from '../paths'
 
 /**
  * Create/Edit Changelog Form Component
@@ -31,6 +32,7 @@ interface CreateFormState {
 interface CreateFormProps {
   initialEntry?: ChangelogEntry
   preset?: string
+  basePath?: string
 }
 
 type PresetType = 'feature-release' | 'hotfix' | 'maintenance'
@@ -80,7 +82,7 @@ function formatProviderName(provider: 'openai' | 'gemini' | 'ollama'): string {
   return 'Ollama'
 }
 
-export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
+export default function CreateForm({ initialEntry, preset, basePath }: CreateFormProps) {
   const isEditing = Boolean(initialEntry?._id)
   const successMessage = isEditing ? 'Changelog updated successfully!' : 'Changelog created successfully!'
   const { showToast } = useToast()
@@ -136,10 +138,10 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
   useEffect(() => {
     if (!isEditing || !formState.success) return
     const t = setTimeout(() => {
-      window.location.href = '/changelog/admin'
+      window.location.href = buildChangelogPath(basePath, 'admin')
     }, 1200)
     return () => clearTimeout(t)
-  }, [isEditing, formState.success])
+  }, [isEditing, formState.success, basePath])
 
   useEffect(() => {
     if (formState.error) {
@@ -460,7 +462,7 @@ export default function CreateForm({ initialEntry, preset }: CreateFormProps) {
         <div className="cl-form-actions">
           <SubmitButton isEditing={isEditing} />
           {isEditing ? (
-            <a href="/changelog/admin" className="cl-btn cl-btn-secondary cl-admin-cancel-edit">
+            <a href={buildChangelogPath(basePath, 'admin')} className="cl-btn cl-btn-secondary cl-admin-cancel-edit">
               Cancel
             </a>
           ) : null}
