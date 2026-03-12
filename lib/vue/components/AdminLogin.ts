@@ -5,6 +5,7 @@ import { useToast } from '../composables/toast'
 export const AdminLogin = defineComponent({
   name: 'AdminLogin',
   props: {
+    mode: { type: String as () => 'login' | 'register', default: 'login' },
     baseUrl: { type: String, default: '' },
     apiBasePath: { type: String, default: '/api/changelog' },
     redirectPath: { type: String, default: '/changelog/admin' },
@@ -12,7 +13,6 @@ export const AdminLogin = defineComponent({
   setup(props) {
     const api = createChangelogApi({ baseUrl: props.baseUrl, apiBasePath: props.apiBasePath })
     const canRegister = ref(false)
-    const displayName = ref('')
     const email = ref('')
     const password = ref('')
     const loading = ref(false)
@@ -26,7 +26,7 @@ export const AdminLogin = defineComponent({
       })
       .catch(() => undefined)
 
-    const onSubmit = async (intent: 'login' | 'register') => {
+    const onSubmit = async () => {
       if (!email.value) {
         toast.showToast('Email is required', 'error')
         return
@@ -39,8 +39,8 @@ export const AdminLogin = defineComponent({
 
       loading.value = true
       const result =
-        intent === 'register'
-          ? await api.register({ email: email.value, password: password.value, displayName: displayName.value || undefined })
+        props.mode === 'register'
+          ? await api.register({ email: email.value, password: password.value })
           : await api.login({ email: email.value, password: password.value })
       loading.value = false
 
@@ -57,54 +57,52 @@ export const AdminLogin = defineComponent({
         class: 'cl-card cl-login-card',
         onSubmit: (event: Event) => {
           event.preventDefault()
-          onSubmit('login')
+          onSubmit()
         },
       }, [
         h('div', { class: 'cl-card-header' }, [
-          h('h1', { class: 'cl-card-title' }, 'Admin Login'),
+          h('h1', { class: 'cl-card-title' }, props.mode === 'register' ? 'Create Admin Account' : 'Admin Login'),
           h(
             'p',
             { class: 'cl-card-description' },
-            canRegister.value ? 'Create the first admin account or sign in' : 'Sign in with your admin account'
+            props.mode === 'register' ? 'Register a new admin account' : 'Sign in with your admin account'
           ),
         ]),
         h('div', { class: 'cl-card-content cl-login-card-content' }, [
+          props.mode === 'register' && !canRegister.value
+            ? h('div', { class: 'cl-alert cl-alert-error' }, [
+                h(
+                  'div',
+                  { class: 'cl-alert-description' },
+                  'Registration is currently disabled. Ask the site owner to set CHANGELOG_ALLOW_ADMIN_REGISTRATION=true.'
+                ),
+              ])
+            : null,
           h('div', { class: 'cl-form-group' }, [
             h('label', { class: 'cl-form-label', for: 'email' }, 'Email'),
             h('input', {
               id: 'email',
+              name: 'email',
               type: 'email',
               class: 'cl-input',
               placeholder: 'Enter admin email',
               value: email.value,
+              disabled: props.mode === 'register' && !canRegister.value,
               onInput: (event: Event) => {
                 email.value = (event.target as HTMLInputElement).value
               },
             }),
           ]),
-          canRegister.value
-            ? h('div', { class: 'cl-form-group' }, [
-                h('label', { class: 'cl-form-label', for: 'displayName' }, 'Display name (optional)'),
-                h('input', {
-                  id: 'displayName',
-                  type: 'text',
-                  class: 'cl-input',
-                  placeholder: 'Admin',
-                  value: displayName.value,
-                  onInput: (event: Event) => {
-                    displayName.value = (event.target as HTMLInputElement).value
-                  },
-                }),
-              ])
-            : null,
           h('div', { class: 'cl-form-group' }, [
             h('label', { class: 'cl-form-label', for: 'password' }, 'Password'),
             h('input', {
               id: 'password',
+              name: 'password',
               type: 'password',
               class: 'cl-input',
               placeholder: 'Enter account password',
               value: password.value,
+              disabled: props.mode === 'register' && !canRegister.value,
               onInput: (event: Event) => {
                 password.value = (event.target as HTMLInputElement).value
               },
@@ -115,24 +113,38 @@ export const AdminLogin = defineComponent({
             {
               type: 'submit',
               class: 'cl-btn cl-btn-primary cl-login-submit',
-              disabled: loading.value,
+              disabled: loading.value || (props.mode === 'register' && !canRegister.value),
               onClick: (event: Event) => {
                 event.preventDefault()
-                onSubmit('login')
+                onSubmit()
               },
             },
-            loading.value ? 'Authenticating...' : 'Sign In'
+            loading.value
+              ? props.mode === 'register'
+                ? 'Creating account...'
+                : 'Authenticating...'
+              : props.mode === 'register'
+                ? 'Create Admin Account'
+                : 'Sign In'
           ),
-          canRegister.value
+          props.mode === 'login' && canRegister.value
             ? h(
-                'button',
+                'a',
                 {
-                  type: 'button',
+                  href: '/changelog/register',
                   class: 'cl-btn cl-btn-secondary cl-login-submit',
-                  disabled: loading.value,
-                  onClick: () => onSubmit('register'),
                 },
-                loading.value ? 'Creating account...' : 'Create Admin Account'
+                'Create Admin Account'
+              )
+            : null,
+          props.mode === 'register'
+            ? h(
+                'a',
+                {
+                  href: '/changelog/login',
+                  class: 'cl-btn cl-btn-secondary cl-login-submit',
+                },
+                'Back to Login'
               )
             : null,
         ]),

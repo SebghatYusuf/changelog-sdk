@@ -4,6 +4,7 @@ import ChangelogFeed from './feed/timeline'
 import ChangelogDetail from './feed/detail'
 import AdminPortal from './admin/portal'
 import LoginForm from './auth/login'
+import RegisterForm from './auth/register'
 import { ToastProvider } from './toast/provider'
 import { TooltipProvider } from './tooltip/provider'
 
@@ -39,6 +40,8 @@ export default function ChangelogManager({ params, searchParams }: ChangelogMana
     content = <AdminPortalRoute section={adminSection} editId={adminEditId} preset={searchParams?.preset} />
   } else if (route === 'login') {
     content = <LoginRoute />
+  } else if (route === 'register') {
+    content = <RegisterRoute />
   } else if (route) {
     content = <DetailRoute slug={route} />
   } else {
@@ -78,6 +81,16 @@ function LoginRoute() {
     <main className="cl-root cl-section cl-login-screen">
       <Suspense fallback={<LoadingFallback />}>
         <LoginForm />
+      </Suspense>
+    </main>
+  )
+}
+
+function RegisterRoute() {
+  return (
+    <main className="cl-root cl-section cl-login-screen">
+      <Suspense fallback={<LoadingFallback />}>
+        <RegisterForm />
       </Suspense>
     </main>
   )

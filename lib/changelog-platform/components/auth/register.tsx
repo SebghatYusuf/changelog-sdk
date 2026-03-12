@@ -1,18 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useFormStatus } from 'react-dom'
-import { canRegisterAdmin, loginAdmin } from '../../actions/changelog-actions'
+import { canRegisterAdmin, registerAdmin } from '../../actions/changelog-actions'
 import { useRouter } from 'next/navigation'
 
-/**
- * Admin Login Form Component
- */
-
-export default function LoginForm() {
+export default function RegisterForm() {
   const router = useRouter()
-  const [error, setError] = useState<string>('')
+  const [error, setError] = useState('')
   const [canRegister, setCanRegister] = useState(false)
 
   useEffect(() => {
@@ -31,7 +26,7 @@ export default function LoginForm() {
     }
   }, [])
 
-  async function handleLogin(formData: FormData) {
+  async function handleRegister(formData: FormData) {
     const email = formData.get('email') as string
     const password = formData.get('password') as string
 
@@ -45,29 +40,35 @@ export default function LoginForm() {
       return
     }
 
-    const result = await loginAdmin({ email, password })
+    const result = await registerAdmin({ email, password })
 
     if (!result.success) {
       setError(result.error || 'Authentication failed')
       return
     }
 
-    // Redirect to admin portal
     router.push('/changelog/admin')
   }
 
   return (
-    <form action={handleLogin} className="cl-card cl-login-card">
+    <form action={handleRegister} className="cl-card cl-login-card">
       <div className="cl-card-header">
-        <h1 className="cl-card-title">Admin Login</h1>
-        <p className="cl-card-description">Sign in with your admin account</p>
+        <h1 className="cl-card-title">Create Admin Account</h1>
+        <p className="cl-card-description">Register a new admin account</p>
       </div>
 
       <div className="cl-card-content cl-login-card-content">
-        {/* Error Alert */}
         {error && (
           <div className="cl-alert cl-alert-error">
             <div className="cl-alert-description">{error}</div>
+          </div>
+        )}
+
+        {!canRegister && (
+          <div className="cl-alert cl-alert-error">
+            <div className="cl-alert-description">
+              Registration is currently disabled. Ask the site owner to set CHANGELOG_ALLOW_ADMIN_REGISTRATION=true.
+            </div>
           </div>
         )}
 
@@ -82,10 +83,10 @@ export default function LoginForm() {
             placeholder="Enter admin email"
             className="cl-input"
             required
+            disabled={!canRegister}
           />
         </div>
 
-        {/* Password Input */}
         <div className="cl-form-group">
           <label className="cl-form-label" htmlFor="password">
             Password
@@ -97,37 +98,31 @@ export default function LoginForm() {
             placeholder="Enter account password"
             className="cl-input"
             required
+            disabled={!canRegister}
           />
         </div>
 
-        {/* Submit Button */}
-        <SubmitButton />
-        {canRegister && (
-          <a href="/changelog/register" className="cl-btn cl-btn-secondary cl-login-submit">
-            Create Admin Account
-          </a>
-        )}
+        <SubmitButton disabled={!canRegister} />
+        <a href="/changelog/login" className="cl-btn cl-btn-secondary cl-login-submit">
+          Back to Login
+        </a>
       </div>
     </form>
   )
 }
 
-function SubmitButton() {
+function SubmitButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus()
 
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="cl-btn cl-btn-primary cl-login-submit"
-    >
+    <button type="submit" disabled={pending || disabled} className="cl-btn cl-btn-primary cl-login-submit">
       {pending ? (
         <>
           <span className="cl-spinner cl-spinner-sm cl-spinner-inline" />
-          Authenticating...
+          Creating account...
         </>
       ) : (
-        'Sign In'
+        'Create Admin Account'
       )}
     </button>
   )
