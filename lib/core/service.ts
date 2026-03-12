@@ -72,9 +72,32 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
     return error instanceof Error ? error.message : fallback
   }
 
+  function sanitizePage(value: number, fallback = 1): number {
+    return Number.isFinite(value) ? Math.max(1, Math.trunc(value)) : fallback
+  }
+
+  function sanitizeLimit(value: number, fallback: number): number {
+    return Number.isFinite(value) ? Math.min(50, Math.max(1, Math.trunc(value))) : fallback
+  }
+
+  function sanitizeText(value: string | undefined, maxLength = 200): string | undefined {
+    if (typeof value !== 'string') return undefined
+    const normalized = value.trim()
+    return normalized ? normalized.slice(0, maxLength) : undefined
+  }
+
+  function sanitizeIdentifier(value: string, field: string): string {
+    const normalized = value.trim().slice(0, 200)
+    if (!normalized) {
+      throw new Error(`${field} is required`)
+    }
+    return normalized
+  }
+
   return {
     async createEntry(input: unknown): Promise<{ success: boolean; data?: ChangelogEntry; error?: string }> {
       try {
+        await requireAdminSession()
         const validated = CreateChangelogSchema.parse(input)
         const normalizedVersion = normalizeSemver(validated.version)
         await assertVersionNotLower(normalizedVersion)
@@ -95,6 +118,7 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
 
     async updateEntry(input: unknown): Promise<{ success: boolean; data?: ChangelogEntry; error?: string }> {
       try {
+        await requireAdminSession()
         const validated = UpdateChangelogSchema.parse(input)
         const normalizedVersion = validated.version ? normalizeSemver(validated.version) : undefined
 
@@ -130,7 +154,9 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
 
     async deleteEntry(id: string): Promise<{ success: boolean; error?: string }> {
       try {
-        const removed = await deps.changelogRepository.remove(id)
+        await requireAdminSession()
+        const safeId = sanitizeIdentifier(id, 'Entry id')
+        const removed = await deps.changelogRepository.remove(safeId)
         if (!removed) {
           return { success: false, error: 'Changelog entry not found' }
         }
@@ -144,7 +170,8 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
 
     async getEntryBySlug(slug: string): Promise<{ data?: ChangelogEntry; error?: string }> {
       try {
-        const entry = await deps.changelogRepository.findBySlug(slug)
+        const safeSlug = sanitizeIdentifier(slug, 'Slug')
+        const entry = await deps.changelogRepository.findBySlug(safeSlug)
         if (!entry) {
           return { error: 'Changelog not found' }
         }
@@ -156,25 +183,35 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
 
     async getPublishedFeed(page = 1, limit = 10, tags?: string[], search?: string): Promise<{ success: boolean; data: FeedResponse }> {
       try {
+        const safePage = sanitizePage(page, 1)
+        const safeLimit = sanitizeLimit(limit, 10)
+        const safeSearch = sanitizeText(search)
+        const safeTags = (Array.isArray(tags) ? tags : [])
+          .filter((tag): tag is ChangelogEntry['tags'][number] => typeof tag === 'string' && tag.trim().length > 0)
+          .slice(0, 10)
+
         const data = await deps.changelogRepository.listPublished({
-          page,
-          limit,
-          tags: (tags || []) as ChangelogEntry['tags'],
-          search,
+          page: safePage,
+          limit: safeLimit,
+          tags: safeTags,
+          search: safeSearch,
         })
         return { success: true, data }
       } catch {
         return {
           success: true,
-          data: { entries: [], total: 0, page, limit, hasMore: false },
+          data: { entries: [], total: 0, page: 1, limit: 10, hasMore: false },
         }
       }
     },
 
     async getAdminFeed(page = 1, limit = 20): Promise<{ success: boolean; data?: FeedResponse; error?: string }> {
+      const safePage = sanitizePage(page, 1)
+      const safeLimit = sanitizeLimit(limit, 20)
+
       try {
         await requireAdminSession()
-        const data = await deps.changelogRepository.listAdmin({ page, limit })
+        const data = await deps.changelogRepository.listAdmin({ page: safePage, limit: safeLimit })
         return { success: true, data }
       } catch (error) {
         if (error instanceof Error && error.message === 'Unauthorized') {
@@ -182,7 +219,7 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
         }
         return {
           success: true,
-          data: { entries: [], total: 0, page, limit, hasMore: false },
+          data: { entries: [], total: 0, page: safePage, limit: safeLimit, hasMore: false },
         }
       }
     },
@@ -190,7 +227,8 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
     async getAdminEntryById(id: string): Promise<{ success: boolean; data?: ChangelogEntry; error?: string }> {
       try {
         await requireAdminSession()
-        const data = await deps.changelogRepository.findById(id)
+        const safeId = sanitizeIdentifier(id, 'Entry id')
+        const data = await deps.changelogRepository.findById(safeId)
         if (!data) {
           return { success: false, error: 'Changelog entry not found' }
         }
@@ -245,6 +283,7 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
 
     async enhanceWithAI(input: unknown): Promise<{ success: boolean; data?: EnhanceChangelogOutput; error?: string }> {
       try {
+        await requireAdminSession()
         const validated = EnhanceChangelogSchema.parse(input)
         const result = await deps.aiProvider.enhance(validated.rawNotes, validated.currentVersion)
         return { success: true, data: result }
