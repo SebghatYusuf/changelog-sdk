@@ -1,6 +1,6 @@
 import 'changelog-sdk/styles'
-import React from 'react'
+import type { ReactNode } from 'react'
 
-export default function ChangelogLayout({ children }: { children: React.ReactNode }) {
+export default function ChangelogLayout({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
