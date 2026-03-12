@@ -13,7 +13,7 @@ export const metadata = {
 
 export default function ChangelogPage(props: ChangelogPageProps) {
   return (
-    <Suspense>
+    <Suspense fallback={null}>
       <ChangelogPageContent {...props} />
     </Suspense>
   )
