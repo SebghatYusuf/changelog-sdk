@@ -7,6 +7,7 @@ import AISettingsPanel from './ai-settings'
 import ChangelogSettingsPanel from './changelog-settings'
 import { fetchAdminChangelogById } from '../../actions/changelog-actions'
 import { ChangelogEntry } from '../../types/changelog'
+import { buildChangelogPath } from '../paths'
 
 /**
  * Admin Portal Main Component - Server Component
@@ -18,13 +19,14 @@ interface AdminPortalProps {
   section?: string
   editId?: string
   preset?: string
+  basePath?: string
 }
 
-const ADMIN_NAV_ITEMS: Array<{ id: AdminSection; label: string; href: string; description: string; icon: LucideIcon }> = [
-  { id: 'publish', label: 'Publishing', href: '/changelog/admin', description: 'Create and manage entries', icon: FileText },
-  { id: 'ai', label: 'AI Settings', href: '/changelog/admin/ai', description: 'Provider, model, runtime', icon: Zap },
-  { id: 'changelog-settings', label: 'Feed Settings', href: '/changelog/admin/changelog-settings', description: 'Feed and publishing defaults', icon: Settings },
-  { id: 'presets', label: 'Presets', href: '/changelog/admin/presets', description: 'Reusable templates', icon: LayoutGrid },
+const ADMIN_NAV_ITEMS: Array<{ id: AdminSection; label: string; description: string; icon: LucideIcon }> = [
+  { id: 'publish', label: 'Publishing', description: 'Create and manage entries', icon: FileText },
+  { id: 'ai', label: 'AI Settings', description: 'Provider, model, runtime', icon: Zap },
+  { id: 'changelog-settings', label: 'Feed Settings', description: 'Feed and publishing defaults', icon: Settings },
+  { id: 'presets', label: 'Presets', description: 'Reusable templates', icon: LayoutGrid },
 ]
 
 function normalizeSection(section?: string): AdminSection {
@@ -32,10 +34,10 @@ function normalizeSection(section?: string): AdminSection {
   return 'publish'
 }
 
-export default function AdminPortal({ section, editId, preset }: AdminPortalProps) {
+export default function AdminPortal({ section, editId, preset, basePath }: AdminPortalProps) {
   // Edit mode: render a dedicated full-page edit view
   if (section === 'edit' && editId) {
-    return <EditEntryView editId={editId} />
+    return <EditEntryView editId={editId} basePath={basePath} />
   }
 
   const activeSection = normalizeSection(section)
@@ -49,10 +51,10 @@ export default function AdminPortal({ section, editId, preset }: AdminPortalProp
           <p className="cl-admin-subtitle">Create, refine, and publish release notes.</p>
         </div>
         <div className="cl-admin-header-right">
-          <a href="/changelog" className="cl-btn cl-btn-ghost cl-btn-sm">
+          <a href={buildChangelogPath(basePath)} className="cl-btn cl-btn-ghost cl-btn-sm">
             ← View changelog
           </a>
-          <LogoutButton />
+          <LogoutButton basePath={basePath} />
         </div>
       </header>
 
@@ -66,7 +68,11 @@ export default function AdminPortal({ section, editId, preset }: AdminPortalProp
             {ADMIN_NAV_ITEMS.map((item) => (
               <a
                 key={item.id}
-                href={item.href}
+                href={
+                  item.id === 'publish'
+                    ? buildChangelogPath(basePath, 'admin')
+                    : buildChangelogPath(basePath, 'admin', item.id)
+                }
                 className={`cl-admin-nav-item ${activeSection === item.id ? 'is-active' : ''}`}
               >
                 <item.icon className="cl-admin-nav-icon" aria-hidden="true" />
@@ -82,13 +88,13 @@ export default function AdminPortal({ section, editId, preset }: AdminPortalProp
         {/* Main content */}
         <main className="cl-admin-content">
           {activeSection === 'publish' ? (
-            <PublishSection preset={preset} />
+            <PublishSection preset={preset} basePath={basePath} />
           ) : activeSection === 'ai' ? (
             <AISection />
           ) : activeSection === 'changelog-settings' ? (
             <ChangelogSettingsSection />
           ) : (
-            <PresetsSection />
+            <PresetsSection basePath={basePath} />
           )}
         </main>
       </div>
@@ -99,7 +105,7 @@ export default function AdminPortal({ section, editId, preset }: AdminPortalProp
 /**
  * Dedicated full-page edit view — no list, full-width form with back link
  */
-async function EditEntryView({ editId }: { editId: string }) {
+async function EditEntryView({ editId, basePath }: { editId: string; basePath?: string }) {
   let initialEntry: ChangelogEntry | undefined
 
   const result = await fetchAdminChangelogById(editId)
@@ -111,7 +117,7 @@ async function EditEntryView({ editId }: { editId: string }) {
     <div className="cl-admin-shell">
       <header className="cl-admin-header">
         <div className="cl-admin-header-left">
-          <a href="/changelog/admin" className="cl-admin-back-link">
+          <a href={buildChangelogPath(basePath, 'admin')} className="cl-admin-back-link">
             <ArrowLeft className="cl-admin-back-icon" aria-hidden="true" />
             Back to Admin
           </a>
@@ -123,7 +129,7 @@ async function EditEntryView({ editId }: { editId: string }) {
           )}
         </div>
         <div className="cl-admin-header-right">
-          <LogoutButton />
+          <LogoutButton basePath={basePath} />
         </div>
       </header>
 
@@ -139,17 +145,17 @@ async function EditEntryView({ editId }: { editId: string }) {
 /**
  * Publish Section — side-by-side create form + entries list
  */
-function PublishSection({ preset }: { preset?: string }) {
+function PublishSection({ preset, basePath }: { preset?: string; basePath?: string }) {
   return (
     <div className="cl-publish-grid">
       <div className="cl-publish-col-form">
         <Suspense fallback={<FormSkeleton />}>
-          <CreateForm preset={preset} />
+          <CreateForm preset={preset} basePath={basePath} />
         </Suspense>
       </div>
       <div className="cl-publish-col-list">
         <Suspense fallback={<ListSkeleton />}>
-          <AdminList />
+          <AdminList basePath={basePath} />
         </Suspense>
       </div>
     </div>
@@ -176,7 +182,7 @@ function ChangelogSettingsSection() {
   )
 }
 
-function PresetsSection() {
+function PresetsSection({ basePath }: { basePath?: string }) {
   return (
     <div className="cl-card cl-admin-panel cl-admin-settings-panel">
       <div className="cl-card-header">
@@ -185,15 +191,15 @@ function PresetsSection() {
       </div>
       <div className="cl-card-content cl-admin-form-body">
         <div className="cl-admin-presets-grid">
-          <a href="/changelog/admin?preset=feature-release" className="cl-admin-preset-card">
+          <a href={`${buildChangelogPath(basePath, 'admin')}?preset=feature-release`} className="cl-admin-preset-card">
             <h4 className="cl-admin-preset-title">Feature Release</h4>
             <p className="cl-admin-preset-description">Highlights, migration notes, and rollout details.</p>
           </a>
-          <a href="/changelog/admin?preset=hotfix" className="cl-admin-preset-card">
+          <a href={`${buildChangelogPath(basePath, 'admin')}?preset=hotfix`} className="cl-admin-preset-card">
             <h4 className="cl-admin-preset-title">Hotfix</h4>
             <p className="cl-admin-preset-description">Critical bugfix summary with impact scope.</p>
           </a>
-          <a href="/changelog/admin?preset=maintenance" className="cl-admin-preset-card">
+          <a href={`${buildChangelogPath(basePath, 'admin')}?preset=maintenance`} className="cl-admin-preset-card">
             <h4 className="cl-admin-preset-title">Maintenance</h4>
             <p className="cl-admin-preset-description">Operational updates and technical maintenance details.</p>
           </a>

@@ -7,6 +7,7 @@ import LoginForm from './auth/login'
 import RegisterForm from './auth/register'
 import { ToastProvider } from './toast/provider'
 import { TooltipProvider } from './tooltip/provider'
+import { buildChangelogPath, normalizeBasePath } from './paths'
 
 /**
  * Main Changelog Manager Component - Server Component
@@ -27,26 +28,28 @@ interface SearchParams {
 interface ChangelogManagerProps {
   params?: RouteParams
   searchParams?: SearchParams
+  basePath?: string
 }
 
-export default function ChangelogManager({ params, searchParams }: ChangelogManagerProps) {
+export default function ChangelogManager({ params, searchParams, basePath }: ChangelogManagerProps) {
   const route = params?.route?.[0] || ''
   const adminSection = params?.route?.[1]
   const adminEditId = params?.route?.[2]
+  const normalizedBasePath = normalizeBasePath(basePath)
   let content: ReactNode
 
   // Route logic
   if (route === 'admin') {
-    content = <AdminPortalRoute section={adminSection} editId={adminEditId} preset={searchParams?.preset} />
+    content = <AdminPortalRoute section={adminSection} editId={adminEditId} preset={searchParams?.preset} basePath={normalizedBasePath} />
   } else if (route === 'login') {
-    content = <LoginRoute />
+    content = <LoginRoute basePath={normalizedBasePath} />
   } else if (route === 'register') {
-    content = <RegisterRoute />
+    content = <RegisterRoute basePath={normalizedBasePath} />
   } else if (route) {
-    content = <DetailRoute slug={route} />
+    content = <DetailRoute slug={route} basePath={normalizedBasePath} />
   } else {
     // Default: public feed
-    content = <PublicFeedRoute searchParams={searchParams} />
+    content = <PublicFeedRoute searchParams={searchParams} basePath={normalizedBasePath} />
   }
 
   return (
@@ -59,7 +62,13 @@ export default function ChangelogManager({ params, searchParams }: ChangelogMana
 /**
  * Public Feed Route
  */
-function PublicFeedRoute({ searchParams }: { searchParams?: { page?: string; tags?: string; search?: string } }) {
+function PublicFeedRoute({
+  searchParams,
+  basePath,
+}: {
+  searchParams?: { page?: string; tags?: string; search?: string }
+  basePath: string
+}) {
   const page = Math.max(1, Number(searchParams?.page ?? 1))
   const tags = (searchParams?.tags ?? '').split(',').filter(Boolean) as import('../types/changelog').ChangelogTag[]
   const search = searchParams?.search ?? ''
@@ -67,7 +76,7 @@ function PublicFeedRoute({ searchParams }: { searchParams?: { page?: string; tag
   return (
     <main className="cl-root cl-section cl-feed-screen">
       <Suspense fallback={<LoadingFallback />}>
-        <ChangelogFeed initialPage={page} initialTags={tags} initialSearch={search} />
+        <ChangelogFeed initialPage={page} initialTags={tags} initialSearch={search} basePath={basePath} />
       </Suspense>
     </main>
   )
@@ -76,31 +85,31 @@ function PublicFeedRoute({ searchParams }: { searchParams?: { page?: string; tag
 /**
  * Login Route
  */
-function LoginRoute() {
+function LoginRoute({ basePath }: { basePath: string }) {
   return (
     <main className="cl-root cl-section cl-login-screen">
       <Suspense fallback={<LoadingFallback />}>
-        <LoginForm />
+        <LoginForm basePath={basePath} />
       </Suspense>
     </main>
   )
 }
 
-function RegisterRoute() {
+function RegisterRoute({ basePath }: { basePath: string }) {
   return (
     <main className="cl-root cl-section cl-login-screen">
       <Suspense fallback={<LoadingFallback />}>
-        <RegisterForm />
+        <RegisterForm basePath={basePath} />
       </Suspense>
     </main>
   )
 }
 
-function DetailRoute({ slug }: { slug: string }) {
+function DetailRoute({ slug, basePath }: { slug: string; basePath: string }) {
   return (
     <main className="cl-root cl-section cl-feed-screen">
       <Suspense fallback={<LoadingFallback />}>
-        <ChangelogDetail slug={slug} />
+        <ChangelogDetail slug={slug} basePath={basePath} />
       </Suspense>
     </main>
   )
@@ -109,12 +118,22 @@ function DetailRoute({ slug }: { slug: string }) {
 /**
  * Admin Portal Route
  */
-function AdminPortalRoute({ section, editId, preset }: { section?: string; editId?: string; preset?: string }) {
+function AdminPortalRoute({
+  section,
+  editId,
+  preset,
+  basePath,
+}: {
+  section?: string
+  editId?: string
+  preset?: string
+  basePath: string
+}) {
   return (
     <main className="cl-root cl-section cl-admin-screen">
       <Suspense fallback={<LoadingFallback />}>
-        <AdminAuthWrapper>
-          <AdminPortal section={section} editId={editId} preset={preset} />
+        <AdminAuthWrapper basePath={basePath}>
+          <AdminPortal section={section} editId={editId} preset={preset} basePath={basePath} />
         </AdminAuthWrapper>
       </Suspense>
     </main>
@@ -124,7 +143,7 @@ function AdminPortalRoute({ section, editId, preset }: { section?: string; editI
 /**
  * Admin Auth Wrapper - checks if user is authenticated
  */
-async function AdminAuthWrapper({ children }: { children: ReactNode }) {
+async function AdminAuthWrapper({ children, basePath }: { children: ReactNode; basePath: string }) {
   const isAdmin = await checkAdminAuth()
 
   if (!isAdmin) {
@@ -135,7 +154,7 @@ async function AdminAuthWrapper({ children }: { children: ReactNode }) {
         </div>
         <div className="cl-card-content">
           <p className="cl-p">Please log in to access the admin portal.</p>
-          <a href="/changelog/login" className="cl-btn cl-btn-primary cl-auth-guard-link">
+          <a href={buildChangelogPath(basePath, 'login')} className="cl-btn cl-btn-primary cl-auth-guard-link">
             Go to Login
           </a>
         </div>

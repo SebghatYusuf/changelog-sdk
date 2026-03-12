@@ -1,5 +1,7 @@
 'use client'
 
+import { buildChangelogPath } from '../paths'
+
 
 /**
  * Pagination Component
@@ -9,9 +11,10 @@ interface PaginationProps {
   currentPage: number
   hasMore: boolean
   total: number
+  basePath?: string
 }
 
-export default function Pagination({ currentPage, hasMore, total }: PaginationProps) {
+export default function Pagination({ currentPage, hasMore, total, basePath }: PaginationProps) {
   const pageSize = 10
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages)
@@ -19,7 +22,7 @@ export default function Pagination({ currentPage, hasMore, total }: PaginationPr
   const navigateToPage = (nextPage: number) => {
     const params = new URLSearchParams(window.location.search)
     params.set('page', String(nextPage))
-    window.location.href = `/changelog?${params.toString()}`
+    window.location.href = `${buildChangelogPath(basePath)}?${params.toString()}`
   }
 
   const handleNextPage = () => {

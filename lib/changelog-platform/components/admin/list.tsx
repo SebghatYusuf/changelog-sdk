@@ -3,12 +3,13 @@ import { ClipboardList } from 'lucide-react'
 import { ChangelogEntry } from '../../types/changelog'
 import DeleteButton from './delete-button'
 import PublishButton from './publish-button'
+import { buildChangelogPath } from '../paths'
 
 /**
  * Admin Changelog List Component
  */
 
-export default async function AdminList() {
+export default async function AdminList({ basePath }: { basePath?: string }) {
   const result = await fetchAdminChangelogs(1, 30)
 
   if (!result.success) {
@@ -47,7 +48,7 @@ export default async function AdminList() {
         ) : (
           <div className="cl-admin-list">
             {entries.map((entry: ChangelogEntry) => (
-              <AdminListItem key={entry._id} entry={entry} />
+              <AdminListItem key={entry._id} entry={entry} basePath={basePath} />
             ))}
           </div>
         )}
@@ -59,7 +60,7 @@ export default async function AdminList() {
 /**
  * Individual List Item
  */
-function AdminListItem({ entry }: { entry: ChangelogEntry }) {
+function AdminListItem({ entry, basePath }: { entry: ChangelogEntry; basePath?: string }) {
   const dateFormatter = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'short',
@@ -96,7 +97,7 @@ function AdminListItem({ entry }: { entry: ChangelogEntry }) {
 
       <div className="cl-admin-row-actions">
         {entry.status === 'draft' && <PublishButton id={entry._id} />}
-        <a href={`/changelog/admin/edit/${entry._id}`} className="cl-btn cl-btn-sm cl-btn-secondary cl-btn-compact">
+        <a href={buildChangelogPath(basePath, 'admin', 'edit', entry._id)} className="cl-btn cl-btn-sm cl-btn-secondary cl-btn-compact">
           Edit
         </a>
         <DeleteButton id={entry._id} />

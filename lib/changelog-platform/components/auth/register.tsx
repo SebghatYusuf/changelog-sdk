@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { canRegisterAdmin, registerAdmin } from '../../actions/changelog-actions'
 import { useRouter } from 'next/navigation'
+import { buildChangelogPath } from '../paths'
 
-export default function RegisterForm() {
+export default function RegisterForm({ basePath }: { basePath?: string }) {
   const router = useRouter()
   const [error, setError] = useState('')
   const [canRegister, setCanRegister] = useState<boolean | null>(null)
@@ -47,7 +48,7 @@ export default function RegisterForm() {
       return
     }
 
-    router.push('/changelog/admin')
+    router.push(buildChangelogPath(basePath, 'admin'))
   }
 
   return (
@@ -103,7 +104,7 @@ export default function RegisterForm() {
         </div>
 
         <SubmitButton disabled={canRegister !== true} />
-        <a href="/changelog/login" className="cl-btn cl-btn-secondary cl-login-submit">
+        <a href={buildChangelogPath(basePath, 'login')} className="cl-btn cl-btn-secondary cl-login-submit">
           Back to Login
         </a>
       </div>
