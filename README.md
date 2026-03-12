@@ -531,6 +531,18 @@ bun run create:admin your-admin@email.com your-password "Admin"
 3. Open **Generate from commits** in the editor to select a date range
 4. Optionally enable AI polish for a standardized release-note format
 
+**Token scopes**
+
+- **GitHub**: use a fine-grained PAT or GitHub App token with **Contents: read** permission for the repository. Public repositories can be queried without authentication but are rate-limited.
+- **Bitbucket Cloud**: use an API token with **read:repository:bitbucket** scope. App passwords are deprecated; new app passwords cannot be created after September 9, 2025 and existing ones stop working on June 9, 2026.
+
+**Token setup references**
+
+- GitHub commit API: [docs.github.com/en/rest/commits/commits](https://docs.github.com/en/rest/commits/commits?apiVersion=2022-11-28)
+- Bitbucket commits API: [developer.atlassian.com/cloud/bitbucket/rest/api-group-commits](https://developer.atlassian.com/cloud/bitbucket/rest/api-group-commits/)
+- Bitbucket API token scopes: [support.atlassian.com/bitbucket-cloud/docs/integrate-an-external-application](https://support.atlassian.com/bitbucket-cloud/docs/integrate-an-external-application-with-bitbucket-cloud/)
+- Bitbucket app password deprecation: [support.atlassian.com/bitbucket-cloud/docs/app-passwords](https://support.atlassian.com/bitbucket-cloud/docs/app-passwords/)
+
 ## API and Server Actions
 
 All server actions are exported from `changelog-sdk/next` and can be called from any Next.js Server Component, Route Handler, or other server action.

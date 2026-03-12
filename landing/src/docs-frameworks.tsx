@@ -1,13 +1,13 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import DocsShell from '../app/docs/_components/DocsShell'
-import DocsPage from '../app/docs/page'
+import FrameworksPage from '../app/docs/frameworks/page'
 import '../app/landing.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <DocsShell>
-      <DocsPage />
+      <FrameworksPage />
     </DocsShell>
   </StrictMode>,
 )

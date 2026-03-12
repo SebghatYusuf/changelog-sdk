@@ -521,7 +521,10 @@ body {
 .toc-link-sub { padding-left: 0.875rem; }
 
 /* ─── Docs Content ───────────────────────────────────────── */
-.docs-section { margin-bottom: 4rem; }
+.docs-section {
+  margin-bottom: 4rem;
+  scroll-margin-top: calc(var(--header-height) + 24px);
+}
 .docs-eyebrow {
   font-size: 0.75rem; font-weight: 700; color: var(--primary);
   text-transform: uppercase; letter-spacing: 0.08em;
@@ -563,6 +566,16 @@ body {
   background: var(--surface); color: var(--primary);
   padding: 0.1em 0.45em; border-radius: 0.25em;
   border: 1px solid var(--border);
+}
+.docs-link {
+  color: var(--primary);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(60, 255, 203, 0.35);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.docs-link:hover {
+  color: var(--text-main);
+  border-bottom-color: rgba(255, 255, 255, 0.6);
 }
 .docs-callout {
   background: var(--primary-dim);
