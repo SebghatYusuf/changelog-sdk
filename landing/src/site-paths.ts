@@ -1,4 +1,4 @@
-const TRIVIAL_ROOT_SEGMENTS = new Set(['', 'index.html', 'docs', 'assets'])
+const TRIVIAL_ROOT_SEGMENTS = new Set(['', 'index.html', 'assets'])
 
 function detectBasePathname(pathname: string): string {
   const clean = pathname.split('?')[0].split('#')[0]
@@ -22,5 +22,11 @@ export function getSiteBasePath(): string {
 
 export function toSitePath(path: string): string {
   const base = getSiteBasePath().replace(/\/+$/, '/')
-  return `${base}${path.replace(/^\/+/, '')}`
+  let clean = path.replace(/^\/+/, '')
+
+  if (base.endsWith('/docs/') && (clean === 'docs' || clean.startsWith('docs/'))) {
+    clean = clean === 'docs' ? '' : clean.slice('docs/'.length)
+  }
+
+  return `${base}${clean}`
 }
