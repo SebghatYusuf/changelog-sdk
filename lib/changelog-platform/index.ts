@@ -10,6 +10,7 @@ export { default as AdminPortal } from './components/admin/portal'
 
 // ===== TYPES (Zero-runtime) =====
 export type {
+  AdminUser,
   ChangelogEntry,
   ChangelogStatus,
   ChangelogTag,
@@ -19,6 +20,8 @@ export type {
   EnhanceChangelogOutput,
   FeedResponse,
   ApiError,
+  LoginInput,
+  RegisterAdminInput,
   AISettingsInput,
   AIModelOption,
   AIProviderKind,
@@ -39,6 +42,8 @@ export {
   runAIEnhance,
   // Auth
   loginAdmin,
+  registerAdmin,
+  canRegisterAdmin,
   logoutAdmin,
   checkAdminAuth,
   // Settings
@@ -59,6 +64,7 @@ export {
   UpdateChangelogSchema,
   EnhanceChangelogSchema,
   LoginSchema,
+  RegisterAdminSchema,
   FeedFiltersSchema,
   AIProviderEnum,
   AISettingsSchema,

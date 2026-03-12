@@ -2,12 +2,15 @@ import connectDB from '../changelog-platform/db/mongoose'
 import { Changelog } from '../changelog-platform/db/models/Changelog'
 import AISettings from '../changelog-platform/db/models/AISettings'
 import ChangelogSettings from '../changelog-platform/db/models/ChangelogSettings'
+import AdminUser from '../changelog-platform/db/models/AdminUser'
 import type {
+  AdminUserRepository,
   AISettingsRepository,
   ChangelogRepository,
   SettingsRepository,
 } from '../core/ports'
 import type {
+  AdminUser as AdminUserType,
   ChangelogEntry,
   ChangelogSettingsInput,
   FeedResponse,
@@ -265,6 +268,44 @@ export function createMongooseAISettingsRepository(): AISettingsRepository {
       )
 
       return normalized
+    },
+  }
+}
+
+function toAdminUser(doc: any): AdminUserType {
+  return {
+    _id: String(doc._id),
+    email: String(doc.email),
+    passwordHash: String(doc.passwordHash),
+    displayName: String(doc.displayName),
+    createdAt: new Date(doc.createdAt),
+    updatedAt: new Date(doc.updatedAt),
+  }
+}
+
+export function createMongooseAdminUserRepository(): AdminUserRepository {
+  return {
+    async create(input) {
+      await connectDB()
+      const doc = await AdminUser.create({
+        email: input.email,
+        passwordHash: input.passwordHash,
+        displayName: input.displayName,
+      })
+      return toAdminUser(doc.toObject())
+    },
+
+    async findByEmail(email: string) {
+      await connectDB()
+      const doc = await AdminUser.findOne({ email: email.toLowerCase().trim() }).lean()
+      if (!doc) return null
+      return toAdminUser(doc)
+    },
+
+    async hasAnyUsers() {
+      await connectDB()
+      const count = await AdminUser.estimatedDocumentCount()
+      return count > 0
     },
   }
 }

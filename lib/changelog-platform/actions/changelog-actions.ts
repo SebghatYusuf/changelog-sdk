@@ -13,6 +13,8 @@ import {
   fetchLatestPublishedVersion as fetchLatestPublishedVersionAction,
   fetchPublishedChangelogs as fetchPublishedChangelogsAction,
   loginAdmin as loginAdminAction,
+  registerAdmin as registerAdminAction,
+  canRegisterAdmin as canRegisterAdminAction,
   logoutAdmin as logoutAdminAction,
   runAIEnhance as runAIEnhanceAction,
   updateAISettings as updateAISettingsAction,
@@ -52,8 +54,16 @@ export async function runAIEnhance(input: unknown) {
   return runAIEnhanceAction(input)
 }
 
-export async function loginAdmin(password: string) {
-  return loginAdminAction(password)
+export async function loginAdmin(input: { email: string; password: string }) {
+  return loginAdminAction(input)
+}
+
+export async function registerAdmin(input: { email: string; password: string; displayName?: string }) {
+  return registerAdminAction(input)
+}
+
+export async function canRegisterAdmin() {
+  return canRegisterAdminAction()
 }
 
 export async function logoutAdmin() {

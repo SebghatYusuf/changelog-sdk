@@ -264,7 +264,8 @@ app.listen(3000)`
 // ── Env Vars ─────────────────────────────────────────────────────────────────
 const ENV_VARS = [
   { key: 'CHANGELOG_MONGODB_URI',          req: 'Required',     desc: 'MongoDB connection string (Atlas or self-hosted)' },
-  { key: 'CHANGELOG_ADMIN_PASSWORD',        req: 'Required',     desc: 'Bcrypt-hashed admin password' },
+  { key: 'CHANGELOG_SESSION_SECRET',        req: 'Recommended',  desc: 'Session signing secret (min 32 characters)' },
+  { key: 'CHANGELOG_ALLOW_ADMIN_REGISTRATION', req: 'Optional',  desc: 'Set to true to keep admin registration available in the login UI' },
   { key: 'CHANGELOG_AI_PROVIDER',           req: 'Optional',     desc: 'AI provider: openai, gemini, or ollama' },
   { key: 'OPENAI_API_KEY',                  req: 'If OpenAI',    desc: 'API key for OpenAI provider' },
   { key: 'GOOGLE_GENERATIVE_AI_API_KEY',    req: 'If Gemini',    desc: 'API key for Google Gemini provider' },
@@ -400,9 +401,14 @@ bun add ai ollama-ai-provider-v2`}
               code={`# MongoDB
 CHANGELOG_MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/changelog
 
-# Admin password — bcrypt hash only, generate with:
-# bun -e "console.log(require('bcryptjs').hashSync('yourpassword', 10))"
-CHANGELOG_ADMIN_PASSWORD=$2a$10$...
+# Session signing secret (min 32 characters)
+CHANGELOG_SESSION_SECRET=your-random-secret-at-least-32-chars
+
+# Create the first admin account:
+# bun run create:admin your-admin@email.com your-password "Admin"
+
+# Optional: allow registration through UI
+# CHANGELOG_ALLOW_ADMIN_REGISTRATION=true
 
 # AI provider: openai | gemini | ollama
 CHANGELOG_AI_PROVIDER=openai
@@ -602,15 +608,21 @@ const result = await runAIEnhance({
                 <span className="api-fn-name">loginAdmin / logoutAdmin / checkAdminAuth</span>
               </div>
               <div className="api-card-body">
-                <p className="docs-p" style={{ marginBottom: '0.75rem' }}>Authentication helpers for the admin portal. Uses HTTP-only cookies and bcrypt verification.</p>
+                <p className="docs-p" style={{ marginBottom: '0.75rem' }}>Authentication helpers for the admin portal. Uses HTTP-only cookies and MongoDB-backed accounts.</p>
                 <CodeBlock code={`import {
   loginAdmin,
+  registerAdmin,
+  canRegisterAdmin,
   logoutAdmin,
   checkAdminAuth,
 } from 'changelog-sdk/next'
 
 const isAdmin = await checkAdminAuth()
-const result  = await loginAdmin('your-password')
+const canRegister = await canRegisterAdmin()
+if (canRegister.success && canRegister.data?.canRegister) {
+  await registerAdmin({ email: 'admin@example.com', password: 'strong-password', displayName: 'Admin' })
+}
+const result = await loginAdmin({ email: 'admin@example.com', password: 'strong-password' })
 await logoutAdmin()`} />
               </div>
             </div>

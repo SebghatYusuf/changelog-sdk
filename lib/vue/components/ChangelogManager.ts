@@ -44,7 +44,11 @@ export const ChangelogManager = defineComponent({
       }
 
       if (route === 'login') {
-        return h(AdminLogin, { baseUrl: props.baseUrl, apiBasePath: props.apiBasePath })
+        return h(AdminLogin, { mode: 'login', baseUrl: props.baseUrl, apiBasePath: props.apiBasePath })
+      }
+
+      if (route === 'register') {
+        return h(AdminLogin, { mode: 'register', baseUrl: props.baseUrl, apiBasePath: props.apiBasePath })
       }
 
       if (route) {

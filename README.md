@@ -95,7 +95,7 @@ Framework-agnostic changelog SDK with a headless core plus first-party adapters 
 - **Public changelog feed** at `/changelog` with search, filtering, and pagination
 - **Admin portal** at `/changelog/admin` for creating, editing, and publishing entries
 - **AI-powered writing assistance** — turn raw notes into polished release updates
-- **Secure auth flow** using bcrypt password verification and signed cookie sessions
+- **Secure auth flow** using MongoDB-backed admin users and signed cookie sessions
 - **Type-safe API surface** with TypeScript and Zod schemas
 - **Adapter architecture**: `core`, `next`, `mongoose`, `nuxt`, and `vue` package surfaces
 - **Semver enforcement** — prevents publishing changelogs with a lower or duplicate version
@@ -197,8 +197,11 @@ Create `.env.local` in your project root:
 # MongoDB connection string
 CHANGELOG_MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/changelog?retryWrites=true&w=majority
 
-# Bcrypt-hashed admin password (see "Admin Portal" section for generation command)
-CHANGELOG_ADMIN_PASSWORD=$2a$10$...
+# Create your first admin account with:
+# bun run create:admin your-admin@email.com your-password "Admin"
+
+# Optional: keep UI registration enabled
+CHANGELOG_ALLOW_ADMIN_REGISTRATION=true
 
 # Session signing secret — minimum 32 characters, required for secure sessions
 CHANGELOG_SESSION_SECRET=your-random-secret-at-least-32-chars
@@ -268,7 +271,6 @@ Create `.env` in your project root (same variables as the Next.js adapter):
 
 ```env
 CHANGELOG_MONGODB_URI=mongodb+srv://...
-CHANGELOG_ADMIN_PASSWORD=$2a$10$...
 CHANGELOG_SESSION_SECRET=your-random-secret-at-least-32-chars
 CHANGELOG_AI_PROVIDER=openai
 OPENAI_API_KEY=sk-...
@@ -347,7 +349,9 @@ All handlers return the same response shapes as the Next.js server actions.
 | `createEntry` | POST | Create a new entry |
 | `updateEntry` | PATCH | Update an existing entry (body includes `id`) |
 | `deleteEntry` | DELETE | Delete an entry (param: `id`) |
-| `login` | POST | Admin login (body: `{ password }`) |
+| `login` | POST | Admin login (body: `{ email, password }`) |
+| `register` | POST | Create first admin account (body: `{ email, password, displayName? }`) |
+| `canRegister` | GET | Returns whether initial admin registration is currently allowed |
 | `logout` | POST | Admin logout |
 | `enhance` | POST | AI enhancement (body: `{ rawNotes, currentVersion? }`) |
 | `getAISettings` | GET | Fetch AI provider settings |
@@ -461,8 +465,8 @@ Once configured, the following routes are available out of the box:
 | Variable | Required | Description |
 |---|---|---|
 | `CHANGELOG_MONGODB_URI` | Yes | MongoDB connection string |
-| `CHANGELOG_ADMIN_PASSWORD` | Yes | Bcrypt-hashed admin password |
 | `CHANGELOG_SESSION_SECRET` | Recommended | HMAC signing secret (min 32 chars). Falls back to `NEXTAUTH_SECRET` or `NUXT_SESSION_PASSWORD`. A missing or short secret degrades session security. |
+| `CHANGELOG_ALLOW_ADMIN_REGISTRATION` | No | Set to `true` to allow creating admin accounts from `/changelog/login` even after the first admin exists |
 | `CHANGELOG_AI_PROVIDER` | No | `openai`, `gemini`, or `ollama` |
 | `OPENAI_API_KEY` | If OpenAI | API key for OpenAI |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | If Gemini | API key for Google Gemini |
@@ -481,17 +485,18 @@ Once configured, the following routes are available out of the box:
 
 ### Admin Portal
 
-- Log in at `/changelog/login`
+- Create your first admin account at `/changelog/login` (only when no admin exists yet)
+- Log in at `/changelog/login` with email and password
 - Publish and manage entries at `/changelog/admin`
 - Configure AI settings at `/changelog/admin/ai`
 - Adjust feed defaults at `/changelog/admin/changelog-settings`
 
 ![Admin — New Entry Form](./site/images/admin-new-entry.png)
 
-Generate a bcrypt hash for `CHANGELOG_ADMIN_PASSWORD`:
+Create your first admin user in MongoDB:
 
 ```bash
-bun -e "console.log(require('bcryptjs').hashSync('your-admin-password', 10))"
+bun run create:admin your-admin@email.com your-password "Admin"
 ```
 
 ### AI Enhancement Workflow
@@ -567,10 +572,12 @@ const result = await runAIEnhance({
 ### Authentication
 
 ```ts
-import { loginAdmin, logoutAdmin, checkAdminAuth } from 'changelog-sdk/next'
+import { loginAdmin, registerAdmin, canRegisterAdmin, logoutAdmin, checkAdminAuth } from 'changelog-sdk/next'
 
 const isAdmin = await checkAdminAuth()      // boolean
-const result  = await loginAdmin('password') // { success, error? }
+const canRegister = await canRegisterAdmin() // { success, data: { canRegister } }
+await registerAdmin({ email: 'admin@example.com', password: 'strong-password', displayName: 'Admin' })
+const result = await loginAdmin({ email: 'admin@example.com', password: 'strong-password' }) // { success, error? }
 await logoutAdmin()
 ```
 
@@ -726,7 +733,7 @@ Avoid overriding `cl-` prefixed selectors globally in your host app.
 - Admin session tokens are HMAC-SHA-256 signed with an expiry and a random nonce — not forgeable without the secret
 - Session token signing uses the Web Crypto API (`crypto.subtle`) for compatibility across Edge, Node.js, and Nuxt runtimes
 - A 5-second clock-skew tolerance is applied during token verification for distributed environments
-- Bcrypt password verification (`bcryptjs`)
+- Bcrypt password hashing and verification (`bcryptjs`)
 - Configurable AI request rate limiting
 - Input sanitization and bounded pagination on all repository-touching service methods
 - MongoDB search inputs are regex-escaped and length-limited before use in `$regex` queries
@@ -750,10 +757,12 @@ Add `serverExternalPackages: ['mongodb', 'mongoose']` to `next.config.js` (see [
 
 ### Admin login fails
 
-1. Confirm `CHANGELOG_ADMIN_PASSWORD` is a valid bcrypt hash (not a plaintext password)
-2. Confirm `CHANGELOG_SESSION_SECRET` is set and at least 32 characters
-3. Verify cookies are enabled in your browser
-4. Clear existing cookies and retry
+1. Confirm at least one admin exists in the `admin_users` collection (`bun run create:admin ...`)
+2. Confirm the login email and password are correct
+3. Confirm `CHANGELOG_SESSION_SECRET` is set and at least 32 characters
+4. If registration button is missing, set `CHANGELOG_ALLOW_ADMIN_REGISTRATION=true` (or create first admin via script)
+5. Verify cookies are enabled in your browser
+6. Clear existing cookies and retry
 
 ### AI enhancement fails
 
@@ -792,6 +801,7 @@ bun run example:dev
 | `bun run example:dev` | Start the example app dev server |
 | `bun run example:build` | Build the example app |
 | `bun run check:mongo` | Verify MongoDB connectivity |
+| `bun run create:admin` | Create a MongoDB admin account |
 | `bun run hash:password` | Generate a bcrypt hash interactively |
 
 ## Landing Page (GitHub Pages)

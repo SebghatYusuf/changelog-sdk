@@ -1,4 +1,5 @@
 export type {
+  AdminUser,
   ChangelogEntry,
   ChangelogStatus,
   ChangelogTag,
@@ -8,6 +9,8 @@ export type {
   EnhanceChangelogOutput,
   FeedResponse,
   ApiError,
+  LoginInput,
+  RegisterAdminInput,
   AISettingsInput,
   AIModelOption,
   AIProviderKind,

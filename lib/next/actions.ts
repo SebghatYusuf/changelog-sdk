@@ -37,8 +37,16 @@ export async function runAIEnhance(input: unknown) {
   return actions.runAIEnhance(input)
 }
 
-export async function loginAdmin(password: string) {
-  return actions.loginAdmin(password)
+export async function loginAdmin(input: { email: string; password: string }) {
+  return actions.loginAdmin(input)
+}
+
+export async function registerAdmin(input: { email: string; password: string; displayName?: string }) {
+  return actions.registerAdmin(input)
+}
+
+export async function canRegisterAdmin() {
+  return actions.canRegisterAdmin()
 }
 
 export async function logoutAdmin() {

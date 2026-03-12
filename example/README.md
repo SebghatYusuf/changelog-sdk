@@ -22,10 +22,16 @@ bun run example:install
 2. Configure environment variables in `.env.local`:
 
 - `CHANGELOG_MONGODB_URI`
-- `CHANGELOG_ADMIN_PASSWORD` (bcrypt hash)
+- `CHANGELOG_SESSION_SECRET`
 - Optional AI vars: `CHANGELOG_AI_PROVIDER`, `OPENAI_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `OLLAMA_BASE_URL`
 
-3. Start the example app:
+3. Create your first admin account:
+
+```bash
+bun run create:admin your-admin@email.com your-password "Admin"
+```
+
+4. Start the example app:
 
 ```bash
 bun run example:dev

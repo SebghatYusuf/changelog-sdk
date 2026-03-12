@@ -62,6 +62,26 @@ export interface ApiError {
   statusCode: number
 }
 
+export interface AdminUser {
+  _id: string
+  email: string
+  passwordHash: string
+  displayName: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface LoginInput {
+  email: string
+  password: string
+}
+
+export interface RegisterAdminInput {
+  email: string
+  password: string
+  displayName?: string
+}
+
 export interface AISettingsInput {
   provider: AIProviderKind
   model: string
