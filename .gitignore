@@ -5,7 +5,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 bun.lockb
-
+.github/agents
 # Environment variables
 .env
 .env.local

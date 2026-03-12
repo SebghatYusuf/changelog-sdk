@@ -17,6 +17,15 @@ import type {
 } from '../core/types'
 import { DEFAULT_AI_MODELS } from '../core/constants'
 
+const MAX_REGEX_INPUT_LENGTH = 1024
+
+function escapeRegex(input: string): string {
+  if (input.length > MAX_REGEX_INPUT_LENGTH) {
+    throw new Error(`Input string too long for regex processing (max ${MAX_REGEX_INPUT_LENGTH} characters)`)
+  }
+  return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 function toChangelogEntry(doc: any): ChangelogEntry {
   return {
     _id: String(doc._id),
@@ -91,7 +100,8 @@ export function createMongooseChangelogRepository(): ChangelogRepository {
       }
 
       if (search) {
-        query.$or = [{ title: { $regex: search, $options: 'i' } }, { content: { $regex: search, $options: 'i' } }]
+        const safeSearch = escapeRegex(search)
+        query.$or = [{ title: { $regex: safeSearch, $options: 'i' } }, { content: { $regex: safeSearch, $options: 'i' } }]
       }
 
       const total = await Changelog.countDocuments(query)
