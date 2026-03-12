@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 export default function RegisterForm() {
   const router = useRouter()
   const [error, setError] = useState('')
-  const [canRegister, setCanRegister] = useState(false)
+  const [canRegister, setCanRegister] = useState<boolean | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -64,7 +64,7 @@ export default function RegisterForm() {
           </div>
         )}
 
-        {!canRegister && (
+        {canRegister === false && (
           <div className="cl-alert cl-alert-error">
             <div className="cl-alert-description">
               Registration is currently disabled. Ask the site owner to set CHANGELOG_ALLOW_ADMIN_REGISTRATION=true.
@@ -83,7 +83,7 @@ export default function RegisterForm() {
             placeholder="Enter admin email"
             className="cl-input"
             required
-            disabled={!canRegister}
+            disabled={canRegister !== true}
           />
         </div>
 
@@ -98,11 +98,11 @@ export default function RegisterForm() {
             placeholder="Enter account password"
             className="cl-input"
             required
-            disabled={!canRegister}
+            disabled={canRegister !== true}
           />
         </div>
 
-        <SubmitButton disabled={!canRegister} />
+        <SubmitButton disabled={canRegister !== true} />
         <a href="/changelog/login" className="cl-btn cl-btn-secondary cl-login-submit">
           Back to Login
         </a>
