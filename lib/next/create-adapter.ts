@@ -21,6 +21,7 @@ import {
 } from './ports.server'
 import { createDefaultRepoProviderPort } from '../adapters/repo-provider'
 import { parseEnvBoolean } from '../core/env'
+import { logEnvOnce } from '../core/log'
 
 export interface NextAdapterOptions {
   changelogRepository?: ChangelogRepository
@@ -34,13 +35,29 @@ export interface NextAdapterOptions {
 }
 
 function isRegistrationEnabledByEnv(): boolean {
-  const direct = parseEnvBoolean(process.env['CHANGELOG_ALLOW_ADMIN_REGISTRATION'])
-  if (direct !== undefined) return direct
-  const fallback = parseEnvBoolean(
-    process.env['NEXT_PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION'] ||
-      process.env['PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION']
+  const directRaw = process.env['CHANGELOG_ALLOW_ADMIN_REGISTRATION']
+  const nextPublicRaw = process.env['NEXT_PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION']
+  const publicRaw = process.env['PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION']
+
+  const direct = parseEnvBoolean(directRaw)
+  const fallback = parseEnvBoolean(nextPublicRaw || publicRaw)
+  const resolved = direct ?? fallback ?? false
+
+  logEnvOnce(
+    'next.allowAdminRegistration',
+    {
+      CHANGELOG_ALLOW_ADMIN_REGISTRATION: directRaw,
+      NEXT_PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION: nextPublicRaw,
+      PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION: publicRaw,
+    },
+    {
+      direct,
+      fallback,
+      resolved,
+    }
   )
-  return fallback ?? false
+
+  return resolved
 }
 
 export function createNextChangelogAdapter(options: NextAdapterOptions = {}) {
