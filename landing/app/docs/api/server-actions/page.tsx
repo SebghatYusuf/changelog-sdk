@@ -101,45 +101,22 @@ await api.getEntryBySlug('v1-2-0')
 await api.login({ email, password })
 await api.createEntry({ title, content, version, status, tags })`
 
-const EXPRESS_SERVICE = `import { createChangelogService } from 'changelog-sdk/core'
-import {
-  createMongooseChangelogRepository,
-  createMongooseSettingsRepository,
-  createMongooseAISettingsRepository,
-  createMongooseAdminUserRepository,
-  createMongooseRepoSettingsRepository,
-} from 'changelog-sdk/mongoose'
+const EXPRESS_SERVICE = `import express from 'express'
+import { createExpressChangelogRouter } from 'changelog-sdk/express'
 
-const session = {
-  async setAdminSession() {},
-  async clearAdminSession() {},
-  async hasAdminSession() {
-    return false
-  },
-}
+const app = express()
+app.use('/api/changelog', createExpressChangelogRouter())
+app.listen(3000)`
 
-const aiProvider = {
-  async enhance() {
-    return { title: '', content: '', tags: [], version: '' }
-  },
-  async listModels() {
-    return []
-  },
-}
+const EXPRESS_OVERRIDES = `import { createExpressChangelogRouter } from 'changelog-sdk/express'
+import { createMongooseChangelogRepository } from 'changelog-sdk/mongoose'
 
-const service = createChangelogService({
+app.use('/api/changelog', createExpressChangelogRouter({
+  allowAdminRegistration: false,
   changelogRepository: createMongooseChangelogRepository(),
-  settingsRepository: createMongooseSettingsRepository(),
-  aiSettingsRepository: createMongooseAISettingsRepository(),
-  adminUserRepository: createMongooseAdminUserRepository(),
-  repoSettingsRepository: createMongooseRepoSettingsRepository(),
-  session,
-  aiProvider,
-})
-
-await service.getPublishedFeed(1, 10)
-await service.createEntry(input)
-await service.loginAdmin({ email, password })`
+  // sessionPort: custom session adapter
+  // aiProvider: custom AI provider
+}))`
 
 export default function ServerActionsPage() {
   const activeSection = useActiveSection(SECTION_IDS)
@@ -304,16 +281,30 @@ const result = await generateChangelogFromCommits({
         <section id="express-core" className="docs-section">
           <h2 className="docs-h2">Express / Core Service</h2>
           <p className="docs-p">
-            Express apps should use the framework-agnostic core service. Provide repositories, session handling, and an AI provider.
+            Express apps can mount the full REST API with <code className="docs-code-inline">createExpressChangelogRouter</code>.
+          </p>
+          <p className="docs-p">
+            Override repositories, session handling, and AI providers via the options object. For custom sessions, pass <code className="docs-code-inline">sessionPort</code> or
+            <code className="docs-code-inline">createSessionPort</code>.
           </p>
 
           <div className="api-card">
             <div className="api-card-header">
               <span className="api-method">service</span>
-              <span className="api-fn-name">createChangelogService()</span>
+              <span className="api-fn-name">createExpressChangelogRouter()</span>
             </div>
             <div className="api-card-body">
               <CodeBlock code={EXPRESS_SERVICE} />
+            </div>
+          </div>
+
+          <div className="api-card">
+            <div className="api-card-header">
+              <span className="api-method">options</span>
+              <span className="api-fn-name">Express overrides</span>
+            </div>
+            <div className="api-card-body">
+              <CodeBlock code={EXPRESS_OVERRIDES} />
             </div>
           </div>
         </section>
