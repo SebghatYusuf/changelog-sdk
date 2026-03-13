@@ -1,4 +1,5 @@
 import mongoose, { Mongoose } from 'mongoose'
+import { logEnvOnce, sanitizeMongoUri } from '../../core/log'
 
 /**
  * Singleton MongoDB connection with Mongoose
@@ -24,7 +25,12 @@ if (!cached) {
 mongoose.set('bufferCommands', false)
 
 function getMongoUri(): string {
-  const uri = process.env.CHANGELOG_MONGODB_URI || process.env.MONGODB_URI
+  const raw = process.env.CHANGELOG_MONGODB_URI || process.env.MONGODB_URI
+  logEnvOnce('mongo.uri', {
+    CHANGELOG_MONGODB_URI: sanitizeMongoUri(process.env.CHANGELOG_MONGODB_URI),
+    MONGODB_URI: sanitizeMongoUri(process.env.MONGODB_URI),
+  })
+  const uri = raw
   if (!uri) {
     throw new Error('CHANGELOG_MONGODB_URI environment variable is not defined')
   }

@@ -1,8 +1,12 @@
 import crypto from 'node:crypto'
+import { logEnvOnce, summarizeSecret } from './log'
 
 const REQUIRED_KEY_BYTES = 32
 
 function getRawKey(): Buffer {
+  logEnvOnce('crypto.encryptionKey', {
+    CHANGELOG_ENCRYPTION_KEY: summarizeSecret(process.env.CHANGELOG_ENCRYPTION_KEY),
+  })
   const raw = process.env.CHANGELOG_ENCRYPTION_KEY
   if (!raw) {
     throw new Error('CHANGELOG_ENCRYPTION_KEY is not configured')

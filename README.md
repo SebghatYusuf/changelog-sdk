@@ -569,6 +569,7 @@ Once configured, the following routes are available out of the box:
 | `CHANGELOG_MONGODB_URI` | Yes | MongoDB connection string |
 | `CHANGELOG_SESSION_SECRET` | Recommended | HMAC signing secret (min 32 chars). Falls back to `NEXTAUTH_SECRET` or `NUXT_SESSION_PASSWORD`. A missing or short secret degrades session security. |
 | `CHANGELOG_ALLOW_ADMIN_REGISTRATION` | No | Set to `true` to allow creating admin accounts from `/changelog/login` even after the first admin exists. Fallback order: Next.js → `NEXT_PUBLIC_` then `PUBLIC_`; Nuxt → `NUXT_PUBLIC_` then `PUBLIC_`; Express → `PUBLIC_` only. |
+| `CHANGELOG_LOG_ENV` | No | Set to `true` to log environment-variable resolution once per server process (useful for debugging). |
 | `CHANGELOG_ENCRYPTION_KEY` | Required for repo tokens | 32-byte key used to encrypt repository access tokens (prefix with `base64:` or `hex:`) |
 | `CHANGELOG_AI_PROVIDER` | No | `openai`, `gemini`, or `ollama` |
 | `OPENAI_API_KEY` | If OpenAI | API key for OpenAI |

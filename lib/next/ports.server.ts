@@ -4,11 +4,16 @@ import type { AIProviderPort, AISettingsRepository, CacheInvalidationPort, Sessi
 import { DEFAULT_SESSION_COOKIE } from './constants'
 import { createDefaultAIProviderPort } from '../adapters/ai-provider'
 import { createSignedSessionToken, getValidSessionSecret, verifySignedSessionToken } from '../core/session-token'
+import { logEnvOnce, summarizeSecret } from '../core/log'
 
 const SESSION_TTL_SECONDS = 24 * 60 * 60
 const MIN_SESSION_SECRET_LENGTH = 32
 
 function getSessionSecret(): string | undefined {
+  logEnvOnce('next.sessionSecret', {
+    CHANGELOG_SESSION_SECRET: summarizeSecret(process.env.CHANGELOG_SESSION_SECRET),
+    NEXTAUTH_SECRET: summarizeSecret(process.env.NEXTAUTH_SECRET),
+  })
   return getValidSessionSecret(
     [
       process.env.CHANGELOG_SESSION_SECRET,
