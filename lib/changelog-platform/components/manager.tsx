@@ -1,5 +1,7 @@
-import { Suspense, type ReactNode } from 'react'
-import { checkAdminAuth } from '../actions/changelog-actions'
+'use client'
+
+import { type ReactNode, useEffect, useState } from 'react'
+import { useChangelogApi } from '../api/context'
 import ChangelogFeed from './feed/timeline'
 import ChangelogDetail from './feed/detail'
 import AdminPortal from './admin/portal'
@@ -75,9 +77,7 @@ function PublicFeedRoute({
 
   return (
     <main className="cl-root cl-section cl-feed-screen">
-      <Suspense fallback={<LoadingFallback />}>
-        <ChangelogFeed initialPage={page} initialTags={tags} initialSearch={search} basePath={basePath} />
-      </Suspense>
+      <ChangelogFeed initialPage={page} initialTags={tags} initialSearch={search} basePath={basePath} />
     </main>
   )
 }
@@ -88,9 +88,7 @@ function PublicFeedRoute({
 function LoginRoute({ basePath }: { basePath: string }) {
   return (
     <main className="cl-root cl-section cl-login-screen">
-      <Suspense fallback={<LoadingFallback />}>
-        <LoginForm basePath={basePath} />
-      </Suspense>
+      <LoginForm basePath={basePath} />
     </main>
   )
 }
@@ -98,9 +96,7 @@ function LoginRoute({ basePath }: { basePath: string }) {
 function RegisterRoute({ basePath }: { basePath: string }) {
   return (
     <main className="cl-root cl-section cl-login-screen">
-      <Suspense fallback={<LoadingFallback />}>
-        <RegisterForm basePath={basePath} />
-      </Suspense>
+      <RegisterForm basePath={basePath} />
     </main>
   )
 }
@@ -108,9 +104,7 @@ function RegisterRoute({ basePath }: { basePath: string }) {
 function DetailRoute({ slug, basePath }: { slug: string; basePath: string }) {
   return (
     <main className="cl-root cl-section cl-feed-screen">
-      <Suspense fallback={<LoadingFallback />}>
-        <ChangelogDetail slug={slug} basePath={basePath} />
-      </Suspense>
+      <ChangelogDetail slug={slug} basePath={basePath} />
     </main>
   )
 }
@@ -131,11 +125,9 @@ function AdminPortalRoute({
 }) {
   return (
     <main className="cl-root cl-section cl-admin-screen">
-      <Suspense fallback={<LoadingFallback />}>
-        <AdminAuthWrapper basePath={basePath}>
-          <AdminPortal section={section} editId={editId} preset={preset} basePath={basePath} />
-        </AdminAuthWrapper>
-      </Suspense>
+      <AdminAuthWrapper basePath={basePath}>
+        <AdminPortal section={section} editId={editId} preset={preset} basePath={basePath} />
+      </AdminAuthWrapper>
     </main>
   )
 }
@@ -143,8 +135,27 @@ function AdminPortalRoute({
 /**
  * Admin Auth Wrapper - checks if user is authenticated
  */
-async function AdminAuthWrapper({ children, basePath }: { children: ReactNode; basePath: string }) {
-  const isAdmin = await checkAdminAuth()
+function AdminAuthWrapper({ children, basePath }: { children: ReactNode; basePath: string }) {
+  const api = useChangelogApi()
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    api.checkAdminAuth()
+      .then((result) => {
+        if (mounted) setIsAdmin(Boolean(result))
+      })
+      .catch(() => {
+        if (mounted) setIsAdmin(false)
+      })
+    return () => {
+      mounted = false
+    }
+  }, [api])
+
+  if (isAdmin === null) {
+    return <LoadingFallback />
+  }
 
   if (!isAdmin) {
     return (

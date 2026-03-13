@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { fetchAIProviderModels, fetchAISettings, updateAISettings } from '../../actions/changelog-actions'
 import type { AIModelOption, AIProviderKind } from '../../types/changelog'
 import { DEFAULT_AI_MODELS } from '../../ai/constants'
+import { useChangelogApi } from '../../api/context'
 import { useToast } from '../toast/provider'
 
 interface SettingsState {
@@ -19,6 +19,7 @@ const INITIAL_STATE: SettingsState = {
 }
 
 export default function AISettingsPanel() {
+  const api = useChangelogApi()
   const { showToast } = useToast()
   const [state, setState] = useState<SettingsState>(INITIAL_STATE)
   const [models, setModels] = useState<AIModelOption[]>([])
@@ -52,7 +53,7 @@ export default function AISettingsPanel() {
     setLoadingModels(true)
     setError('')
 
-    const result = await fetchAIProviderModels({
+    const result = await api.listModels({
       provider: nextState.provider,
       ollamaBaseUrl: nextState.ollamaBaseUrl || undefined,
     })
@@ -84,7 +85,7 @@ export default function AISettingsPanel() {
     let isMounted = true
 
     ;(async () => {
-      const result = await fetchAISettings()
+      const result = await api.getAISettings()
       if (!isMounted) return
 
       if (!result.success || !result.data) {
@@ -107,7 +108,7 @@ export default function AISettingsPanel() {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [api])
 
   const onProviderChange = async (provider: AIProviderKind) => {
     userChangedProviderRef.current = true
@@ -125,7 +126,7 @@ export default function AISettingsPanel() {
     setSuccess('')
     setError('')
 
-    const result = await updateAISettings(stateRef.current)
+    const result = await api.updateAISettings(stateRef.current)
 
     if (!result.success) {
       setError(result.error || 'Failed to save settings')

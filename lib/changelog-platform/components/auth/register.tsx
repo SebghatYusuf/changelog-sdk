@@ -1,20 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useFormStatus } from 'react-dom'
-import { canRegisterAdmin, registerAdmin } from '../../actions/changelog-actions'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, type FormEvent } from 'react'
+import { useChangelogApi } from '../../api/context'
 import { buildChangelogPath } from '../paths'
 
 export default function RegisterForm({ basePath }: { basePath?: string }) {
-  const router = useRouter()
+  const api = useChangelogApi()
   const [error, setError] = useState('')
   const [canRegister, setCanRegister] = useState<boolean | null>(null)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     let mounted = true
 
-    canRegisterAdmin()
+    api.canRegister()
       .then((result) => {
         if (mounted && result.success && result.data) {
           setCanRegister(result.data.canRegister)
@@ -25,11 +26,11 @@ export default function RegisterForm({ basePath }: { basePath?: string }) {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [api])
 
-  async function handleRegister(formData: FormData) {
-    const email = formData.get('email') as string
-    const password = formData.get('password') as string
+  async function handleRegister(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError('')
 
     if (!email) {
       setError('Email is required')
@@ -41,18 +42,20 @@ export default function RegisterForm({ basePath }: { basePath?: string }) {
       return
     }
 
-    const result = await registerAdmin({ email, password })
+    setIsSubmitting(true)
+    const result = await api.register({ email, password })
+    setIsSubmitting(false)
 
     if (!result.success) {
       setError(result.error || 'Authentication failed')
       return
     }
 
-    router.push(buildChangelogPath(basePath, 'admin'))
+    window.location.href = buildChangelogPath(basePath, 'admin')
   }
 
   return (
-    <form action={handleRegister} className="cl-card cl-login-card">
+    <form onSubmit={handleRegister} className="cl-card cl-login-card">
       <div className="cl-card-header">
         <h1 className="cl-card-title">Create Admin Account</h1>
         <p className="cl-card-description">Register a new admin account</p>
@@ -85,6 +88,8 @@ export default function RegisterForm({ basePath }: { basePath?: string }) {
             className="cl-input"
             required
             disabled={canRegister !== true}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
@@ -100,10 +105,12 @@ export default function RegisterForm({ basePath }: { basePath?: string }) {
             className="cl-input"
             required
             disabled={canRegister !== true}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
 
-        <SubmitButton disabled={canRegister !== true} />
+        <SubmitButton disabled={canRegister !== true} isSubmitting={isSubmitting} />
         <a href={buildChangelogPath(basePath, 'login')} className="cl-btn cl-btn-secondary cl-login-submit">
           Back to Login
         </a>
@@ -112,12 +119,10 @@ export default function RegisterForm({ basePath }: { basePath?: string }) {
   )
 }
 
-function SubmitButton({ disabled }: { disabled: boolean }) {
-  const { pending } = useFormStatus()
-
+function SubmitButton({ disabled, isSubmitting }: { disabled: boolean; isSubmitting: boolean }) {
   return (
-    <button type="submit" disabled={pending || disabled} className="cl-btn cl-btn-primary cl-login-submit">
-      {pending ? (
+    <button type="submit" disabled={disabled || isSubmitting} className="cl-btn cl-btn-primary cl-login-submit">
+      {isSubmitting ? (
         <>
           <span className="cl-spinner cl-spinner-sm cl-spinner-inline" />
           Creating account...

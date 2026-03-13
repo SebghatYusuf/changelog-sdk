@@ -12,14 +12,20 @@ interface PaginationProps {
   hasMore: boolean
   total: number
   basePath?: string
+  onPageChange?: (page: number) => void
 }
 
-export default function Pagination({ currentPage, hasMore, total, basePath }: PaginationProps) {
+export default function Pagination({ currentPage, hasMore, total, basePath, onPageChange }: PaginationProps) {
   const pageSize = 10
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages)
 
   const navigateToPage = (nextPage: number) => {
+    if (onPageChange) {
+      onPageChange(nextPage)
+      return
+    }
+
     const params = new URLSearchParams(window.location.search)
     params.set('page', String(nextPage))
     window.location.href = `${buildChangelogPath(basePath)}?${params.toString()}`

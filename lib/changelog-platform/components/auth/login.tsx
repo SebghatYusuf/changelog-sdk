@@ -1,10 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useEffect } from 'react'
-import { useFormStatus } from 'react-dom'
-import { canRegisterAdmin, loginAdmin } from '../../actions/changelog-actions'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, type FormEvent } from 'react'
+import { useChangelogApi } from '../../api/context'
 import { buildChangelogPath } from '../paths'
 
 /**
@@ -12,14 +9,17 @@ import { buildChangelogPath } from '../paths'
  */
 
 export default function LoginForm({ basePath }: { basePath?: string }) {
-  const router = useRouter()
+  const api = useChangelogApi()
   const [error, setError] = useState<string>('')
   const [canRegister, setCanRegister] = useState<boolean | null>(null)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     let mounted = true
 
-    canRegisterAdmin()
+    api.canRegister()
       .then((result) => {
         if (mounted && result.success && result.data) {
           setCanRegister(result.data.canRegister)
@@ -30,11 +30,11 @@ export default function LoginForm({ basePath }: { basePath?: string }) {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [api])
 
-  async function handleLogin(formData: FormData) {
-    const email = formData.get('email') as string
-    const password = formData.get('password') as string
+  async function handleLogin(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError('')
 
     if (!email) {
       setError('Email is required')
@@ -46,7 +46,9 @@ export default function LoginForm({ basePath }: { basePath?: string }) {
       return
     }
 
-    const result = await loginAdmin({ email, password })
+    setIsSubmitting(true)
+    const result = await api.login({ email, password })
+    setIsSubmitting(false)
 
     if (!result.success) {
       setError(result.error || 'Authentication failed')
@@ -54,11 +56,11 @@ export default function LoginForm({ basePath }: { basePath?: string }) {
     }
 
     // Redirect to admin portal
-    router.push(buildChangelogPath(basePath, 'admin'))
+    window.location.href = buildChangelogPath(basePath, 'admin')
   }
 
   return (
-    <form action={handleLogin} className="cl-card cl-login-card">
+    <form onSubmit={handleLogin} className="cl-card cl-login-card">
       <div className="cl-card-header">
         <h1 className="cl-card-title">Admin Login</h1>
         <p className="cl-card-description">Sign in with your admin account</p>
@@ -83,6 +85,8 @@ export default function LoginForm({ basePath }: { basePath?: string }) {
             placeholder="Enter admin email"
             className="cl-input"
             required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
@@ -98,11 +102,13 @@ export default function LoginForm({ basePath }: { basePath?: string }) {
             placeholder="Enter account password"
             className="cl-input"
             required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
 
         {/* Submit Button */}
-        <SubmitButton />
+        <SubmitButton disabled={isSubmitting} />
         {canRegister === true && (
           <a href={buildChangelogPath(basePath, 'register')} className="cl-btn cl-btn-secondary cl-login-submit">
             Create Admin Account
@@ -113,16 +119,14 @@ export default function LoginForm({ basePath }: { basePath?: string }) {
   )
 }
 
-function SubmitButton() {
-  const { pending } = useFormStatus()
-
+function SubmitButton({ disabled }: { disabled: boolean }) {
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={disabled}
       className="cl-btn cl-btn-primary cl-login-submit"
     >
-      {pending ? (
+      {disabled ? (
         <>
           <span className="cl-spinner cl-spinner-sm cl-spinner-inline" />
           Authenticating...

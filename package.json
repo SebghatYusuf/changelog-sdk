@@ -32,6 +32,10 @@
       "types": "./dist/express/index.d.ts",
       "default": "./dist/express/index.js"
     },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "default": "./dist/react/index.js"
+    },
     "./vue": {
       "types": "./dist/vue/index.d.ts",
       "default": "./dist/vue/index.js"
@@ -43,6 +47,7 @@
   ],
   "files": [
     "dist",
+    "php",
     "README.md",
     "LICENSE"
   ],
@@ -124,7 +129,7 @@
     "@ai-sdk/google": "^3.0.43",
     "ollama-ai-provider-v2": "^3.3.1",
     "express": "^4.21.2",
-    "@types/express": "^5.0.3"
+    "@types/express": "^4.17.21"
   },
   "engines": {
     "node": ">=20.0.0"

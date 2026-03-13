@@ -3,7 +3,7 @@
 import { CodeBlock } from '../_components/CodeBlock'
 import { useActiveSection } from '../_components/useActiveSection'
 
-const SECTION_IDS = ['frameworks', 'nextjs', 'nuxt', 'vue', 'express'] as const
+const SECTION_IDS = ['frameworks', 'nextjs', 'react', 'nuxt', 'vue', 'express'] as const
 
 const NEXTJS_LAYOUT = `// app/changelog/layout.tsx
 import 'changelog-sdk/styles'
@@ -250,6 +250,35 @@ const VUE3_API_CONFIG = `<!-- pages/Changelog.vue -->
   baseUrl="https://api.yoursite.com"
 />`
 
+const REACT_SETUP = `// ChangelogRoute.tsx (React Router example)
+import { ChangelogManager } from 'changelog-sdk/react'
+import 'changelog-sdk/styles'
+import { useParams, useSearchParams } from 'react-router-dom'
+
+export default function ChangelogRoute() {
+  const params = useParams()
+  const [searchParams] = useSearchParams()
+
+  const routeParam = params['*'] || ''
+  const route = routeParam ? routeParam.split('/') : []
+
+  const search = Object.fromEntries(searchParams.entries()) as {
+    page?: string
+    tags?: string
+    search?: string
+    preset?: string
+  }
+
+  return (
+    <ChangelogManager
+      params={{ route }}
+      searchParams={search}
+      basePath="/changelog"
+      apiBasePath="/api/changelog"
+    />
+  )
+}`
+
 const EXPRESS_EXAMPLE = `// server.ts
 import express from 'express'
 import { createExpressChangelogRouter } from 'changelog-sdk/express'
@@ -306,6 +335,17 @@ export default function FrameworksPage() {
             </div>
             <div>That&apos;s it for the Next.js adapter. Configure your env vars and run <code className="docs-code-inline">bun run dev</code>.</div>
           </div>
+        </section>
+
+        <section id="react" className="docs-section">
+          <h2 className="docs-h2">React (Any Backend)</h2>
+          <p className="docs-p">
+            Use <code className="docs-code-inline">changelog-sdk/react</code> to render the same UI in any React app, backed by any REST API
+            (Next, Nuxt, Express, PHP, or custom).
+          </p>
+          <h3 className="docs-h3">1. Install and wire a route</h3>
+          <p className="docs-p">Pass <code className="docs-code-inline">params</code> and <code className="docs-code-inline">searchParams</code> from your router.</p>
+          <CodeBlock filename="ChangelogRoute.tsx" code={REACT_SETUP} />
         </section>
 
         <section id="nuxt" className="docs-section">
@@ -392,6 +432,7 @@ export default function FrameworksPage() {
         <div className="toc-label">On this page</div>
         <button className={`toc-link${activeSection === 'frameworks' ? ' active' : ''}`} onClick={() => scrollTo('frameworks')}>Overview</button>
         <button className={`toc-link${activeSection === 'nextjs' ? ' active' : ''}`} onClick={() => scrollTo('nextjs')}>Next.js</button>
+        <button className={`toc-link${activeSection === 'react' ? ' active' : ''}`} onClick={() => scrollTo('react')}>React</button>
         <button className={`toc-link${activeSection === 'nuxt' ? ' active' : ''}`} onClick={() => scrollTo('nuxt')}>Nuxt 3</button>
         <button className={`toc-link${activeSection === 'vue' ? ' active' : ''}`} onClick={() => scrollTo('vue')}>Vue 3</button>
         <button className={`toc-link${activeSection === 'express' ? ' active' : ''}`} onClick={() => scrollTo('express')}>Express</button>

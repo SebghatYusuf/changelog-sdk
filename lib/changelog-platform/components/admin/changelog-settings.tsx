@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { fetchChangelogSettings, updateChangelogSettings } from '../../actions/changelog-actions'
+import { useChangelogApi } from '../../api/context'
 import { useToast } from '../toast/provider'
 
 interface SettingsState {
@@ -15,6 +15,7 @@ const INITIAL_STATE: SettingsState = {
 }
 
 export default function ChangelogSettingsPanel() {
+  const api = useChangelogApi()
   const { showToast } = useToast()
   const [state, setState] = useState<SettingsState>(INITIAL_STATE)
   const [saving, setSaving] = useState(false)
@@ -27,7 +28,7 @@ export default function ChangelogSettingsPanel() {
     let isMounted = true
 
     ;(async () => {
-      const result = await fetchChangelogSettings()
+      const result = await api.getChangelogSettings()
       if (!isMounted) return
 
       if (!result.success || !result.data) {
@@ -46,7 +47,7 @@ export default function ChangelogSettingsPanel() {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [api])
 
   useEffect(() => {
     const message = error || success
@@ -65,7 +66,7 @@ export default function ChangelogSettingsPanel() {
     setError('')
     setSuccess('')
 
-    const result = await updateChangelogSettings(state)
+    const result = await api.updateChangelogSettings(state)
     if (!result.success || !result.data) {
       setSaving(false)
       setError(result.error || 'Failed to save settings')

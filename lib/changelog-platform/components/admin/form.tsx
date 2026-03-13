@@ -1,19 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { useActionState } from 'react'
-import { useFormStatus } from 'react-dom'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Sparkles } from 'lucide-react'
-import {
-  createChangelog,
-  fetchAISettings,
-  fetchLatestPublishedVersion,
-  fetchRepoSettings,
-  generateChangelogFromCommits,
-  runAIEnhance,
-  updateChangelog,
-} from '../../actions/changelog-actions'
 import { ChangelogEntry, ChangelogTag, RepoCommit, RepoSettingsView } from '../../types/changelog'
+import { useChangelogApi } from '../../api/context'
 import { useToast } from '../toast/provider'
 import Tooltip from '../tooltip/tooltip'
 import { buildChangelogPath } from '../paths'
@@ -98,40 +88,12 @@ function formatDateInput(date: Date): string {
 }
 
 export default function CreateForm({ initialEntry, preset, basePath }: CreateFormProps) {
+  const api = useChangelogApi()
   const isEditing = Boolean(initialEntry?._id)
   const successMessage = isEditing ? 'Changelog updated successfully!' : 'Changelog created successfully!'
   const { showToast } = useToast()
-
-  const [formState, formAction] = useActionState<CreateFormState, FormData>(
-    async (_state, formData) => {
-      const title = formData.get('title') as string
-      const content = formData.get('content') as string
-      const version = formData.get('version') as string
-      const status = formData.get('status') as 'draft' | 'published'
-      const tagsStr = formData.get('tags') as string
-      const tags = tagsStr.split(',').filter(Boolean) as ChangelogTag[]
-
-      const result = isEditing
-        ? await updateChangelog({
-            id: initialEntry!._id,
-            title,
-            content,
-            version,
-            status,
-            tags,
-          })
-        : await createChangelog({
-            title,
-            content,
-            version,
-            status,
-            tags,
-          })
-
-      return result
-    },
-    { success: false }
-  )
+  const [formState, setFormState] = useState<CreateFormState>({ success: false })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [selectedTags, setSelectedTags] = useState<ChangelogTag[]>(initialEntry?.tags || [])
   const [aiLoadingAction, setAiLoadingAction] = useState<AILoadingAction | null>(null)
@@ -204,11 +166,53 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
     contentValueRef.current = contentValue
   }, [contentValue])
 
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setFormState({ success: false, error: '' })
+
+    if (!titleValue.trim()) {
+      setFormState({ success: false, error: 'Title is required.' })
+      return
+    }
+
+    if (!contentValue.trim()) {
+      setFormState({ success: false, error: 'Content is required.' })
+      return
+    }
+
+    if (!versionValue.trim()) {
+      setFormState({ success: false, error: 'Version is required.' })
+      return
+    }
+
+    setIsSubmitting(true)
+
+    const payload = {
+      title: titleValue,
+      content: contentValue,
+      version: versionValue,
+      status: statusValue,
+      tags: selectedTags,
+    }
+
+    try {
+      const result = isEditing
+        ? await api.updateEntry(initialEntry!._id, payload)
+        : await api.createEntry(payload)
+
+      setFormState(result)
+    } catch {
+      setFormState({ success: false, error: 'Failed to save changelog entry.' })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   useEffect(() => {
     let isMounted = true
 
     ;(async () => {
-      const result = await fetchLatestPublishedVersion()
+      const result = await api.getLatestPublishedVersion()
       if (!isMounted) return
 
       if (!isEditing && result.success && result.data?.version) {
@@ -221,7 +225,7 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
     return () => {
       isMounted = false
     }
-  }, [isEditing])
+  }, [api, isEditing])
 
   useEffect(() => {
     if (isEditing) return
@@ -237,7 +241,7 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
     let isMounted = true
 
     ;(async () => {
-      const result = await fetchAISettings()
+      const result = await api.getAISettings()
       if (!isMounted) return
 
       if (!result.success || !result.data) {
@@ -252,13 +256,13 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [api])
 
   useEffect(() => {
     let isMounted = true
 
     ;(async () => {
-      const result = await fetchRepoSettings()
+      const result = await api.getRepoSettings()
       if (!isMounted) return
 
       if (result.success && result.data) {
@@ -271,7 +275,7 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [api])
 
   const handleToggleTag = (tag: ChangelogTag) => {
     setSelectedTags((prev) =>
@@ -306,7 +310,7 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
     setAiLoadingAction(loadingAction)
 
     try {
-      const result = await runAIEnhance({ rawNotes, currentVersion: version || undefined })
+      const result = await api.enhance({ rawNotes, currentVersion: version || undefined })
 
       if (requestId !== aiEnhanceRequestIdRef.current) {
         return
@@ -380,7 +384,7 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
       includeMerges,
     }
 
-    const result = await generateChangelogFromCommits(payload)
+    const result = await api.generateChangelogFromCommits(payload)
     if (!result.success || !result.data) {
       setCommitLoading(false)
       setCommitError(result.error || 'Failed to generate changelog from commits')
@@ -392,7 +396,7 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
     let tags = result.data.tags
 
     if (polishWithAI) {
-      const enhance = await runAIEnhance({ rawNotes: result.data.content, currentVersion: versionValue || undefined })
+      const enhance = await api.enhance({ rawNotes: result.data.content, currentVersion: versionValue || undefined })
       if (enhance.success && enhance.data) {
         title = enhance.data.title
         content = enhance.data.content
@@ -412,7 +416,7 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
   }
 
   return (
-    <form action={formAction} className="cl-card cl-admin-panel cl-admin-form">
+    <form onSubmit={handleSubmit} className="cl-card cl-admin-panel cl-admin-form">
       <div className="cl-card-header">
         <h3 className="cl-card-title">{isEditing ? 'Edit entry' : 'New entry'}</h3>
         <p className="cl-card-description">
@@ -611,7 +615,7 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
         </div>
 
         <div className="cl-form-actions">
-          <SubmitButton isEditing={isEditing} />
+          <SubmitButton isEditing={isEditing} isSubmitting={isSubmitting} />
           {isEditing ? (
             <a href={buildChangelogPath(basePath, 'admin')} className="cl-btn cl-btn-secondary cl-admin-cancel-edit">
               Cancel
@@ -802,16 +806,14 @@ function MagicEnhanceButton({ disabled, loading, onClick, label, tooltip }: Magi
   )
 }
 
-function SubmitButton({ isEditing }: { isEditing: boolean }) {
-  const { pending } = useFormStatus()
-
+function SubmitButton({ isEditing, isSubmitting }: { isEditing: boolean; isSubmitting: boolean }) {
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={isSubmitting}
       className="cl-btn cl-btn-primary cl-admin-submit"
     >
-      {pending ? (
+      {isSubmitting ? (
         <>
           <span className="cl-spinner cl-spinner-sm cl-spinner-inline" />
           Saving...
