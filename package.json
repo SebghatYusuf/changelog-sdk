@@ -28,6 +28,10 @@
       "types": "./dist/nuxt/index.d.ts",
       "default": "./dist/nuxt/index.js"
     },
+    "./express": {
+      "types": "./dist/express/index.d.ts",
+      "default": "./dist/express/index.js"
+    },
     "./vue": {
       "types": "./dist/vue/index.d.ts",
       "default": "./dist/vue/index.js"
@@ -69,7 +73,8 @@
     "@ai-sdk/openai": ">=3.0.0",
     "@ai-sdk/google": ">=3.0.0",
     "ollama-ai-provider-v2": ">=3.0.0",
-    "h3": ">=1.0.0"
+    "h3": ">=1.0.0",
+    "express": ">=4.18.0"
   },
   "peerDependenciesMeta": {
     "vue": {
@@ -88,6 +93,9 @@
       "optional": true
     },
     "h3": {
+      "optional": true
+    },
+    "express": {
       "optional": true
     }
   },
@@ -114,7 +122,9 @@
     "ai": "^6.0.116",
     "@ai-sdk/openai": "^3.0.41",
     "@ai-sdk/google": "^3.0.43",
-    "ollama-ai-provider-v2": "^3.3.1"
+    "ollama-ai-provider-v2": "^3.3.1",
+    "express": "^4.21.2",
+    "@types/express": "^5.0.3"
   },
   "engines": {
     "node": ">=20.0.0"

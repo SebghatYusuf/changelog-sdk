@@ -63,6 +63,7 @@ export default function DocsPage() {
             <li><code className="docs-code-inline">changelog-sdk/mongoose</code> — MongoDB Mongoose repository adapters</li>
             <li><code className="docs-code-inline">changelog-sdk/nuxt</code> — Nuxt/Nitro server handlers (headless API)</li>
             <li><code className="docs-code-inline">changelog-sdk/vue</code> — Vue 3 UI components (headless API client)</li>
+            <li><code className="docs-code-inline">changelog-sdk/express</code> — Express router + handlers for the REST API</li>
           </ul>
 
           <h2 className="docs-h2">Routes provided</h2>

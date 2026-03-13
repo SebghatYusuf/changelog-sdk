@@ -252,55 +252,24 @@ const VUE3_API_CONFIG = `<!-- pages/Changelog.vue -->
 
 const EXPRESS_EXAMPLE = `// server.ts
 import express from 'express'
-import { createChangelogService } from 'changelog-sdk/core'
-import {
-  createMongooseChangelogRepository,
-  createMongooseSettingsRepository,
-  createMongooseAISettingsRepository,
-  createMongooseAdminUserRepository,
-  createMongooseRepoSettingsRepository,
-} from 'changelog-sdk/mongoose'
+import { createExpressChangelogRouter } from 'changelog-sdk/express'
 
 const app = express()
-app.use(express.json())
 
-// Provide your own cookie/session adapter
-const session = {
-  async setAdminSession() {},
-  async clearAdminSession() {},
-  async hasAdminSession() {
-    return false
-  },
-}
-
-const aiProvider = {
-  async enhance() {
-    return { title: '', content: '', tags: [], version: '' }
-  },
-  async listModels() {
-    return []
-  },
-}
-
-const service = createChangelogService({
-  changelogRepository: createMongooseChangelogRepository(),
-  settingsRepository: createMongooseSettingsRepository(),
-  aiSettingsRepository: createMongooseAISettingsRepository(),
-  adminUserRepository: createMongooseAdminUserRepository(),
-  repoSettingsRepository: createMongooseRepoSettingsRepository(),
-  session,
-  aiProvider,
-})
-
-app.get('/api/changelog/feed', async (req, res) => {
-  const page = Number(req.query.page ?? 1)
-  const limit = Number(req.query.limit ?? 10)
-  const tags = typeof req.query.tags === 'string' ? req.query.tags.split(',') : undefined
-  const search = typeof req.query.search === 'string' ? req.query.search : undefined
-  res.json(await service.getPublishedFeed(page, limit, tags, search))
-})
+app.use('/api/changelog', createExpressChangelogRouter())
 
 app.listen(3000)`
+
+const EXPRESS_OPTIONS = `import { createExpressChangelogRouter } from 'changelog-sdk/express'
+import { createMongooseChangelogRepository } from 'changelog-sdk/mongoose'
+
+app.use('/api/changelog', createExpressChangelogRouter({
+  sessionCookieName: 'changelog_admin_session',
+  allowAdminRegistration: false,
+  changelogRepository: createMongooseChangelogRepository(),
+  // sessionPort: custom session implementation
+  // aiProvider: custom AI provider
+}))`
 
 export default function FrameworksPage() {
   const activeSection = useActiveSection(SECTION_IDS)
@@ -397,12 +366,16 @@ export default function FrameworksPage() {
         <section id="express" className="docs-section">
           <h2 className="docs-h2">Express</h2>
           <p className="docs-p">
-            Use the core service and Mongoose adapters directly to build a custom Express API. Pair it with the Vue 3 UI component, or build your own frontend.
+            Use the Express adapter from <code className="docs-code-inline">changelog-sdk/express</code> to expose the same REST API used by the Vue UI.
           </p>
           <p className="docs-p">
-            The Express setup is intentionally low-level — you&apos;ll supply a <code className="docs-code-inline">SessionPort</code> and an AI provider. The snippet below uses placeholders you should replace with real implementations.
+            The Express adapter uses the same session cookie signing secret as Next/Nuxt. Make sure <code className="docs-code-inline">CHANGELOG_SESSION_SECRET</code> is set in your environment.
+          </p>
+          <p className="docs-p">
+            Use the Express adapter to mount the full REST API at <code className="docs-code-inline">/api/changelog</code>.
           </p>
           <CodeBlock filename="server.ts" code={EXPRESS_EXAMPLE} />
+          <CodeBlock filename="server.ts" code={EXPRESS_OPTIONS} />
 
           <div className="docs-callout">
             <div className="docs-callout-icon">
