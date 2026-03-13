@@ -1,6 +1,7 @@
 export { default as ChangelogManager } from './manager'
 export { default as ChangelogFeed } from './feed'
 export { default as AdminPortal } from './admin-portal'
+export { createNextChangelogApi } from '../changelog-platform/api/next'
 
 export {
   createChangelog,

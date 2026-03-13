@@ -1,3 +1,5 @@
+import { isLogEnabled, logApiRequest, sanitizePayload } from '../../core/log'
+
 export interface HttpOptions {
   baseUrl?: string
   apiBasePath?: string
@@ -65,7 +67,27 @@ export function createHttpClient(options: HttpOptions = {}) {
       }
     }
 
-    const response = await fetcher(buildUrl(path), {
+    const url = buildUrl(path)
+    if (isLogEnabled()) {
+      let body: unknown = init?.body
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body)
+        } catch {
+          const raw = body as string
+          body = { raw: `(string:${raw.length})` }
+        }
+      }
+      const sanitized = sanitizePayload(body)
+      logApiRequest('rest.request', {
+        url,
+        method: (method || 'GET').toUpperCase(),
+        hasBody: Boolean(init?.body),
+        body: sanitized,
+      })
+    }
+
+    const response = await fetcher(url, {
       credentials: 'include',
       headers,
       ...init,

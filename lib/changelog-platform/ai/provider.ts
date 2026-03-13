@@ -1,5 +1,6 @@
 import type { LanguageModel } from 'ai'
 import { AIProvider, DEFAULT_AI_MODELS } from './constants'
+import { logEnvOnce, summarizeSecret } from '../../core/log'
 
 /**
  * AI Provider Factory
@@ -29,6 +30,12 @@ export class AIProviderFactory {
 
   static async getProvider(config?: AIProviderConfig): Promise<LanguageModel> {
     const provider = config?.provider || (process.env.CHANGELOG_AI_PROVIDER as AIProvider) || 'openai'
+    logEnvOnce('ai.provider', {
+      CHANGELOG_AI_PROVIDER: process.env.CHANGELOG_AI_PROVIDER,
+      OPENAI_API_KEY: summarizeSecret(process.env.OPENAI_API_KEY),
+      GOOGLE_GENERATIVE_AI_API_KEY: summarizeSecret(process.env.GOOGLE_GENERATIVE_AI_API_KEY),
+      OLLAMA_BASE_URL: process.env.OLLAMA_BASE_URL,
+    })
 
     switch (provider) {
       case 'openai':
