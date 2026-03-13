@@ -4,10 +4,10 @@ import { useState } from 'react'
 
 const PM_TABS = ['bun', 'npm', 'yarn', 'pnpm'] as const
 const PM_CMDS: Record<typeof PM_TABS[number], string> = {
-  bun: 'bun add github:SebghatYusuf/changelog-sdk#master',
-  npm: 'npm install github:SebghatYusuf/changelog-sdk#master',
-  yarn: 'yarn add github:SebghatYusuf/changelog-sdk#master',
-  pnpm: 'pnpm add github:SebghatYusuf/changelog-sdk#master',
+  bun: 'bun add changelog-sdk',
+  npm: 'npm install changelog-sdk',
+  yarn: 'yarn add changelog-sdk',
+  pnpm: 'pnpm add changelog-sdk',
 }
 
 export function InstallBlock() {

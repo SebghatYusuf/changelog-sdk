@@ -34,10 +34,10 @@ const LogoIcon = () => (
 
 const INSTALL_TABS = ['bun', 'npm', 'yarn', 'pnpm'] as const
 const INSTALL_CMDS: Record<typeof INSTALL_TABS[number], string> = {
-  bun:  'bun add github:SebghatYusuf/changelog-sdk#master',
-  npm:  'npm install github:SebghatYusuf/changelog-sdk#master',
-  yarn: 'yarn add github:SebghatYusuf/changelog-sdk#master',
-  pnpm: 'pnpm add github:SebghatYusuf/changelog-sdk#master',
+  bun:  'bun add changelog-sdk',
+  npm:  'npm install changelog-sdk',
+  yarn: 'yarn add changelog-sdk',
+  pnpm: 'pnpm add changelog-sdk',
 }
 
 const FEATURES = [
@@ -105,7 +105,7 @@ const FEATURES = [
 const STEPS = [
   {
     title: 'Install the package',
-    desc: 'Install via bun, npm, yarn, or pnpm directly from GitHub.',
+    desc: 'Install via bun, npm, yarn, or pnpm from the npm registry.',
   },
   {
     title: 'Add the changelog layout',
@@ -299,7 +299,7 @@ export default function Home() {
             <div className="section-label">Installation</div>
             <h2 className="section-title">Install the SDK</h2>
             <p className="section-desc">
-              Install directly from GitHub with your package manager of choice. No npm registry required.
+              Install from npm with your package manager of choice.
             </p>
 
             <div className="code-window install-window">

@@ -78,7 +78,7 @@ export default function DocsPage() {
 
         <section id="installation" className="docs-section">
           <h2 className="docs-h2">Installation</h2>
-          <p className="docs-p">Install directly from GitHub with your package manager of choice:</p>
+          <p className="docs-p">Install from npm with your package manager of choice:</p>
           <InstallBlock />
 
           <h3 className="docs-h3">Optional: AI Enhancement providers</h3>
