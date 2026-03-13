@@ -83,7 +83,7 @@ export default function DocsShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="sidebar-group">
             <div className="sidebar-group-title">API Reference</div>
-            <Link className={`sidebar-link${isActive(DOCS_API_ACTIONS) ? ' active' : ''}`} href={DOCS_API_ACTIONS}>Server Actions</Link>
+            <Link className={`sidebar-link${isActive(DOCS_API_ACTIONS) ? ' active' : ''}`} href={DOCS_API_ACTIONS}>Framework APIs</Link>
             <Link className={`sidebar-link${isActive(DOCS_API_TYPES) ? ' active' : ''}`} href={DOCS_API_TYPES}>TypeScript Types</Link>
           </div>
           <div className="sidebar-group">
