@@ -295,6 +295,10 @@ import { createMongooseChangelogRepository } from 'changelog-sdk/mongoose'
 app.use('/api/changelog', createExpressChangelogRouter({
   sessionCookieName: 'changelog_admin_session',
   allowAdminRegistration: false,
+  bodyLimit: '1mb',
+  csrf: { cookieName: 'changelog-csrf', headerName: 'x-csrf-token' },
+  rateLimit: { windowMs: 60_000, max: 10 },
+  securityHeaders: { enabled: true },
   changelogRepository: createMongooseChangelogRepository(),
   // sessionPort: custom session implementation
   // aiProvider: custom AI provider
@@ -423,6 +427,15 @@ export default function FrameworksPage() {
             </div>
             <div>
               The Express integration is headless — there are no pre-built UI components. Use <code className="docs-code-inline">changelog-sdk/vue</code> for the frontend or build your own UI using the API endpoints.
+            </div>
+          </div>
+
+          <div className="docs-callout">
+            <div className="docs-callout-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            </div>
+            <div>
+              CSRF protection is enabled by default. SDK clients automatically send <code className="docs-code-inline">x-csrf-token</code>. If you roll a custom client, read the <code className="docs-code-inline">changelog-csrf</code> cookie and send it in that header for state-changing requests.
             </div>
           </div>
         </section>

@@ -129,6 +129,10 @@ import { createMongooseChangelogRepository } from 'changelog-sdk/mongoose'
 
 app.use('/api/changelog', createExpressChangelogRouter({
   allowAdminRegistration: false,
+  bodyLimit: '1mb',
+  csrf: { cookieName: 'changelog-csrf', headerName: 'x-csrf-token' },
+  rateLimit: { windowMs: 60_000, max: 10 },
+  securityHeaders: { enabled: true },
   changelogRepository: createMongooseChangelogRepository(),
   // sessionPort: custom session adapter
   // aiProvider: custom AI provider
