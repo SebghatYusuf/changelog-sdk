@@ -1,7 +1,7 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { handleLogoutAction } from '../../actions/logout-actions'
+import { type FormEvent } from 'react'
+import { useChangelogApi } from '../../api/context'
 import { buildChangelogPath } from '../paths'
 
 /**
@@ -10,16 +10,15 @@ import { buildChangelogPath } from '../paths'
  */
 
 export default function LogoutButton({ basePath }: { basePath?: string }) {
-  const router = useRouter()
-
-  async function handleLogout(_formData: FormData) {
-    await handleLogoutAction()
-    router.refresh()
-    router.push(buildChangelogPath(basePath, 'login'))
+  const api = useChangelogApi()
+  const handleLogout = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    await api.logout()
+    window.location.href = buildChangelogPath(basePath, 'login')
   }
 
   return (
-    <form action={handleLogout}>
+    <form onSubmit={handleLogout}>
       <button type="submit" className="cl-btn cl-btn-secondary cl-btn-compact">
         Logout
       </button>

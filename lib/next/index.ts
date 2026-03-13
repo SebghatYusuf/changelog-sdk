@@ -1,6 +1,6 @@
-export { default as ChangelogManager } from '../changelog-platform/components/manager'
-export { default as ChangelogFeed } from '../changelog-platform/components/feed/timeline'
-export { default as AdminPortal } from '../changelog-platform/components/admin/portal'
+export { default as ChangelogManager } from './manager'
+export { default as ChangelogFeed } from './feed'
+export { default as AdminPortal } from './admin-portal'
 
 export {
   createChangelog,

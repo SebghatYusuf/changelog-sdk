@@ -77,6 +77,7 @@ export default function DocsShell({ children }: { children: React.ReactNode }) {
             <div className="sidebar-group-title">Framework Setup</div>
             <Link className={`sidebar-link${isFrameworks ? ' active' : ''}`} href={DOCS_FRAMEWORKS}>Framework Overview</Link>
             <a className={`sidebar-link${isFrameworks && activeHash === '#nextjs' ? ' active' : ''}`} href={`${DOCS_FRAMEWORKS}#nextjs`}>Next.js</a>
+            <a className={`sidebar-link${isFrameworks && activeHash === '#react' ? ' active' : ''}`} href={`${DOCS_FRAMEWORKS}#react`}>React</a>
             <a className={`sidebar-link${isFrameworks && activeHash === '#nuxt' ? ' active' : ''}`} href={`${DOCS_FRAMEWORKS}#nuxt`}>Nuxt 3</a>
             <a className={`sidebar-link${isFrameworks && activeHash === '#vue' ? ' active' : ''}`} href={`${DOCS_FRAMEWORKS}#vue`}>Vue 3</a>
             <a className={`sidebar-link${isFrameworks && activeHash === '#express' ? ' active' : ''}`} href={`${DOCS_FRAMEWORKS}#express`}>Express</a>

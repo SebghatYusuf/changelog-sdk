@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { deleteChangelog } from '../../actions/changelog-actions'
+import { useChangelogApi } from '../../api/context'
 
 /**
  * Delete Button Component
@@ -12,6 +12,7 @@ interface DeleteButtonProps {
 }
 
 export default function DeleteButton({ id }: DeleteButtonProps) {
+  const api = useChangelogApi()
   const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
@@ -20,13 +21,15 @@ export default function DeleteButton({ id }: DeleteButtonProps) {
     }
 
     setLoading(true)
-    const result = await deleteChangelog(id)
+    const result = await api.deleteEntry(id)
 
     if (!result.success) {
       alert(`Error: ${result.error}`)
+      setLoading(false)
+      return
     }
 
-    setLoading(false)
+    window.dispatchEvent(new Event('changelog:refresh'))
   }
 
   return (

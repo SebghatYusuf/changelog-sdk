@@ -1,6 +1,9 @@
-import { fetchAdminChangelogs } from '../../actions/changelog-actions'
+'use client'
+
+import { useCallback, useEffect, useState } from 'react'
 import { ClipboardList } from 'lucide-react'
 import { ChangelogEntry } from '../../types/changelog'
+import { useChangelogApi } from '../../api/context'
 import DeleteButton from './delete-button'
 import PublishButton from './publish-button'
 import { buildChangelogPath } from '../paths'
@@ -9,23 +12,70 @@ import { buildChangelogPath } from '../paths'
  * Admin Changelog List Component
  */
 
-export default async function AdminList({ basePath }: { basePath?: string }) {
-  const result = await fetchAdminChangelogs(1, 30)
+export default function AdminList({ basePath }: { basePath?: string }) {
+  const api = useChangelogApi()
+  const [entries, setEntries] = useState<ChangelogEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  if (!result.success) {
+  const loadEntries = useCallback(() => {
+    let mounted = true
+    setLoading(true)
+    setError('')
+
+    api.getAdminFeed({ page: 1, limit: 30 })
+      .then((result) => {
+        if (!mounted) return
+        if (!result.success || !result.data) {
+          setError(result.error || 'Failed to load entries')
+          return
+        }
+        setEntries(result.data.entries)
+      })
+      .catch(() => {
+        if (mounted) setError('Failed to load entries')
+      })
+      .finally(() => {
+        if (mounted) setLoading(false)
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [api])
+
+  useEffect(() => {
+    const cleanup = loadEntries()
+    const handler = () => loadEntries()
+    window.addEventListener('changelog:refresh', handler)
+    return () => {
+      cleanup?.()
+      window.removeEventListener('changelog:refresh', handler)
+    }
+  }, [loadEntries])
+
+  if (loading) {
+    return (
+      <div className="cl-card cl-admin-panel cl-admin-error-panel">
+        <div className="cl-card-header">
+          <h3 className="cl-card-title">Loading entries...</h3>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
     return (
       <div className="cl-card cl-admin-panel cl-admin-error-panel">
         <div className="cl-card-header">
           <h3 className="cl-card-title">Error loading entries</h3>
         </div>
         <div className="cl-card-content">
-          <p className="cl-p cl-admin-error-text">{result.error}</p>
+          <p className="cl-p cl-admin-error-text">{error}</p>
         </div>
       </div>
     )
   }
-
-  const { entries } = result.data!
 
   return (
     <div className="cl-card cl-admin-panel cl-admin-list-panel">

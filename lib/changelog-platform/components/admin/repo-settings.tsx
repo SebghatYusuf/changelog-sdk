@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { fetchRepoSettings, updateRepoSettings } from '../../actions/changelog-actions'
 import type { RepoProviderKind, RepoSettingsView } from '../../types/changelog'
+import { useChangelogApi } from '../../api/context'
 import { useToast } from '../toast/provider'
 
 interface RepoSettingsState {
@@ -44,6 +44,7 @@ function toState(data: RepoSettingsView): RepoSettingsState {
 }
 
 export default function RepoSettingsPanel() {
+  const api = useChangelogApi()
   const { showToast } = useToast()
   const [state, setState] = useState<RepoSettingsState>(INITIAL_STATE)
   const [loading, setLoading] = useState(true)
@@ -56,7 +57,7 @@ export default function RepoSettingsPanel() {
     let mounted = true
 
     ;(async () => {
-      const result = await fetchRepoSettings()
+      const result = await api.getRepoSettings()
       if (!mounted) return
 
       if (!result.success || !result.data) {
@@ -72,7 +73,7 @@ export default function RepoSettingsPanel() {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [api])
 
   useEffect(() => {
     const message = error || success
@@ -112,7 +113,7 @@ export default function RepoSettingsPanel() {
       payload.clearToken = true
     }
 
-    const result = await updateRepoSettings(payload)
+    const result = await api.updateRepoSettings(payload)
     if (!result.success || !result.data) {
       setSaving(false)
       setError(result.error || 'Failed to save repository settings')

@@ -1,6 +1,10 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Markdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
-import { fetchChangelogBySlug } from '../../actions/changelog-actions'
+import { useChangelogApi } from '../../api/context'
+import type { ChangelogEntry } from '../../types/changelog'
 import { buildChangelogPath } from '../paths'
 
 interface ChangelogDetailProps {
@@ -8,10 +12,51 @@ interface ChangelogDetailProps {
   basePath?: string
 }
 
-export default async function ChangelogDetail({ slug, basePath }: ChangelogDetailProps) {
-  const result = await fetchChangelogBySlug(slug)
+export default function ChangelogDetail({ slug, basePath }: ChangelogDetailProps) {
+  const api = useChangelogApi()
+  const [entry, setEntry] = useState<ChangelogEntry | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  if (result.error || !result.data || result.data.status !== 'published') {
+  useEffect(() => {
+    let mounted = true
+    setLoading(true)
+    setError('')
+
+    api.getEntryBySlug(slug)
+      .then((result) => {
+        if (!mounted) return
+        if (result.error || !result.data || result.data.status !== 'published') {
+          setError('Entry not found')
+          return
+        }
+        setEntry(result.data)
+      })
+      .catch(() => {
+        if (mounted) setError('Entry not found')
+      })
+      .finally(() => {
+        if (mounted) setLoading(false)
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [api, slug])
+
+  if (loading) {
+    return (
+      <section className="cl-detail-wrap">
+        <div className="cl-card cl-detail-card cl-detail-not-found">
+          <div className="cl-card-header">
+            <h1 className="cl-card-title">Loading entry...</h1>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (!entry || error) {
     return (
       <section className="cl-detail-wrap">
         <div className="cl-card cl-detail-card cl-detail-not-found">
@@ -29,7 +74,6 @@ export default async function ChangelogDetail({ slug, basePath }: ChangelogDetai
     )
   }
 
-  const entry = result.data
   const entryDate = new Date(entry.date)
   const dateFormatter = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',

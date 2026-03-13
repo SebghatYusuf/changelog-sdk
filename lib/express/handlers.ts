@@ -22,6 +22,9 @@ import { createDefaultAIProviderPort } from '../adapters/ai-provider'
 import { createDefaultRepoProviderPort } from '../adapters/repo-provider'
 import { createExpressSessionPort } from './session'
 import { DEFAULT_SESSION_COOKIE } from './constants'
+import { csrfProtection, type CsrfOptions } from './csrf'
+import { createRateLimiter, type RateLimitOptions } from './rate-limit'
+import { securityHeaders, type SecurityHeadersOptions } from './security'
 
 export interface ExpressAdapterOptions {
   changelogRepository?: ChangelogRepository
@@ -36,6 +39,10 @@ export interface ExpressAdapterOptions {
   aiProvider?: AIProviderPort
   repoProvider?: RepoProviderPort
   cacheInvalidation?: CacheInvalidationPort
+  csrf?: CsrfOptions
+  rateLimit?: RateLimitOptions
+  bodyLimit?: string | number
+  securityHeaders?: SecurityHeadersOptions
 }
 
 export interface ExpressHandlers {
@@ -286,7 +293,18 @@ export function createExpressChangelogHandlers(options: ExpressAdapterOptions = 
 
 export function createExpressChangelogRouter(options: ExpressAdapterOptions = {}): Router {
   const router = express.Router()
-  router.use(express.json())
+  const bodyLimit = options.bodyLimit ?? '1mb'
+  router.use(securityHeaders(options.securityHeaders))
+  router.use(express.json({ limit: bodyLimit }))
+  router.use(express.urlencoded({ limit: bodyLimit, extended: false }))
+  router.use(csrfProtection(options.csrf))
+
+  const loginLimiter = createRateLimiter({
+    windowMs: 60_000,
+    max: 10,
+    keyPrefix: 'changelog:login',
+    ...(options.rateLimit || {}),
+  })
 
   const handlers = createExpressChangelogHandlers(options)
 
@@ -299,8 +317,8 @@ export function createExpressChangelogRouter(options: ExpressAdapterOptions = {}
   router.patch('/admin/entries/:id', handlers.updateEntry)
   router.delete('/admin/entries/:id', handlers.deleteEntry)
 
-  router.post('/admin/login', handlers.login)
-  router.post('/admin/register', handlers.register)
+  router.post('/admin/login', loginLimiter, handlers.login)
+  router.post('/admin/register', loginLimiter, handlers.register)
   router.get('/admin/can-register', handlers.canRegister)
   router.post('/admin/logout', handlers.logout)
 

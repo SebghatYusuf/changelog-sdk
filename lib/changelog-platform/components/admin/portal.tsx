@@ -1,4 +1,6 @@
-import { Suspense } from 'react'
+'use client'
+
+import { useEffect, useState } from 'react'
 import { ArrowLeft, FileText, LayoutGrid, Settings, Zap, GitBranch, type LucideIcon } from 'lucide-react'
 import AdminList from './list'
 import CreateForm from './form'
@@ -6,8 +8,8 @@ import LogoutButton from './logout-button'
 import AISettingsPanel from './ai-settings'
 import ChangelogSettingsPanel from './changelog-settings'
 import RepoSettingsPanel from './repo-settings'
-import { fetchAdminChangelogById } from '../../actions/changelog-actions'
 import { ChangelogEntry } from '../../types/changelog'
+import { useChangelogApi } from '../../api/context'
 import { buildChangelogPath } from '../paths'
 
 /**
@@ -109,13 +111,28 @@ export default function AdminPortal({ section, editId, preset, basePath }: Admin
 /**
  * Dedicated full-page edit view — no list, full-width form with back link
  */
-async function EditEntryView({ editId, basePath }: { editId: string; basePath?: string }) {
-  let initialEntry: ChangelogEntry | undefined
+function EditEntryView({ editId, basePath }: { editId: string; basePath?: string }) {
+  const api = useChangelogApi()
+  const [initialEntry, setInitialEntry] = useState<ChangelogEntry | undefined>()
+  const [loading, setLoading] = useState(true)
 
-  const result = await fetchAdminChangelogById(editId)
-  if (result.success && result.data) {
-    initialEntry = result.data
-  }
+  useEffect(() => {
+    let mounted = true
+    setLoading(true)
+    api.getAdminEntryById(editId)
+      .then((result) => {
+        if (!mounted) return
+        if (result.success && result.data) {
+          setInitialEntry(result.data)
+        }
+      })
+      .finally(() => {
+        if (mounted) setLoading(false)
+      })
+    return () => {
+      mounted = false
+    }
+  }, [api, editId])
 
   return (
     <div className="cl-admin-shell">
@@ -138,9 +155,7 @@ async function EditEntryView({ editId, basePath }: { editId: string; basePath?: 
       </header>
 
       <div className="cl-admin-edit-wrap">
-        <Suspense fallback={<FormSkeleton />}>
-          <CreateForm initialEntry={initialEntry} />
-        </Suspense>
+        {loading ? <FormSkeleton /> : <CreateForm initialEntry={initialEntry} />}
       </div>
     </div>
   )
@@ -153,14 +168,10 @@ function PublishSection({ preset, basePath }: { preset?: string; basePath?: stri
   return (
     <div className="cl-publish-grid">
       <div className="cl-publish-col-form">
-        <Suspense fallback={<FormSkeleton />}>
-          <CreateForm preset={preset} basePath={basePath} />
-        </Suspense>
+        <CreateForm preset={preset} basePath={basePath} />
       </div>
       <div className="cl-publish-col-list">
-        <Suspense fallback={<ListSkeleton />}>
-          <AdminList basePath={basePath} />
-        </Suspense>
+        <AdminList basePath={basePath} />
       </div>
     </div>
   )
@@ -169,9 +180,7 @@ function PublishSection({ preset, basePath }: { preset?: string; basePath?: stri
 function AISection() {
   return (
     <div className="cl-single-col">
-      <Suspense fallback={<FormSkeleton />}>
-        <AISettingsPanel />
-      </Suspense>
+      <AISettingsPanel />
     </div>
   )
 }
@@ -179,9 +188,7 @@ function AISection() {
 function ChangelogSettingsSection() {
   return (
     <div className="cl-single-col">
-      <Suspense fallback={<FormSkeleton />}>
-        <ChangelogSettingsPanel />
-      </Suspense>
+      <ChangelogSettingsPanel />
     </div>
   )
 }
@@ -189,9 +196,7 @@ function ChangelogSettingsSection() {
 function RepoSettingsSection() {
   return (
     <div className="cl-single-col">
-      <Suspense fallback={<FormSkeleton />}>
-        <RepoSettingsPanel />
-      </Suspense>
+      <RepoSettingsPanel />
     </div>
   )
 }
@@ -232,21 +237,6 @@ function FormSkeleton() {
       <div className="cl-card-content cl-admin-skeleton-body">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="cl-admin-skeleton-line" />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function ListSkeleton() {
-  return (
-    <div className="cl-card cl-admin-panel cl-admin-skeleton">
-      <div className="cl-card-header">
-        <div className="cl-admin-skeleton-line cl-admin-skeleton-line-md" />
-      </div>
-      <div className="cl-card-content cl-admin-skeleton-body">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="cl-admin-skeleton-block" />
         ))}
       </div>
     </div>

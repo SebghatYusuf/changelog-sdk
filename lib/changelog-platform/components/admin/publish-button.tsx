@@ -1,24 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { updateChangelog } from '../../actions/changelog-actions'
+import { useChangelogApi } from '../../api/context'
 
 interface PublishButtonProps {
   id: string
 }
 
 export default function PublishButton({ id }: PublishButtonProps) {
+  const api = useChangelogApi()
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
 
   const handlePublish = async () => {
     setLoading(true)
 
-    const result = await updateChangelog({
-      id,
-      status: 'published',
-    })
+    const result = await api.updateEntry(id, { status: 'published' })
 
     if (!result.success) {
       alert(`Error: ${result.error}`)
@@ -26,7 +22,7 @@ export default function PublishButton({ id }: PublishButtonProps) {
       return
     }
 
-    router.refresh()
+    window.dispatchEvent(new Event('changelog:refresh'))
     setLoading(false)
   }
 

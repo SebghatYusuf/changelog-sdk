@@ -4,9 +4,9 @@
  */
 
 // ===== COMPONENTS (Client-Safe) =====
-export { default as ChangelogManager } from './components/manager'
-export { default as ChangelogFeed } from './components/feed/timeline'
-export { default as AdminPortal } from './components/admin/portal'
+export { default as ChangelogManager } from '../next/manager'
+export { default as ChangelogFeed } from '../next/feed'
+export { default as AdminPortal } from '../next/admin-portal'
 
 // ===== TYPES (Zero-runtime) =====
 export type {
