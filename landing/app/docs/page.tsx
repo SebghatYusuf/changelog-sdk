@@ -16,7 +16,7 @@ const FRAMEWORKS_HREF = toSitePath('docs/frameworks/')
 const ENV_VARS = [
   { key: 'CHANGELOG_MONGODB_URI',          req: 'Required',     desc: 'MongoDB connection string (Atlas or self-hosted)' },
   { key: 'CHANGELOG_SESSION_SECRET',        req: 'Recommended',  desc: 'Session signing secret (min 32 characters)' },
-  { key: 'CHANGELOG_ALLOW_ADMIN_REGISTRATION', req: 'Optional',  desc: 'Set to true to keep admin registration available in the login UI' },
+  { key: 'CHANGELOG_ALLOW_ADMIN_REGISTRATION', req: 'Optional',  desc: 'Set to true to keep admin registration available in the login UI. Fallback: Next.js → NEXT_PUBLIC_ then PUBLIC_; Nuxt → NUXT_PUBLIC_ then PUBLIC_; Express → PUBLIC_ only.' },
   { key: 'CHANGELOG_ENCRYPTION_KEY',        req: 'Required (repo tokens)',  desc: '32-byte key used to encrypt repository access tokens' },
   { key: 'CHANGELOG_AI_PROVIDER',           req: 'Optional',     desc: 'AI provider: openai, gemini, or ollama' },
   { key: 'OPENAI_API_KEY',                  req: 'If OpenAI',    desc: 'API key for OpenAI provider' },
@@ -114,6 +114,9 @@ CHANGELOG_ENCRYPTION_KEY=base64:your-32-byte-key
 
 # Optional: allow registration through UI
 # CHANGELOG_ALLOW_ADMIN_REGISTRATION=true
+# Next.js fallback (optional): NEXT_PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION=true
+# Nuxt fallback (optional): NUXT_PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION=true
+# Generic fallback (optional): PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION=true
 
 # AI provider: openai | gemini | ollama
 CHANGELOG_AI_PROVIDER=openai

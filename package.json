@@ -1,6 +1,6 @@
 {
   "name": "changelog-sdk",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "private": false,
   "type": "module",
   "description": "Framework-agnostic changelog core with Next.js, React, Vue, Express adapter and MongoDB adapter",

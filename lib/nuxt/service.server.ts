@@ -18,6 +18,7 @@ import { createNuxtSessionPort } from './session.server'
 import { DEFAULT_SESSION_COOKIE } from './constants'
 import { createDefaultAIProviderPort } from '../adapters/ai-provider'
 import { createDefaultRepoProviderPort } from '../adapters/repo-provider'
+import { parseEnvBoolean } from '../core/env'
 
 export interface NuxtAdapterOptions {
   changelogRepository?: ChangelogRepository
@@ -30,9 +31,13 @@ export interface NuxtAdapterOptions {
 }
 
 function isRegistrationEnabledByEnv(): boolean {
-  const value = process.env.CHANGELOG_ALLOW_ADMIN_REGISTRATION
-  if (!value) return false
-  return value.trim().toLowerCase() === 'true'
+  const direct = parseEnvBoolean(process.env['CHANGELOG_ALLOW_ADMIN_REGISTRATION'])
+  if (direct !== undefined) return direct
+  const fallback = parseEnvBoolean(
+    process.env['NUXT_PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION'] ||
+      process.env['PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION']
+  )
+  return fallback ?? false
 }
 
 export function createNuxtChangelogService(event: H3Event, options: NuxtAdapterOptions = {}) {

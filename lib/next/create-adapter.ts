@@ -20,6 +20,7 @@ import {
   createNextSessionPort,
 } from './ports.server'
 import { createDefaultRepoProviderPort } from '../adapters/repo-provider'
+import { parseEnvBoolean } from '../core/env'
 
 export interface NextAdapterOptions {
   changelogRepository?: ChangelogRepository
@@ -33,9 +34,13 @@ export interface NextAdapterOptions {
 }
 
 function isRegistrationEnabledByEnv(): boolean {
-  const value = process.env.CHANGELOG_ALLOW_ADMIN_REGISTRATION
-  if (!value) return false
-  return value.trim().toLowerCase() === 'true'
+  const direct = parseEnvBoolean(process.env['CHANGELOG_ALLOW_ADMIN_REGISTRATION'])
+  if (direct !== undefined) return direct
+  const fallback = parseEnvBoolean(
+    process.env['NEXT_PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION'] ||
+      process.env['PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION']
+  )
+  return fallback ?? false
 }
 
 export function createNextChangelogAdapter(options: NextAdapterOptions = {}) {

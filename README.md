@@ -220,6 +220,9 @@ CHANGELOG_MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/changelog?
 
 # Optional: keep UI registration enabled
 CHANGELOG_ALLOW_ADMIN_REGISTRATION=true
+# Next.js fallback (optional): NEXT_PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION=true
+# Nuxt fallback (optional): NUXT_PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION=true
+# Generic fallback (optional): PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION=true
 
 # Session signing secret — minimum 32 characters, required for secure sessions
 CHANGELOG_SESSION_SECRET=your-random-secret-at-least-32-chars
@@ -565,7 +568,7 @@ Once configured, the following routes are available out of the box:
 |---|---|---|
 | `CHANGELOG_MONGODB_URI` | Yes | MongoDB connection string |
 | `CHANGELOG_SESSION_SECRET` | Recommended | HMAC signing secret (min 32 chars). Falls back to `NEXTAUTH_SECRET` or `NUXT_SESSION_PASSWORD`. A missing or short secret degrades session security. |
-| `CHANGELOG_ALLOW_ADMIN_REGISTRATION` | No | Set to `true` to allow creating admin accounts from `/changelog/login` even after the first admin exists |
+| `CHANGELOG_ALLOW_ADMIN_REGISTRATION` | No | Set to `true` to allow creating admin accounts from `/changelog/login` even after the first admin exists. Fallback order: Next.js → `NEXT_PUBLIC_` then `PUBLIC_`; Nuxt → `NUXT_PUBLIC_` then `PUBLIC_`; Express → `PUBLIC_` only. |
 | `CHANGELOG_ENCRYPTION_KEY` | Required for repo tokens | 32-byte key used to encrypt repository access tokens (prefix with `base64:` or `hex:`) |
 | `CHANGELOG_AI_PROVIDER` | No | `openai`, `gemini`, or `ollama` |
 | `OPENAI_API_KEY` | If OpenAI | API key for OpenAI |
@@ -903,7 +906,7 @@ Add `serverExternalPackages: ['mongodb', 'mongoose']` to `next.config.js` (see [
 1. Confirm at least one admin exists in the `admin_users` collection (`bun run create:admin ...`)
 2. Confirm the login email and password are correct
 3. Confirm `CHANGELOG_SESSION_SECRET` is set and at least 32 characters
-4. If registration button is missing, set `CHANGELOG_ALLOW_ADMIN_REGISTRATION=true` (or create first admin via script)
+4. If registration button is missing, set `CHANGELOG_ALLOW_ADMIN_REGISTRATION=true` (or create first admin via script). If you rely on a public-prefixed env var, note the adapter fallback order: Next.js → `NEXT_PUBLIC_` then `PUBLIC_`; Nuxt → `NUXT_PUBLIC_` then `PUBLIC_`; Express → `PUBLIC_` only.
 5. Verify cookies are enabled in your browser
 6. Clear existing cookies and retry
 

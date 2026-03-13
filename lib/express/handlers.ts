@@ -25,6 +25,7 @@ import { DEFAULT_SESSION_COOKIE } from './constants'
 import { csrfProtection, type CsrfOptions } from './csrf'
 import { createRateLimiter, type RateLimitOptions } from './rate-limit'
 import { securityHeaders, type SecurityHeadersOptions } from './security'
+import { parseEnvBoolean } from '../core/env'
 
 export interface ExpressAdapterOptions {
   changelogRepository?: ChangelogRepository
@@ -86,9 +87,12 @@ interface ExpressAdapterResolvedDeps {
 }
 
 function isRegistrationEnabledByEnv(): boolean {
-  const value = process.env.CHANGELOG_ALLOW_ADMIN_REGISTRATION
-  if (!value) return false
-  return value.trim().toLowerCase() === 'true'
+  const direct = parseEnvBoolean(process.env['CHANGELOG_ALLOW_ADMIN_REGISTRATION'])
+  if (direct !== undefined) return direct
+  const fallback = parseEnvBoolean(
+    process.env['PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION']
+  )
+  return fallback ?? false
 }
 
 function resolveDeps(options: ExpressAdapterOptions): ExpressAdapterResolvedDeps {
