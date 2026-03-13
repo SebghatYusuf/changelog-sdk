@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./images/changelog-sdk-icon.svg" alt="Changelog SDK Logo" width="128" height="128" />
+  <img src="https://raw.githubusercontent.com/SebghatYusuf/changelog-sdk/master/images/changelog-sdk-icon.svg" alt="Changelog SDK Logo" width="128" height="128" />
   <h1>Changelog SDK</h1>
   <p><strong>AI-Powered Changelog Management</strong></p>
 
@@ -11,12 +11,12 @@
 
 <br />
 
-Framework-agnostic changelog SDK with a headless core plus first-party adapters for Next.js, Nuxt, and Vue 3.
+Framework-agnostic changelog SDK with a headless core plus first-party adapters for Next.js, Nuxt, Vue 3, Express, and React.
 
 `changelog-sdk` is designed for teams that want to ship updates faster while keeping changelog UX clean, searchable, and isolated from host app styles.
 
 <div align="center">
-  <img src="./site/images/changelog.png" alt="Public Changelog Feed" width="800" style="border-radius: 8px; border: 1px solid #e5e7eb;" />
+  <img src="https://raw.githubusercontent.com/SebghatYusuf/changelog-sdk/master/site/images/changelog.png" alt="Public Changelog Feed" width="800" style="border-radius: 8px; border: 1px solid #e5e7eb;" />
 </div>
 
 ## Table of Contents
@@ -39,8 +39,15 @@ Framework-agnostic changelog SDK with a headless core plus first-party adapters 
   - [2) Configure environment variables](#2-configure-environment-variables)
   - [3) Define server routes](#3-define-server-routes)
   - [4) Use the Vue UI](#4-use-the-vue-ui)
-- [Vue 3 Quick Start](#vue-3-quick-start)
+- [React Quick Start (Any Backend)](#react-quick-start-any-backend)
   - [1) Install the package](#1-install-the-package-1)
+  - [2) Render the React UI](#2-render-the-react-ui)
+- [Express Quick Start](#express-quick-start)
+  - [1) Install the package](#1-install-the-package-2)
+  - [2) Mount the router](#2-mount-the-router)
+  - [3) CSRF header (custom clients)](#3-csrf-header-custom-clients)
+- [Vue 3 Quick Start](#vue-3-quick-start)
+  - [1) Install the package](#1-install-the-package-3)
   - [2) Import styles and components](#2-import-styles-and-components)
   - [3) Mount with route params](#3-mount-with-route-params)
   - [4) Configure the API base path](#4-configure-the-api-base-path)
@@ -86,7 +93,9 @@ Framework-agnostic changelog SDK with a headless core plus first-party adapters 
 - Core business logic is framework-agnostic and adapter-driven
 - First-party Next.js app-router adapter with React Server Component UI
 - First-party Nuxt/Nitro adapter (headless API handlers)
+- React adapter for any backend (Next, Nuxt, Express, or custom REST)
 - Vue 3 UI component library that pairs with the Nuxt adapter
+- Express router adapter for the REST API
 - Admin authentication with HTTP-only, HMAC-signed cookie sessions
 - AI enhancement via OpenAI, Gemini, and Ollama
 - Isolated `cl-` prefixed UI styles — no Tailwind required in host app
@@ -100,14 +109,14 @@ Framework-agnostic changelog SDK with a headless core plus first-party adapters 
 - **Repository-to-changelog automation** — generate drafts from GitHub or Bitbucket commits
 - **Secure auth flow** using MongoDB-backed admin users and signed cookie sessions
 - **Type-safe API surface** with TypeScript and Zod schemas
-- **Adapter architecture**: `core`, `next`, `mongoose`, `nuxt`, and `vue` package surfaces
+- **Adapter architecture**: `core`, `next`, `mongoose`, `nuxt`, `react`, `vue`, and `express` package surfaces
 - **Semver enforcement** — prevents publishing changelogs with a lower or duplicate version
 
 ## Requirements
 
 - Node.js `>= 20`
 - Next.js `>= 16` (for the Next.js adapter)
-- React `>= 18`
+- React `>= 18` (for the React/Next adapters)
 - MongoDB database
 
 ## Quick Start (Next.js)
@@ -115,9 +124,9 @@ Framework-agnostic changelog SDK with a headless core plus first-party adapters 
 ### 1) Install the package
 
 ```bash
-bun add github:SebghatYusuf/changelog-sdk#master
+bun add changelog-sdk
 # or
-npm install github:SebghatYusuf/changelog-sdk#master
+npm install changelog-sdk
 ```
 
 **Optional: AI Enhancement**
@@ -266,7 +275,9 @@ npm run dev
 | `changelog-sdk/next` | Next.js server actions, middleware, and React UI components |
 | `changelog-sdk/mongoose` | MongoDB repository implementations |
 | `changelog-sdk/nuxt` | Nuxt/Nitro H3 event handlers (headless API) |
+| `changelog-sdk/react` | React UI components + REST client for any backend |
 | `changelog-sdk/vue` | Vue 3 UI components and headless API client |
+| `changelog-sdk/express` | Express router + handlers for the REST API |
 | `changelog-sdk/styles` | Isolated `cl-` prefixed CSS stylesheet |
 
 ## Nuxt Quick Start
@@ -274,7 +285,9 @@ npm run dev
 ### 1) Install the package and peer dependencies
 
 ```bash
-bun add github:SebghatYusuf/changelog-sdk#master h3 vue
+bun add changelog-sdk h3 vue
+# or
+npm install changelog-sdk h3 vue
 ```
 
 ### 2) Configure environment variables
@@ -398,12 +411,84 @@ const searchParams = route.query as { page?: string; tags?: string; search?: str
 </template>
 ```
 
+## React Quick Start (Any Backend)
+
+### 1) Install the package
+
+```bash
+bun add changelog-sdk
+# or
+npm install changelog-sdk
+```
+
+### 2) Render the React UI
+
+```tsx
+// ChangelogRoute.tsx (React Router example)
+import { ChangelogManager } from 'changelog-sdk/react'
+import 'changelog-sdk/styles'
+import { useParams, useSearchParams } from 'react-router-dom'
+
+export default function ChangelogRoute() {
+  const params = useParams()
+  const [searchParams] = useSearchParams()
+
+  const routeParam = params['*'] || ''
+  const route = routeParam ? routeParam.split('/') : []
+
+  const search = Object.fromEntries(searchParams.entries()) as {
+    page?: string
+    tags?: string
+    search?: string
+    preset?: string
+  }
+
+  return (
+    <ChangelogManager
+      params={{ route }}
+      searchParams={search}
+      basePath="/changelog"
+      apiBasePath="/api/changelog"
+    />
+  )
+}
+```
+
+If your API lives on another domain, pass `baseUrl`.
+
+## Express Quick Start
+
+### 1) Install the package
+
+```bash
+bun add changelog-sdk express
+# or
+npm install changelog-sdk express
+```
+
+### 2) Mount the router
+
+```ts
+import express from 'express'
+import { createExpressChangelogRouter } from 'changelog-sdk/express'
+
+const app = express()
+app.use('/api/changelog', createExpressChangelogRouter())
+app.listen(3000)
+```
+
+### 3) CSRF header (custom clients)
+
+The Express adapter enables CSRF protection by default. SDK clients send the header automatically. If you build your own client, read the `changelog-csrf` cookie and send it as `x-csrf-token` on `POST`, `PATCH`, `PUT`, and `DELETE` requests.
+
 ## Vue 3 Quick Start
 
 ### 1) Install the package
 
 ```bash
-bun add github:SebghatYusuf/changelog-sdk#master
+bun add changelog-sdk
+# or
+npm install changelog-sdk
 ```
 
 ### 2) Import styles and components
@@ -496,7 +581,7 @@ Once configured, the following routes are available out of the box:
 - Search by title or content
 - Filter by tags: `Features`, `Fixes`, `Improvements`, `Breaking`, `Security`, `Performance`, `Docs`
 
-![Public Changelog Feed](./site/images/changelog.png)
+![Public Changelog Feed](https://raw.githubusercontent.com/SebghatYusuf/changelog-sdk/master/site/images/changelog.png)
 
 ### Admin Portal
 
@@ -507,7 +592,7 @@ Once configured, the following routes are available out of the box:
 - Adjust feed defaults at `/changelog/admin/changelog-settings`
 - Connect repositories at `/changelog/admin/repo` to generate drafts from commits
 
-![Admin — New Entry Form](./site/images/admin-new-entry.png)
+![Admin — New Entry Form](https://raw.githubusercontent.com/SebghatYusuf/changelog-sdk/master/site/images/admin-new-entry.png)
 
 Create your first admin user in MongoDB:
 
@@ -522,7 +607,7 @@ bun run create:admin your-admin@email.com your-password "Admin"
 3. Review the generated title, markdown body, and suggested tags
 4. Edit as needed and publish
 
-![AI Provider Settings](./site/images/ai-settings.png)
+![AI Provider Settings](https://raw.githubusercontent.com/SebghatYusuf/changelog-sdk/master/site/images/ai-settings.png)
 
 ### Repository to Changelog
 

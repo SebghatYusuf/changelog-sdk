@@ -196,8 +196,16 @@ const searchParams = route.query as {
   <ChangelogManager :params="params" :searchParams="searchParams" />
 </template>`
 
+const NUXT_INSTALL = `# Nuxt 3
+bun add changelog-sdk h3 vue
+# or
+npm install changelog-sdk h3 vue
+`
+
 const VUE3_INSTALL = `# Vue 3 app
 bun add changelog-sdk vue-router
+# or
+npm install changelog-sdk vue-router
 `
 
 const VUE3_SETUP = `// main.ts or in your component
@@ -356,7 +364,7 @@ export default function FrameworksPage() {
           <h2 className="docs-h2">Nuxt 3</h2>
           <h3 className="docs-h3">1. Install peer dependencies</h3>
           <p className="docs-p">The Nuxt adapter requires <code className="docs-code-inline">h3</code> and <code className="docs-code-inline">vue</code>:</p>
-          <CodeBlock code="bun add h3 vue" />
+          <CodeBlock code={NUXT_INSTALL} />
 
           <h3 className="docs-h3">2. Define server API routes</h3>
           <p className="docs-p">
@@ -426,7 +434,7 @@ export default function FrameworksPage() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
             </div>
             <div>
-              The Express integration is headless — there are no pre-built UI components. Use <code className="docs-code-inline">changelog-sdk/vue</code> for the frontend or build your own UI using the API endpoints.
+              The Express integration is headless — there are no pre-built UI components. Use <code className="docs-code-inline">changelog-sdk/react</code> or <code className="docs-code-inline">changelog-sdk/vue</code> for the frontend, or build your own UI using the API endpoints.
             </div>
           </div>
 
