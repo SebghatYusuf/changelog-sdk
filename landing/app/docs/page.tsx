@@ -65,7 +65,6 @@ export default function DocsPage() {
             <li><code className="docs-code-inline">changelog-sdk/vue</code> — Vue 3 UI components (headless API client)</li>
             <li><code className="docs-code-inline">changelog-sdk/express</code> — Express router + handlers for the REST API</li>
             <li><code className="docs-code-inline">changelog-sdk/react</code> — React UI components that talk to any REST backend</li>
-            <li><code className="docs-code-inline">php/ChangelogApi.php</code> — PHP REST client helper (shipped in the npm package)</li>
           </ul>
 
           <h2 className="docs-h2">Routes provided</h2>

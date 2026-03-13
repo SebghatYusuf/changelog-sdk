@@ -12,7 +12,6 @@ const SECTION_IDS = [
   'nuxt-handlers',
   'vue-client',
   'react-client',
-  'php-client',
   'express-core',
 ] as const
 
@@ -117,13 +116,6 @@ const REACT_API_EXAMPLE = `import { createChangelogApi } from 'changelog-sdk/rea
 const api = createChangelogApi({ baseUrl: '', apiBasePath: '/api/changelog' })
 await api.getFeed({ page: 1 })`
 
-const PHP_API_EXAMPLE = `<?php
-require_once __DIR__ . '/php/ChangelogApi.php';
-
-$api = new ChangelogApi('https://your-app.com', '/api/changelog', __DIR__ . '/changelog.cookies');
-$feed = $api->getFeed(['page' => 1, 'limit' => 10]);
-$login = $api->login(['email' => 'admin@example.com', 'password' => 'secret']);
-?>`
 
 const EXPRESS_SERVICE = `import express from 'express'
 import { createExpressChangelogRouter } from 'changelog-sdk/express'
@@ -329,22 +321,6 @@ const result = await generateChangelogFromCommits({
           </div>
         </section>
 
-        <section id="php-client" className="docs-section">
-          <h2 className="docs-h2">PHP Adapter</h2>
-          <p className="docs-p">
-            The PHP helper mirrors the REST API and supports session cookies via a cookie jar file.
-          </p>
-
-          <div className="api-card">
-            <div className="api-card-header">
-              <span className="api-method">php</span>
-              <span className="api-fn-name">ChangelogApi.php</span>
-            </div>
-            <div className="api-card-body">
-              <CodeBlock code={PHP_API_EXAMPLE} />
-            </div>
-          </div>
-        </section>
 
         <section id="express-core" className="docs-section">
           <h2 className="docs-h2">Express / Core Service</h2>
@@ -388,7 +364,6 @@ const result = await generateChangelogFromCommits({
         <button className={`toc-link${activeSection === 'nuxt-handlers' ? ' active' : ''}`} onClick={() => scrollTo('nuxt-handlers')}>Nuxt Handlers</button>
         <button className={`toc-link${activeSection === 'vue-client' ? ' active' : ''}`} onClick={() => scrollTo('vue-client')}>Vue Client API</button>
         <button className={`toc-link${activeSection === 'react-client' ? ' active' : ''}`} onClick={() => scrollTo('react-client')}>React Client API</button>
-        <button className={`toc-link${activeSection === 'php-client' ? ' active' : ''}`} onClick={() => scrollTo('php-client')}>PHP Adapter</button>
         <button className={`toc-link${activeSection === 'express-core' ? ' active' : ''}`} onClick={() => scrollTo('express-core')}>Express Core</button>
       </nav>
     </>

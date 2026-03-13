@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ClipboardList } from 'lucide-react'
 import { ChangelogEntry } from '../../types/changelog'
 import { useChangelogApi } from '../../api/context'
@@ -18,7 +18,7 @@ export default function AdminList({ basePath }: { basePath?: string }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
+  const loadEntries = useCallback(() => {
     let mounted = true
     setLoading(true)
     setError('')
@@ -43,6 +43,16 @@ export default function AdminList({ basePath }: { basePath?: string }) {
       mounted = false
     }
   }, [api])
+
+  useEffect(() => {
+    const cleanup = loadEntries()
+    const handler = () => loadEntries()
+    window.addEventListener('changelog:refresh', handler)
+    return () => {
+      cleanup?.()
+      window.removeEventListener('changelog:refresh', handler)
+    }
+  }, [loadEntries])
 
   if (loading) {
     return (

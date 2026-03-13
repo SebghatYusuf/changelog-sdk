@@ -341,7 +341,7 @@ export default function FrameworksPage() {
           <h2 className="docs-h2">React (Any Backend)</h2>
           <p className="docs-p">
             Use <code className="docs-code-inline">changelog-sdk/react</code> to render the same UI in any React app, backed by any REST API
-            (Next, Nuxt, Express, PHP, or custom).
+            (Next, Nuxt, Express, or custom).
           </p>
           <h3 className="docs-h3">1. Install and wire a route</h3>
           <p className="docs-p">Pass <code className="docs-code-inline">params</code> and <code className="docs-code-inline">searchParams</code> from your router.</p>

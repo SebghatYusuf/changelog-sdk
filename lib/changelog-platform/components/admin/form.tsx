@@ -142,6 +142,7 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
 
     if (formState.success) {
       showToast(successMessage, 'success')
+      window.dispatchEvent(new Event('changelog:refresh'))
     }
   }, [formState, showToast, successMessage])
 

@@ -22,7 +22,7 @@ export default function PublishButton({ id }: PublishButtonProps) {
       return
     }
 
-    window.location.reload()
+    window.dispatchEvent(new Event('changelog:refresh'))
     setLoading(false)
   }
 

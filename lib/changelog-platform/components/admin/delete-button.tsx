@@ -29,7 +29,7 @@ export default function DeleteButton({ id }: DeleteButtonProps) {
       return
     }
 
-    window.location.reload()
+    window.dispatchEvent(new Event('changelog:refresh'))
   }
 
   return (
