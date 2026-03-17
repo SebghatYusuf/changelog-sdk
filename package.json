@@ -1,6 +1,6 @@
 {
   "name": "changelog-sdk",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "private": false,
   "type": "module",
   "description": "Framework-agnostic changelog core with Next.js, React, Vue, Express adapter and MongoDB adapter",
@@ -23,7 +23,6 @@
     "./next": {
       "types": "./dist/esm/next/index.d.ts",
       "import": "./dist/esm/next/index.js",
-      "require": "./dist/cjs/next/index.js",
       "default": "./dist/esm/next/index.js"
     },
     "./mongoose": {
@@ -47,7 +46,6 @@
     "./react": {
       "types": "./dist/esm/react/index.d.ts",
       "import": "./dist/esm/react/index.js",
-      "require": "./dist/cjs/react/index.js",
       "default": "./dist/esm/react/index.js"
     },
     "./vue": {

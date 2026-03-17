@@ -138,6 +138,37 @@ app.use('/api/changelog', createExpressChangelogRouter({
   // aiProvider: custom AI provider
 }))`
 
+const EXPRESS_ENV_OVERRIDES = `import { createExpressChangelogRouter } from 'changelog-sdk/express'
+
+// Use environment variable overrides for this route
+app.use('/api/changelog', createExpressChangelogRouter({
+  envOverrides: {
+    CHANGELOG_MONGODB_URI: 'mongodb://custom-db-host:27017/changelog',
+    CHANGELOG_ALLOW_ADMIN_REGISTRATION: 'false',
+  },
+  resolvePerRequest: true, // Resolve dependencies on each request
+}))`
+
+const EXPRESS_MULTI_DB = `import { createMultipleChangelogRouters } from 'changelog-sdk/express'
+
+// Multiple independent changelogs with different databases
+const routers = createMultipleChangelogRouters({
+  'product-a': {
+    envOverrides: {
+      CHANGELOG_MONGODB_URI: 'mongodb://db-a:27017/changelog',
+    },
+  },
+  'product-b': {
+    envOverrides: {
+      CHANGELOG_MONGODB_URI: 'mongodb://db-b:27017/changelog',
+    },
+  },
+})
+
+for (const [name, router] of Object.entries(routers)) {
+  app.use(\`/api/changelog/\${name}\`, router)
+}`
+
 export default function ServerActionsPage() {
   const activeSection = useActiveSection(SECTION_IDS)
 
@@ -349,10 +380,36 @@ const result = await generateChangelogFromCommits({
           <div className="api-card">
             <div className="api-card-header">
               <span className="api-method">options</span>
-              <span className="api-fn-name">Express overrides</span>
+              <span className="api-fn-name">Configuration overrides</span>
             </div>
             <div className="api-card-body">
               <CodeBlock code={EXPRESS_OVERRIDES} />
+            </div>
+          </div>
+
+          <div className="api-card">
+            <div className="api-card-header">
+              <span className="api-method">options</span>
+              <span className="api-fn-name">Environment variable overrides</span>
+            </div>
+            <div className="api-card-body">
+              <p className="docs-p" style={{ marginBottom: '0.75rem' }}>
+                Use <code className="docs-code-inline">envOverrides</code> to customize environment variables for a specific route. Set <code className="docs-code-inline">resolvePerRequest: true</code> to resolve dependencies on each request instead of at setup time.
+              </p>
+              <CodeBlock code={EXPRESS_ENV_OVERRIDES} />
+            </div>
+          </div>
+
+          <div className="api-card">
+            <div className="api-card-header">
+              <span className="api-method">service</span>
+              <span className="api-fn-name">createMultipleChangelogRouters()</span>
+            </div>
+            <div className="api-card-body">
+              <p className="docs-p" style={{ marginBottom: '0.75rem' }}>
+                Create multiple independent changelog instances with different databases. Automatically enables per-request dependency resolution.
+              </p>
+              <CodeBlock code={EXPRESS_MULTI_DB} />
             </div>
           </div>
         </section>
