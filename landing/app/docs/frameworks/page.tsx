@@ -312,6 +312,42 @@ app.use('/api/changelog', createExpressChangelogRouter({
   // aiProvider: custom AI provider
 }))`
 
+const EXPRESS_ENV_OVERRIDE = `import { createExpressChangelogRouter } from 'changelog-sdk/express'
+
+// Single instance with env overrides
+app.use('/api/changelog', createExpressChangelogRouter({
+  envOverrides: {
+    CHANGELOG_MONGODB_URI: 'mongodb://custom-db-host:27017/changelog',
+    CHANGELOG_ALLOW_ADMIN_REGISTRATION: 'false',
+  },
+}))`
+
+const EXPRESS_MULTI_DB = `import { createMultipleChangelogRouters } from 'changelog-sdk/express'
+
+// Multiple independent changelog instances with different databases
+const routers = createMultipleChangelogRouters({
+  'product-a': {
+    envOverrides: {
+      CHANGELOG_MONGODB_URI: 'mongodb://db-a:27017/changelog',
+    },
+  },
+  'product-b': {
+    envOverrides: {
+      CHANGELOG_MONGODB_URI: 'mongodb://db-b:27017/changelog',
+    },
+  },
+  'product-c': {
+    envOverrides: {
+      CHANGELOG_MONGODB_URI: 'mongodb://db-c:27017/changelog',
+    },
+  },
+})
+
+// Mount each router at its own path
+for (const [name, router] of Object.entries(routers)) {
+  app.use(\`/api/changelog/\${name}\`, router)
+}`
+
 export default function FrameworksPage() {
   const activeSection = useActiveSection(SECTION_IDS)
 
@@ -423,11 +459,28 @@ export default function FrameworksPage() {
           <p className="docs-p">
             The Express adapter uses the same session cookie signing secret as Next/Nuxt. Make sure <code className="docs-code-inline">CHANGELOG_SESSION_SECRET</code> is set in your environment.
           </p>
+
+          <h3 className="docs-h3">Basic setup</h3>
           <p className="docs-p">
-            Use the Express adapter to mount the full REST API at <code className="docs-code-inline">/api/changelog</code>.
+            Mount the router at <code className="docs-code-inline">/api/changelog</code>:
           </p>
           <CodeBlock filename="server.ts" code={EXPRESS_EXAMPLE} />
           <CodeBlock filename="server.ts" code={EXPRESS_OPTIONS} />
+
+          <h3 className="docs-h3">Environment variable overrides</h3>
+          <p className="docs-p">
+            Pass <code className="docs-code-inline">envOverrides</code> to use a different database or configuration for a specific route:
+          </p>
+          <CodeBlock filename="server.ts" code={EXPRESS_ENV_OVERRIDE} />
+
+          <h3 className="docs-h3">Multi-database setup (multiple changelogs)</h3>
+          <p className="docs-p">
+            Run multiple independent changelog instances from the same Express app, each with its own database:
+          </p>
+          <CodeBlock filename="server.ts" code={EXPRESS_MULTI_DB} />
+          <p className="docs-p">
+            This automatically enables per-request dependency resolution (<code className="docs-code-inline">resolvePerRequest: true</code>) to ensure each route uses its own database connection.
+          </p>
 
           <div className="docs-callout">
             <div className="docs-callout-icon">

@@ -44,6 +44,18 @@ export interface ExpressAdapterOptions {
   rateLimit?: RateLimitOptions
   bodyLimit?: string | number
   securityHeaders?: SecurityHeadersOptions
+  /**
+   * Environment variable overrides for this adapter instance.
+   * Useful for multi-database setups in different routes.
+   * Example: { CHANGELOG_MONGODB_URI: 'mongodb://...' }
+   */
+  envOverrides?: Record<string, string | undefined>
+  /**
+   * If true, dependencies will be resolved per-request instead of cached.
+   * Enables dynamic configuration changes and multi-database setups.
+   * Default: false (dependencies resolved once at setup time)
+   */
+  resolvePerRequest?: boolean
 }
 
 export interface ExpressHandlers {
@@ -86,17 +98,18 @@ interface ExpressAdapterResolvedDeps {
   createSessionPort?: (req: Request, res: Response) => SessionPort
 }
 
-function isRegistrationEnabledByEnv(): boolean {
-  const direct = parseEnvBoolean(process.env['CHANGELOG_ALLOW_ADMIN_REGISTRATION'])
+function isRegistrationEnabledByEnv(envOverrides?: Record<string, string | undefined>): boolean {
+  const env = { ...process.env, ...envOverrides }
+  const direct = parseEnvBoolean(env['CHANGELOG_ALLOW_ADMIN_REGISTRATION'])
   if (direct !== undefined) return direct
   const fallback = parseEnvBoolean(
-    process.env['NEXT_PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION'] ||
-    process.env['PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION']
+    env['NEXT_PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION'] ||
+    env['PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION']
   )
   return fallback ?? false
 }
 
-function resolveDeps(options: ExpressAdapterOptions): ExpressAdapterResolvedDeps {
+function resolveDeps(options: ExpressAdapterOptions, envOverrides?: Record<string, string | undefined>): ExpressAdapterResolvedDeps {
   const aiSettingsRepository = options.aiSettingsRepository || createMongooseAISettingsRepository()
   const adminUserRepository = options.adminUserRepository || createMongooseAdminUserRepository()
   const repoSettingsRepository = options.repoSettingsRepository || createMongooseRepoSettingsRepository()
@@ -107,7 +120,7 @@ function resolveDeps(options: ExpressAdapterOptions): ExpressAdapterResolvedDeps
     aiSettingsRepository,
     adminUserRepository,
     repoSettingsRepository,
-    allowAdminRegistration: options.allowAdminRegistration ?? isRegistrationEnabledByEnv(),
+    allowAdminRegistration: options.allowAdminRegistration ?? isRegistrationEnabledByEnv(envOverrides),
     aiProvider: options.aiProvider || createDefaultAIProviderPort(aiSettingsRepository),
     repoProvider: options.repoProvider || createDefaultRepoProviderPort(),
     cacheInvalidation: options.cacheInvalidation,
@@ -158,10 +171,12 @@ function parseTags(value: unknown): string[] | undefined {
 }
 
 export function createExpressChangelogHandlers(options: ExpressAdapterOptions = {}): ExpressHandlers {
-  const deps = resolveDeps(options)
+  // Resolve dependencies at setup time (default behavior for backward compatibility)
+  const depsAtSetup = !options.resolvePerRequest ? resolveDeps(options, options.envOverrides) : null
 
   return {
     async getPublishedFeed(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       const page = parseNumber(req.query.page, 1)
       const limit = parseNumber(req.query.limit, 10)
@@ -171,6 +186,7 @@ export function createExpressChangelogHandlers(options: ExpressAdapterOptions = 
     },
 
     async getEntryBySlug(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       const slug = req.params.slug
       if (!slug) {
@@ -181,6 +197,7 @@ export function createExpressChangelogHandlers(options: ExpressAdapterOptions = 
     },
 
     async getAdminFeed(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       const page = parseNumber(req.query.page, 1)
       const limit = parseNumber(req.query.limit, 20)
@@ -188,6 +205,7 @@ export function createExpressChangelogHandlers(options: ExpressAdapterOptions = 
     },
 
     async getAdminEntryById(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       const id = req.params.id
       if (!id) {
@@ -198,11 +216,13 @@ export function createExpressChangelogHandlers(options: ExpressAdapterOptions = 
     },
 
     async createEntry(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.createEntry(req.body))
     },
 
     async updateEntry(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       const id = req.params.id
       const body = { ...(req.body || {}), id }
@@ -210,6 +230,7 @@ export function createExpressChangelogHandlers(options: ExpressAdapterOptions = 
     },
 
     async deleteEntry(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       const id = req.params.id
       if (!id) {
@@ -220,76 +241,91 @@ export function createExpressChangelogHandlers(options: ExpressAdapterOptions = 
     },
 
     async login(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.loginAdmin(req.body))
     },
 
     async register(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.registerAdmin(req.body))
     },
 
     async canRegister(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.canRegisterAdmin())
     },
 
     async logout(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.logoutAdmin())
     },
 
     async enhance(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.enhanceWithAI(req.body))
     },
 
     async getAISettings(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.getAISettings())
     },
 
     async updateAISettings(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.updateAISettings(req.body))
     },
 
     async listModels(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.listProviderModels(req.body))
     },
 
     async getChangelogSettings(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.getChangelogSettings())
     },
 
     async updateChangelogSettings(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.updateChangelogSettings(req.body))
     },
 
     async getLatestPublishedVersion(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.getLatestPublishedVersion())
     },
 
     async getRepoSettings(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.getRepoSettings())
     },
 
     async updateRepoSettings(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.updateRepoSettings(req.body))
     },
 
     async previewRepoCommits(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.previewRepoCommits(req.body))
     },
 
     async generateChangelogFromCommits(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
       const service = createService(req, res, deps)
       res.json(await service.generateChangelogFromCommits(req.body))
     },
@@ -344,3 +380,38 @@ export function createExpressChangelogRouter(options: ExpressAdapterOptions = {}
 
   return router
 }
+
+/**
+ * Create multiple Express changelog routers with different database configurations.
+ * Useful for serving multiple independent changelog instances from a single Express app.
+ * 
+ * @example
+ * const app = express()
+ * const routers = createMultipleChangelogRouters({
+ *   'product-a': {
+ *     envOverrides: { CHANGELOG_MONGODB_URI: 'mongodb://db-a' },
+ *     resolvePerRequest: true,
+ *   },
+ *   'product-b': {
+ *     envOverrides: { CHANGELOG_MONGODB_URI: 'mongodb://db-b' },
+ *     resolvePerRequest: true,
+ *   },
+ * })
+ * 
+ * for (const [name, router] of Object.entries(routers)) {
+ *   app.use(`/api/changelog/${name}`, router)
+ * }
+ */
+export function createMultipleChangelogRouters(
+  configs: Record<string, ExpressAdapterOptions>
+): Record<string, Router> {
+  const routers: Record<string, Router> = {}
+  for (const [name, config] of Object.entries(configs)) {
+    routers[name] = createExpressChangelogRouter({
+      ...config,
+      resolvePerRequest: true, // Always resolve per-request for multi-db setups
+    })
+  }
+  return routers
+}
+

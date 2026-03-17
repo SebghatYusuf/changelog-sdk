@@ -480,7 +480,42 @@ app.use('/api/changelog', createExpressChangelogRouter())
 app.listen(3000)
 ```
 
-### 3) CSRF header (custom clients)
+### 3) Configure with options
+
+Override environment variables or database for a specific route:
+
+```ts
+app.use('/api/changelog', createExpressChangelogRouter({
+  envOverrides: {
+    CHANGELOG_MONGODB_URI: 'mongodb://custom-host/changelog',
+  },
+  allowAdminRegistration: false,
+  bodyLimit: '1mb',
+}))
+```
+
+### 4) Multi-database setup (optional)
+
+Run multiple independent changelog instances from the same app:
+
+```ts
+import { createMultipleChangelogRouters } from 'changelog-sdk/express'
+
+const routers = createMultipleChangelogRouters({
+  'product-a': {
+    envOverrides: { CHANGELOG_MONGODB_URI: 'mongodb://db-a/changelog' },
+  },
+  'product-b': {
+    envOverrides: { CHANGELOG_MONGODB_URI: 'mongodb://db-b/changelog' },
+  },
+})
+
+for (const [name, router] of Object.entries(routers)) {
+  app.use(`/api/changelog/${name}`, router)
+}
+```
+
+### 5) CSRF header (custom clients)
 
 The Express adapter enables CSRF protection by default. SDK clients send the header automatically. If you build your own client, read the `changelog-csrf` cookie and send it as `x-csrf-token` on `POST`, `PATCH`, `PUT`, and `DELETE` requests.
 
