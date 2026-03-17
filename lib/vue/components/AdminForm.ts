@@ -2,6 +2,7 @@ import { defineComponent, h, onMounted, ref } from 'vue'
 import type { ChangelogEntry, ChangelogTag, RepoCommit, RepoSettingsView } from '../types'
 import { createChangelogApi } from '../api'
 import { useToast } from '../composables/toast'
+import { Tooltip } from './Tooltip'
 
 function formatDateInput(date: Date): string {
   const year = date.getFullYear()
@@ -20,10 +21,58 @@ const ALL_TAGS: ChangelogTag[] = [
   'Docs',
 ]
 
+type PresetType = 'feature-release' | 'hotfix' | 'maintenance'
+type VersionBumpType = 'patch' | 'minor' | 'major'
+type AILoadingAction = 'enhance-title' | 'generate-title' | 'enhance-content'
+
+const PRESETS: Record<PresetType, { title: string; content: string; tags: ChangelogTag[] }> = {
+  'feature-release': {
+    title: 'Feature release highlights',
+    content: '## Features\n- Added major product capabilities\n\n## Improvements\n- Improved usability and workflows\n\n## Docs\n- Updated guides and examples',
+    tags: ['Features', 'Improvements', 'Docs'],
+  },
+  hotfix: {
+    title: 'Critical hotfix update',
+    content: '## Fixes\n- Resolved a high-impact production issue\n\n## Performance\n- Stabilized runtime behavior under load\n\n## Security\n- Applied targeted hardening updates',
+    tags: ['Fixes', 'Performance', 'Security'],
+  },
+  maintenance: {
+    title: 'Maintenance and reliability update',
+    content: '## Improvements\n- Refactored internal modules for maintainability\n\n## Performance\n- Optimized key execution paths\n\n## Fixes\n- Addressed lower-priority defects',
+    tags: ['Improvements', 'Performance', 'Fixes'],
+  },
+}
+
+function normalizeSemver(value: string): string {
+  return value.trim().replace(/^v/i, '')
+}
+
+function bumpSemver(version: string, bumpType: VersionBumpType): string | null {
+  const normalized = normalizeSemver(version)
+  const match = normalized.match(/^(\d+)\.(\d+)\.(\d+)$/)
+  if (!match) return null
+
+  const major = Number(match[1])
+  const minor = Number(match[2])
+  const patch = Number(match[3])
+
+  if (bumpType === 'major') return `${major + 1}.${minor}.${patch}`
+  if (bumpType === 'minor') return `${major}.${minor + 1}.${patch}`
+  return `${major}.${minor}.${patch + 1}`
+}
+
+function formatProviderName(provider: 'openai' | 'gemini' | 'ollama'): string {
+  if (provider === 'openai') return 'OpenAI'
+  if (provider === 'gemini') return 'Google Gemini'
+  return 'Ollama'
+}
+
 export const AdminForm = defineComponent({
   name: 'AdminForm',
   props: {
     entry: { type: Object as () => ChangelogEntry | null, default: null },
+    preset: { type: String, default: '' },
+    basePath: { type: String, default: '/changelog' },
     baseUrl: { type: String, default: '' },
     apiBasePath: { type: String, default: '/api/changelog' },
   },
@@ -46,8 +95,18 @@ export const AdminForm = defineComponent({
     const commitPreview = ref<RepoCommit[]>([])
     const commitModalOpen = ref(false)
     const polishWithAI = ref(true)
+    const aiLoadingAction = ref<AILoadingAction | null>(null)
+    const aiRuntimeLabel = ref('configured AI model')
+    const versionError = ref('')
 
     onMounted(async () => {
+      if (!props.entry && props.preset && props.preset in PRESETS) {
+        const selectedPreset = PRESETS[props.preset as PresetType]
+        title.value = selectedPreset.title
+        content.value = selectedPreset.content
+        tags.value = selectedPreset.tags
+      }
+
       if (!props.entry) {
         const result = await api.getLatestPublishedVersion()
         if (result.success && result.data?.version) {
@@ -60,6 +119,13 @@ export const AdminForm = defineComponent({
         repoSettings.value = repoResult.data
       }
       repoLoading.value = false
+
+      const aiResult = await api.getAISettings()
+      if (aiResult.success && aiResult.data) {
+        const providerName = formatProviderName(aiResult.data.provider)
+        const modelName = aiResult.data.model?.trim() || 'default'
+        aiRuntimeLabel.value = `${providerName} · ${modelName}`
+      }
     })
 
     const toggleTag = (tag: ChangelogTag) => {
@@ -69,6 +135,21 @@ export const AdminForm = defineComponent({
     }
 
     const submit = async () => {
+      if (!title.value.trim()) {
+        toast.showToast('Title is required.', 'error')
+        return
+      }
+
+      if (!content.value.trim()) {
+        toast.showToast('Content is required.', 'error')
+        return
+      }
+
+      if (!version.value.trim()) {
+        toast.showToast('Version is required.', 'error')
+        return
+      }
+
       loading.value = true
       const payload = {
         title: title.value,
@@ -90,6 +171,49 @@ export const AdminForm = defineComponent({
       }
 
       toast.showToast(props.entry ? 'Changelog updated.' : 'Changelog created.', 'success')
+    }
+
+    const enhanceField = async (field: 'title' | 'content', source: 'enhance' | 'generate' = 'enhance') => {
+      const rawNotes = field === 'title'
+        ? (title.value.trim() || content.value.trim())
+        : (content.value.trim() || title.value.trim())
+
+      if (!rawNotes) {
+        toast.showToast(`Add ${field === 'title' ? 'a title or some content' : 'content or a title'} before enhancing.`, 'error')
+        return
+      }
+
+      const loadingAction: AILoadingAction =
+        field === 'content' ? 'enhance-content' : source === 'generate' ? 'generate-title' : 'enhance-title'
+
+      aiLoadingAction.value = loadingAction
+      const result = await api.enhance({ rawNotes, currentVersion: version.value.trim() || undefined })
+      aiLoadingAction.value = null
+
+      if (!result.success || !result.data) {
+        toast.showToast(result.error || 'AI enhancement failed', 'error')
+        return
+      }
+
+      if (field === 'title') {
+        title.value = result.data.title
+      } else {
+        content.value = result.data.content
+        toast.showToast('Content generated successfully.', 'success')
+      }
+
+      tags.value = result.data.tags
+    }
+
+    const handleVersionBump = (bumpType: VersionBumpType) => {
+      const nextVersion = bumpSemver(version.value, bumpType)
+      if (!nextVersion) {
+        versionError.value = 'Use semantic version format (e.g. 1.2.3) to apply bump actions.'
+        return
+      }
+
+      versionError.value = ''
+      version.value = nextVersion
     }
 
     const generateFromCommits = async () => {
@@ -164,7 +288,7 @@ export const AdminForm = defineComponent({
     }
 
     return () =>
-      h('div', { class: 'cl-admin-form-wrap' }, [
+      h('div', {}, [
         h('form', {
           class: 'cl-card cl-admin-panel cl-admin-form',
           onSubmit: (event: Event) => {
@@ -177,8 +301,35 @@ export const AdminForm = defineComponent({
             h('p', { class: 'cl-card-description' }, props.entry ? 'Update this release note and save changes.' : 'Write clear updates, then publish with confidence.'),
           ]),
           h('div', { class: 'cl-card-content cl-admin-form-body' }, [
+            versionError.value
+              ? h('div', { class: 'cl-alert cl-alert-error' }, [
+                  h('div', { class: 'cl-alert-description' }, versionError.value),
+                ])
+              : null,
             h('div', { class: 'cl-form-group' }, [
-              h('label', { class: 'cl-form-label' }, 'Title'),
+              h('div', { class: 'cl-field-label-row' }, [
+                h('label', { class: 'cl-form-label' }, 'Title'),
+                h('div', { class: 'cl-ai-actions' }, [
+                  h(Tooltip, { content: `Enhance title • Uses ${aiRuntimeLabel.value}` }, {
+                    default: () => h('button', {
+                      type: 'button',
+                      class: 'cl-ai-inline-btn',
+                      disabled: aiLoadingAction.value !== null,
+                      onClick: () => enhanceField('title'),
+                    }, aiLoadingAction.value === 'enhance-title' ? 'Enhancing...' : 'Enhance'),
+                  }),
+                  title.value.trim().length === 0
+                    ? h(Tooltip, { content: `Generate title from content • Uses ${aiRuntimeLabel.value}` }, {
+                        default: () => h('button', {
+                          type: 'button',
+                          class: 'cl-ai-inline-btn',
+                          disabled: aiLoadingAction.value !== null,
+                          onClick: () => enhanceField('title', 'generate'),
+                        }, aiLoadingAction.value === 'generate-title' ? 'Generating...' : 'Generate title'),
+                      })
+                    : null,
+                ]),
+              ]),
               h('input', {
                 class: 'cl-input',
                 value: title.value,
@@ -188,23 +339,41 @@ export const AdminForm = defineComponent({
               }),
             ]),
             h('div', { class: 'cl-form-group' }, [
-              h('label', { class: 'cl-form-label' }, 'Content'),
+              h('div', { class: 'cl-field-label-row cl-version-field-row' }, [
+                h('label', { class: 'cl-form-label' }, 'Version'),
+                h('div', { class: 'cl-version-bump-group' }, [
+                  h('button', { type: 'button', class: 'cl-version-bump-btn', onClick: () => handleVersionBump('patch') }, '+patch'),
+                  h('button', { type: 'button', class: 'cl-version-bump-btn', onClick: () => handleVersionBump('minor') }, '+minor'),
+                  h('button', { type: 'button', class: 'cl-version-bump-btn', onClick: () => handleVersionBump('major') }, '+major'),
+                ]),
+              ]),
+              h('input', {
+                class: 'cl-input',
+                value: version.value,
+                onInput: (event: Event) => {
+                  versionError.value = ''
+                  version.value = (event.target as HTMLInputElement).value
+                },
+              }),
+            ]),
+            h('div', { class: 'cl-form-group' }, [
+              h('div', { class: 'cl-field-label-row' }, [
+                h('label', { class: 'cl-form-label' }, 'Content'),
+                h(Tooltip, { content: `Enhance content • Uses ${aiRuntimeLabel.value}` }, {
+                  default: () => h('button', {
+                    type: 'button',
+                    class: 'cl-ai-inline-btn',
+                    disabled: aiLoadingAction.value !== null,
+                    onClick: () => enhanceField('content'),
+                  }, aiLoadingAction.value === 'enhance-content' ? 'Enhancing...' : 'Enhance'),
+                }),
+              ]),
               h('textarea', {
                 class: 'cl-textarea',
                 rows: 8,
                 value: content.value,
                 onInput: (event: Event) => {
                   content.value = (event.target as HTMLTextAreaElement).value
-                },
-              }),
-            ]),
-            h('div', { class: 'cl-form-group' }, [
-              h('label', { class: 'cl-form-label' }, 'Version'),
-              h('input', {
-                class: 'cl-input',
-                value: version.value,
-                onInput: (event: Event) => {
-                  version.value = (event.target as HTMLInputElement).value
                 },
               }),
             ]),

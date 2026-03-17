@@ -90,6 +90,7 @@ function isRegistrationEnabledByEnv(): boolean {
   const direct = parseEnvBoolean(process.env['CHANGELOG_ALLOW_ADMIN_REGISTRATION'])
   if (direct !== undefined) return direct
   const fallback = parseEnvBoolean(
+    process.env['NEXT_PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION'] ||
     process.env['PUBLIC_CHANGELOG_ALLOW_ADMIN_REGISTRATION']
   )
   return fallback ?? false

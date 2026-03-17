@@ -63,6 +63,12 @@
     "example:install": "cd example && bun install",
     "example:dev": "cd example && bun run dev",
     "example:build": "cd example && bun run build",
+    "vue-example:install": "cd vue-example && bun install",
+    "vue-example:dev:server": "cd vue-example && bun run dev:server",
+    "vue-example:dev:client": "cd vue-example && bun run dev:client",
+    "vue-example:dev": "cd vue-example && bun run dev:server",
+    "vue-example:build": "cd vue-example && bun run build",
+    "vue-example:start": "cd vue-example && bun run start",
     "build:landing": "cd example && bun run export"
   },
   "keywords": ["changelog", "sdk", "framework-agnostic", "next.js", "typescript", "mongodb"],
