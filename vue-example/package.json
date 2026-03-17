@@ -1,0 +1,23 @@
+{
+  "name": "vue-example",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:client": "vite",
+    "dev:server": "NODE_ENV=development bun --watch server/index.js",
+    "dev": "bun run dev:server",
+    "build": "vite build",
+    "start": "NODE_ENV=production bun server/index.js"
+  },
+  "dependencies": {
+    "changelog-sdk": "file:..",
+    "express": "^4.21.2",
+    "vue": "^3.4.30",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.1.4",
+    "vite": "^5.4.10"
+  }
+}

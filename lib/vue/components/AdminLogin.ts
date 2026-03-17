@@ -1,14 +1,15 @@
 import { defineComponent, h, ref } from 'vue'
 import { createChangelogApi } from '../api'
 import { useToast } from '../composables/toast'
+import { buildChangelogPath } from '../utils/paths'
 
 export const AdminLogin = defineComponent({
   name: 'AdminLogin',
   props: {
     mode: { type: String as () => 'login' | 'register', default: 'login' },
+    basePath: { type: String, default: '/changelog' },
     baseUrl: { type: String, default: '' },
     apiBasePath: { type: String, default: '/api/changelog' },
-    redirectPath: { type: String, default: '/changelog/admin' },
   },
   setup(props) {
     const api = createChangelogApi({ baseUrl: props.baseUrl, apiBasePath: props.apiBasePath })
@@ -49,7 +50,7 @@ export const AdminLogin = defineComponent({
         return
       }
 
-      window.location.href = props.redirectPath
+      window.location.href = buildChangelogPath(props.basePath, 'admin')
     }
 
     return () =>
@@ -131,7 +132,7 @@ export const AdminLogin = defineComponent({
             ? h(
                 'a',
                 {
-                  href: '/changelog/register',
+                  href: buildChangelogPath(props.basePath, 'register'),
                   class: 'cl-btn cl-btn-secondary cl-login-submit',
                 },
                 'Create Admin Account'
@@ -141,7 +142,7 @@ export const AdminLogin = defineComponent({
             ? h(
                 'a',
                 {
-                  href: '/changelog/login',
+                  href: buildChangelogPath(props.basePath, 'login'),
                   class: 'cl-btn cl-btn-secondary cl-login-submit',
                 },
                 'Back to Login'

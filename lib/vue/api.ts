@@ -88,6 +88,11 @@ export function createChangelogApi(options: HttpOptions = {}) {
       return request<{ success: boolean }>(`/admin/logout`, { method: 'POST' })
     },
 
+    async checkAdminAuth() {
+      const result = await request<{ success: boolean; error?: string }>(`/admin/entries?page=1&limit=1`)
+      return Boolean(result.success && !result.error)
+    },
+
     enhance(input: unknown) {
       return request<{ success: boolean; data?: EnhanceChangelogOutput; error?: string }>(`/admin/enhance`, {
         method: 'POST',

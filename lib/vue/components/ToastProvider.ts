@@ -7,16 +7,19 @@ export const ToastProvider = defineComponent({
     const toast = provideToast()
 
     return () =>
-      h('div', { class: 'cl-toast-root' }, [
+      h('div', {}, [
         slots.default ? slots.default() : null,
         h(
           'div',
-          { class: 'cl-toast-viewport' },
+          { class: 'cl-toast-viewport', 'aria-live': 'polite', 'aria-atomic': 'true' },
           toast.toasts.map((item) =>
             h(
               'div',
-              { key: item.id, class: `cl-toast-item cl-toast-${item.tone}` },
-              h('div', { class: 'cl-toast-description' }, item.message)
+              {
+                key: item.id,
+                class: `cl-alert ${item.tone === 'success' ? 'cl-alert-success' : 'cl-alert-error'} cl-toast-item`,
+              },
+              h('div', { class: 'cl-alert-description' }, item.message)
             )
           )
         ),

@@ -34,7 +34,7 @@ function isStateChanging(method: string): boolean {
 }
 
 export function csrfProtection(options: CsrfOptions = {}) {
-  if (options.enabled === false) {
+  if (options.enabled !== true) {
     return (_req: Request, _res: Response, next: NextFunction) => next()
   }
 

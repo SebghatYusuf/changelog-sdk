@@ -1,12 +1,13 @@
 import { defineComponent, h, ref } from 'vue'
 import { createChangelogApi } from '../api'
+import { buildChangelogPath } from '../utils/paths'
 
 export const AdminLogoutButton = defineComponent({
   name: 'AdminLogoutButton',
   props: {
+    basePath: { type: String, default: '/changelog' },
     baseUrl: { type: String, default: '' },
     apiBasePath: { type: String, default: '/api/changelog' },
-    redirectPath: { type: String, default: '/changelog/login' },
   },
   setup(props) {
     const api = createChangelogApi({ baseUrl: props.baseUrl, apiBasePath: props.apiBasePath })
@@ -15,13 +16,13 @@ export const AdminLogoutButton = defineComponent({
     const handleLogout = async () => {
       loading.value = true
       await api.logout()
-      window.location.href = props.redirectPath
+      window.location.href = buildChangelogPath(props.basePath, 'login')
     }
 
     return () =>
       h(
         'button',
-        { type: 'button', class: 'cl-btn cl-btn-ghost cl-btn-sm', onClick: handleLogout, disabled: loading.value },
+        { type: 'button', class: 'cl-btn cl-btn-secondary cl-btn-compact', onClick: handleLogout, disabled: loading.value },
         loading.value ? 'Logging out...' : 'Logout'
       )
   },
