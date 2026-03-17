@@ -1,44 +1,60 @@
 {
   "name": "changelog-sdk",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "private": false,
   "type": "module",
   "description": "Framework-agnostic changelog core with Next.js, React, Vue, Express adapter and MongoDB adapter",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/esm/index.js"
     },
     "./core": {
-      "types": "./dist/core/index.d.ts",
-      "default": "./dist/core/index.js"
+      "types": "./dist/esm/core/index.d.ts",
+      "import": "./dist/esm/core/index.js",
+      "require": "./dist/cjs/core/index.js",
+      "default": "./dist/esm/core/index.js"
     },
     "./next": {
-      "types": "./dist/next/index.d.ts",
-      "default": "./dist/next/index.js"
+      "types": "./dist/esm/next/index.d.ts",
+      "import": "./dist/esm/next/index.js",
+      "require": "./dist/cjs/next/index.js",
+      "default": "./dist/esm/next/index.js"
     },
     "./mongoose": {
-      "types": "./dist/mongoose/index.d.ts",
-      "default": "./dist/mongoose/index.js"
+      "types": "./dist/esm/mongoose/index.d.ts",
+      "import": "./dist/esm/mongoose/index.js",
+      "require": "./dist/cjs/mongoose/index.js",
+      "default": "./dist/esm/mongoose/index.js"
     },
     "./nuxt": {
-      "types": "./dist/nuxt/index.d.ts",
-      "default": "./dist/nuxt/index.js"
+      "types": "./dist/esm/nuxt/index.d.ts",
+      "import": "./dist/esm/nuxt/index.js",
+      "require": "./dist/cjs/nuxt/index.js",
+      "default": "./dist/esm/nuxt/index.js"
     },
     "./express": {
-      "types": "./dist/express/index.d.ts",
-      "default": "./dist/express/index.js"
+      "types": "./dist/esm/express/index.d.ts",
+      "import": "./dist/esm/express/index.js",
+      "require": "./dist/cjs/express/index.js",
+      "default": "./dist/esm/express/index.js"
     },
     "./react": {
-      "types": "./dist/react/index.d.ts",
-      "default": "./dist/react/index.js"
+      "types": "./dist/esm/react/index.d.ts",
+      "import": "./dist/esm/react/index.js",
+      "require": "./dist/cjs/react/index.js",
+      "default": "./dist/esm/react/index.js"
     },
     "./vue": {
-      "types": "./dist/vue/index.d.ts",
-      "default": "./dist/vue/index.js"
+      "types": "./dist/esm/vue/index.d.ts",
+      "import": "./dist/esm/vue/index.js",
+      "require": "./dist/cjs/vue/index.js",
+      "default": "./dist/esm/vue/index.js"
     },
     "./styles": "./dist/styles/changelog-ui.css"
   },
@@ -51,7 +67,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.build.json && mkdir -p dist/styles && cp lib/changelog-platform/styles/changelog-ui.css dist/styles/changelog-ui.css",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json --resolve-full-paths --resolve-full-extension .js && tsc -p tsconfig.build.cjs.json && mkdir -p dist/cjs dist/styles && printf '{\"type\":\"commonjs\"}\\n' > dist/cjs/package.json && cp lib/changelog-platform/styles/changelog-ui.css dist/styles/changelog-ui.css",
     "sync": "bun run build && cd example && bun install",
     "prepare": "npm run build",
     "prepack": "npm run build",
@@ -120,21 +136,22 @@
     "dompurify": "^3.2.6"
   },
   "devDependencies": {
-    "typescript": "^5.9.3",
+    "@ai-sdk/google": "^3.0.43",
+    "@ai-sdk/openai": "^3.0.41",
+    "@types/express": "^4.17.21",
     "@types/node": "^25.3.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "ai": "^6.0.116",
+    "express": "^4.21.2",
     "h3": "^1.15.4",
     "next": "^16.1.6",
+    "ollama-ai-provider-v2": "^3.3.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "vue": "^3.4.30",
-    "ai": "^6.0.116",
-    "@ai-sdk/openai": "^3.0.41",
-    "@ai-sdk/google": "^3.0.43",
-    "ollama-ai-provider-v2": "^3.3.1",
-    "express": "^4.21.2",
-    "@types/express": "^4.17.21"
+    "tsc-alias": "^1.8.16",
+    "typescript": "^5.9.3",
+    "vue": "^3.4.30"
   },
   "engines": {
     "node": ">=20.0.0"
