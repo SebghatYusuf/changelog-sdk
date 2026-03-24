@@ -52,6 +52,7 @@ export default function RepoGuidePage() {
           <ul className="docs-ul">
             <li>Set the repository branch in <code className="docs-code-inline">/changelog/admin/repo</code></li>
             <li>Use your app&apos;s public base URL plus <code className="docs-code-inline">/api/changelog/webhooks/repo</code> as the webhook URL, for example <code className="docs-code-inline">https://app.example.com/api/changelog/webhooks/repo</code></li>
+            <li>Reuse your existing <code className="docs-code-inline">CHANGELOG_SESSION_SECRET</code> as the webhook secret in GitHub or Bitbucket so every delivery is HMAC-verified</li>
             <li>In GitHub, add a repository webhook for the <code className="docs-code-inline">push</code> event and paste that full URL as the Payload URL. In Bitbucket, add a webhook for <code className="docs-code-inline">repo:push</code> and paste the same full URL.</li>
             <li>Each new branch head is processed once, so duplicate webhook deliveries do not create duplicate changelog rows</li>
             <li>The SDK groups commit history into sections, bumps the latest semantic version by one patch, and saves the new changelog as <code className="docs-code-inline">draft</code> or <code className="docs-code-inline">published</code> based on <code className="docs-code-inline">autoPublish</code></li>

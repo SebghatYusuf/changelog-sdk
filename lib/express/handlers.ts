@@ -338,6 +338,7 @@ export function createExpressChangelogHandlers(options: ExpressAdapterOptions = 
         await service.processRepoWebhook({
           headers: req.headers as Record<string, string | string[] | undefined>,
           body: req.body,
+          rawBody: (req as Request & { rawBody?: string }).rawBody,
         })
       )
     },
@@ -350,9 +351,23 @@ export function createExpressChangelogRouter(options: ExpressAdapterOptions = {}
   const handlers = createExpressChangelogHandlers(options)
 
   router.use(securityHeaders(options.securityHeaders))
-  router.use(express.json({ limit: bodyLimit }))
+  router.use(
+    express.json({
+      limit: bodyLimit,
+      verify(req, _res, buffer) {
+        ;(req as Request & { rawBody?: string }).rawBody = buffer.toString('utf8')
+      },
+    })
+  )
   router.use(express.urlencoded({ limit: bodyLimit, extended: false }))
-  router.post('/webhooks/repo', handlers.processRepoWebhook)
+
+  const webhookLimiter = createRateLimiter({
+    windowMs: 60_000,
+    max: 30,
+    keyPrefix: 'changelog:webhook',
+  })
+
+  router.post('/webhooks/repo', webhookLimiter, handlers.processRepoWebhook)
   router.use(csrfProtection(options.csrf))
 
   const loginLimiter = createRateLimiter({

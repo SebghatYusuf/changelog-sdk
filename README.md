@@ -767,6 +767,7 @@ Automatic generation is also available from provider webhook events on the confi
 - The webhook URL is your app's public domain plus the SDK route path: `https://your-domain.com/api/changelog/webhooks/repo`.
 - Example production URL: `https://app.example.com/api/changelog/webhooks/repo`
 - Example local-dev URL with a tunnel: `https://abc123.ngrok-free.app/api/changelog/webhooks/repo`
+- Reuse your existing `CHANGELOG_SESSION_SECRET` as the GitHub or Bitbucket webhook secret so each delivery is HMAC-verified by the SDK.
 - GitHub: in repository settings, create a `push` webhook and set its Payload URL to that full public URL.
 - Bitbucket: in repository settings, create a `repo:push` webhook and set its URL to that full public URL.
 - The SDK uses the push payload commit history, ignores duplicate deliveries by branch head SHA, bumps the latest semver by one patch, and writes a new changelog record automatically.
@@ -838,9 +839,10 @@ import { createNextChangelogAdapter } from 'changelog-sdk/next'
 const adapter = createNextChangelogAdapter()
 
 export async function POST(request: Request) {
-  const body = await request.json()
+  const rawBody = await request.text()
+  const body = JSON.parse(rawBody)
   const headers = Object.fromEntries(request.headers.entries())
-  const result = await adapter.actions.processRepoWebhook({ headers, body })
+  const result = await adapter.actions.processRepoWebhook({ headers, body, rawBody })
   return Response.json(result)
 }
 ```

@@ -42,6 +42,7 @@ import type {
 import { compareSemver, normalizeSemver, parseSemver } from './version'
 import { hasEncryptionKey } from './crypto'
 import net from 'node:net'
+import crypto from 'node:crypto'
 
 export interface ChangelogServiceDeps {
   changelogRepository: ChangelogRepository
@@ -57,6 +58,8 @@ export interface ChangelogServiceDeps {
 }
 
 export function createChangelogService(deps: ChangelogServiceDeps) {
+  const ORDERED_TAGS: ChangelogTag[] = ['Breaking', 'Security', 'Features', 'Improvements', 'Fixes', 'Performance', 'Docs']
+
   async function assertVersionNotLower(candidateVersion: string, excludeId?: string): Promise<void> {
     if (!parseSemver(candidateVersion)) {
       throw new Error('Version must use semantic format (e.g. 1.2.3)')
@@ -296,15 +299,13 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
   }
 
   function getOrderedTags(grouped: Map<ChangelogTag, string[]>): ChangelogTag[] {
-    const orderedTags: ChangelogTag[] = ['Breaking', 'Security', 'Features', 'Improvements', 'Fixes', 'Performance', 'Docs']
-    return orderedTags.filter((tag) => grouped.has(tag))
+    return ORDERED_TAGS.filter((tag) => grouped.has(tag))
   }
 
   function renderCommitSections(grouped: Map<ChangelogTag, string[]>): string {
-    const orderedTags: ChangelogTag[] = ['Breaking', 'Security', 'Features', 'Improvements', 'Fixes', 'Performance', 'Docs']
     const sections: string[] = []
 
-    for (const tag of orderedTags) {
+    for (const tag of getOrderedTags(grouped)) {
       const items = grouped.get(tag)
       if (!items || items.length === 0) continue
       const lines = items.map((item) => `- ${item}`)
@@ -421,6 +422,117 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
     }
 
     return parseGithubPushEvent(settings.branch, headers, body)
+  }
+
+  function secureCompare(expected: string, actual: string): boolean {
+    const expectedBuffer = Buffer.from(expected)
+    const actualBuffer = Buffer.from(actual)
+    if (expectedBuffer.length !== actualBuffer.length) return false
+    return crypto.timingSafeEqual(expectedBuffer, actualBuffer)
+  }
+
+  function getConfiguredWebhookSecret(): string {
+    const secret = process.env.CHANGELOG_SESSION_SECRET?.trim() || ''
+    if (!secret) {
+      throw new Error('CHANGELOG_SESSION_SECRET must be set to process repository webhooks')
+    }
+    return secret
+  }
+
+  function normalizeGitHubRepoFullName(settings: PersistedRepoSettings): string {
+    const { owner, repo } = (() => {
+      const parsed = new URL(settings.repoUrl)
+      const parts = parsed.pathname.replace(/\.git$/, '').split('/').filter(Boolean)
+      return { owner: parts[0] || '', repo: parts[1] || '' }
+    })()
+    return `${owner}/${repo}`.toLowerCase()
+  }
+
+  function normalizeBitbucketRepoFullName(settings: PersistedRepoSettings): string {
+    return `${settings.workspace}/${settings.repoSlug}`.toLowerCase()
+  }
+
+  function verifyWebhookSignature(settings: PersistedRepoSettings, input: unknown): void {
+    const payload = (input && typeof input === 'object' ? input : {}) as {
+      headers?: Record<string, string | string[] | undefined>
+      rawBody?: string
+    }
+    const headerEntries = Object.entries(payload.headers || {}).map(([key, value]) => [
+      key.toLowerCase(),
+      Array.isArray(value) ? value[0] : value,
+    ])
+    const headers = Object.fromEntries(headerEntries) as Record<string, string | undefined>
+    const rawBody = typeof payload.rawBody === 'string' ? payload.rawBody : undefined
+
+    if (!rawBody) {
+      throw new Error('Webhook raw body is required for signature verification')
+    }
+
+    const secret = getConfiguredWebhookSecret()
+
+    if (settings.provider === 'bitbucket') {
+      const provided = headers['x-hub-signature']
+      if (!provided) {
+        throw new Error('Missing Bitbucket webhook signature')
+      }
+
+      const [algorithm, digest] = provided.split('=', 2)
+      if (!algorithm || !digest) {
+        throw new Error('Invalid Bitbucket webhook signature format')
+      }
+
+      const normalizedAlgorithm = algorithm.toLowerCase()
+      if (!['sha256', 'sha512', 'sha1'].includes(normalizedAlgorithm)) {
+        throw new Error('Unsupported Bitbucket webhook signature algorithm')
+      }
+
+      const expected = `${normalizedAlgorithm}=${crypto.createHmac(normalizedAlgorithm, secret).update(rawBody, 'utf8').digest('hex')}`
+      if (!secureCompare(expected, provided)) {
+        throw new Error('Bitbucket webhook signature verification failed')
+      }
+      return
+    }
+
+    const provided = headers['x-hub-signature-256']
+    if (!provided) {
+      throw new Error('Missing GitHub webhook signature')
+    }
+
+    const expected = `sha256=${crypto.createHmac('sha256', secret).update(rawBody, 'utf8').digest('hex')}`
+    if (!secureCompare(expected, provided)) {
+      throw new Error('GitHub webhook signature verification failed')
+    }
+  }
+
+  function verifyWebhookRepository(settings: PersistedRepoSettings, input: unknown): void {
+    const payload = (input && typeof input === 'object' ? input : {}) as { body?: any }
+    const body = payload.body
+
+    if (settings.provider === 'bitbucket') {
+      const expected = normalizeBitbucketRepoFullName(settings)
+      const fullName = String(body?.repository?.full_name || '').toLowerCase()
+      const workspace = String(body?.repository?.workspace?.slug || '').toLowerCase()
+      const repoSlug = String(body?.repository?.slug || '').toLowerCase()
+      const matched = fullName === expected || `${workspace}/${repoSlug}` === expected
+      if (!matched) {
+        throw new Error('Webhook repository does not match configured Bitbucket repository')
+      }
+      return
+    }
+
+    const expected = normalizeGitHubRepoFullName(settings)
+    const fullName = String(body?.repository?.full_name || '').toLowerCase()
+    const htmlUrl = String(body?.repository?.html_url || '').toLowerCase().replace(/\.git$/, '')
+    const expectedUrl = settings.repoUrl.toLowerCase().replace(/\.git$/, '')
+    if (fullName !== expected && htmlUrl !== expectedUrl) {
+      throw new Error('Webhook repository does not match configured GitHub repository')
+    }
+  }
+
+  function isDuplicateKeyError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') return false
+    const maybeError = error as { code?: unknown }
+    return maybeError.code === 11000
   }
 
   function ensureRepoDeps(context: ChangelogServiceDeps): asserts context is ChangelogServiceDeps & {
@@ -893,6 +1005,9 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
           return { success: true, handled: false, ignored: true, reason: 'Repository integration is disabled' }
         }
 
+        verifyWebhookSignature(settings, input)
+        verifyWebhookRepository(settings, input)
+
         const payload = parseWebhookPayload(settings, input)
         if (!payload) {
           return { success: true, handled: false, ignored: true, reason: 'Webhook did not match the configured branch or provider event' }
@@ -932,18 +1047,43 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
         const grouped = groupCommits(commits)
         const nextVersion = await getNextAutomaticVersion()
         const changelogSettings = await deps.settingsRepository.get()
-        const entry = await deps.changelogRepository.create({
-          title: getAutoTitle(settings.branch, commits),
-          content: renderCommitSections(grouped),
-          version: nextVersion,
-          status: changelogSettings.autoPublish ? 'published' : 'draft',
-          tags: getOrderedTags(grouped),
-          rawNotes: buildRawNotes(commits),
-          aiGenerated: false,
-          sourceCommitSha: payload.headCommitSha,
-          sourceBranch: settings.branch,
-          sourceProvider: settings.provider,
-        })
+        let entry: ChangelogEntry
+        try {
+          entry = await deps.changelogRepository.create({
+            title: getAutoTitle(settings.branch, commits),
+            content: renderCommitSections(grouped),
+            version: nextVersion,
+            status: changelogSettings.autoPublish ? 'published' : 'draft',
+            tags: getOrderedTags(grouped),
+            rawNotes: buildRawNotes(commits),
+            aiGenerated: false,
+            sourceCommitSha: payload.headCommitSha,
+            sourceBranch: settings.branch,
+            sourceProvider: settings.provider,
+          })
+        } catch (error) {
+          if (!isDuplicateKeyError(error)) {
+            throw error
+          }
+
+          const existingEntry = await deps.changelogRepository.findBySourceCommitSha(payload.headCommitSha)
+          if (!existingEntry) {
+            throw error
+          }
+
+          await deps.repoSettingsRepository.save({ ...settings, lastProcessedCommitSha: payload.headCommitSha })
+          return {
+            success: true,
+            handled: false,
+            ignored: true,
+            reason: 'Changelog already exists for this branch head',
+            data: {
+              entry: existingEntry,
+              headCommitSha: payload.headCommitSha,
+              commitsProcessed: commits.length,
+            },
+          }
+        }
 
         await deps.repoSettingsRepository.save({ ...settings, lastProcessedCommitSha: payload.headCommitSha })
         await deps.cacheInvalidation?.revalidateChangelog()
