@@ -2,7 +2,7 @@
 
 import { useActiveSection } from '../../_components/useActiveSection'
 
-const SECTION_IDS = ['repo-guide', 'setup', 'generate', 'automation', 'scopes'] as const
+const SECTION_IDS = ['repo-guide', 'setup', 'generate', 'automation', 'github', 'bitbucket', 'scopes'] as const
 
 export default function RepoGuidePage() {
   const activeSection = useActiveSection(SECTION_IDS)
@@ -49,13 +49,120 @@ export default function RepoGuidePage() {
           <p className="docs-p">
             The SDK can also create changelog entries automatically from repository push events on your configured target branch.
           </p>
-          <ul className="docs-ul">
-            <li>Set the repository branch in <code className="docs-code-inline">/changelog/admin/repo</code></li>
-            <li>Use your app&apos;s public base URL plus <code className="docs-code-inline">/api/changelog/webhooks/repo</code> as the webhook URL, for example <code className="docs-code-inline">https://app.example.com/api/changelog/webhooks/repo</code></li>
-            <li>In GitHub, add a repository webhook for the <code className="docs-code-inline">push</code> event and paste that full URL as the Payload URL. In Bitbucket, add a webhook for <code className="docs-code-inline">repo:push</code> and paste the same full URL.</li>
-            <li>Each new branch head is processed once, so duplicate webhook deliveries do not create duplicate changelog rows</li>
-            <li>The SDK groups commit history into sections, bumps the latest semantic version by one patch, and saves the new changelog as <code className="docs-code-inline">draft</code> or <code className="docs-code-inline">published</code> based on <code className="docs-code-inline">autoPublish</code></li>
-          </ul>
+          <div className="docs-step-grid">
+            <article className="docs-step-card">
+              <div className="docs-step-number">1</div>
+              <h3 className="docs-step-title">Choose the release branch</h3>
+              <p className="docs-step-body">
+                Decide which branch should generate release notes, usually <code className="docs-code-inline">main</code>, <code className="docs-code-inline">master</code>, or <code className="docs-code-inline">production</code>.
+              </p>
+            </article>
+            <article className="docs-step-card">
+              <div className="docs-step-number">2</div>
+              <h3 className="docs-step-title">Save it in the admin UI</h3>
+              <p className="docs-step-body">
+                Open <code className="docs-code-inline">/changelog/admin/repo</code>, connect the repository, and save that branch in the repository settings.
+              </p>
+            </article>
+            <article className="docs-step-card">
+              <div className="docs-step-number">3</div>
+              <h3 className="docs-step-title">Work out the webhook URL</h3>
+              <p className="docs-step-body">
+                Your webhook URL is your public app domain plus <code className="docs-code-inline">/api/changelog/webhooks/repo</code>.
+              </p>
+              <div className="docs-step-example">
+                Example: <code className="docs-code-inline">https://app.example.com/api/changelog/webhooks/repo</code>
+              </div>
+            </article>
+            <article className="docs-step-card">
+              <div className="docs-step-number">4</div>
+              <h3 className="docs-step-title">Reuse the existing secret</h3>
+              <p className="docs-step-body">
+                Use the same value as <code className="docs-code-inline">CHANGELOG_SESSION_SECRET</code> when GitHub or Bitbucket asks for the webhook secret.
+              </p>
+            </article>
+          </div>
+
+          <div className="docs-callout">
+            <div className="docs-callout-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            </div>
+            <div>
+              After the webhook is live, the SDK verifies the signature, checks the repository and branch, generates release notes from the pushed commits, bumps the latest patch version, and ignores duplicate deliveries for the same branch head.
+            </div>
+          </div>
+        </section>
+
+        <section id="github" className="docs-section">
+          <h2 className="docs-h2">GitHub Step By Step</h2>
+          <div className="docs-vendor-card">
+            <div className="docs-vendor-path">
+              GitHub path: <strong>Repository</strong> {' -> '} <strong>Settings</strong> {' -> '} <strong>Webhooks</strong> {' -> '} <strong>Add webhook</strong>
+            </div>
+            <div className="docs-step-list">
+              {[
+                'Open the repository on GitHub.',
+                'Go to Settings.',
+                'Open Webhooks in the left sidebar.',
+                'Select Add webhook.',
+                'Set Payload URL to your full webhook URL.',
+                'Set Content type to application/json.',
+                'Set Secret to the same value as CHANGELOG_SESSION_SECRET.',
+                'Choose Let me select individual events and enable only Pushes.',
+                'Save the webhook and keep it active.',
+                'Merge or push a change into the watched branch.',
+              ].map((step, index) => (
+                <div className="docs-step-row" key={step}>
+                  <div className="docs-step-badge">{index + 1}</div>
+                  <div className="docs-step-copy">{step}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="docs-callout">
+            <div className="docs-callout-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <div>
+              Quick test: after saving the webhook, merge a PR into the watched branch and then open the webhook&apos;s recent deliveries page on GitHub to confirm you got a successful <code className="docs-code-inline">push</code> delivery.
+            </div>
+          </div>
+        </section>
+
+        <section id="bitbucket" className="docs-section">
+          <h2 className="docs-h2">Bitbucket Step By Step</h2>
+          <div className="docs-vendor-card">
+            <div className="docs-vendor-path">
+              Bitbucket Cloud path: <strong>Repository settings</strong> {' -> '} <strong>Webhooks</strong> {' -> '} <strong>Add webhook</strong>
+            </div>
+            <div className="docs-step-list">
+              {[
+                'Open the repository in Bitbucket Cloud.',
+                'Go to Repository settings.',
+                'Open Webhooks.',
+                'Select Add webhook.',
+                'Enter a title such as Changelog SDK.',
+                'Set URL to your full webhook URL.',
+                'Set Secret to the same value as CHANGELOG_SESSION_SECRET.',
+                'Enable the Repository push trigger.',
+                'Save the webhook.',
+                'Merge or push a change into the watched branch.',
+              ].map((step, index) => (
+                <div className="docs-step-row" key={step}>
+                  <div className="docs-step-badge">{index + 1}</div>
+                  <div className="docs-step-copy">{step}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="docs-callout">
+            <div className="docs-callout-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <div>
+              Quick test: merge a change into the watched branch, then inspect the webhook delivery log in Bitbucket Cloud and confirm the delivery corresponds to the <code className="docs-code-inline">repo:push</code> event.
+            </div>
+          </div>
         </section>
 
         <section id="scopes" className="docs-section">
@@ -79,6 +186,8 @@ export default function RepoGuidePage() {
         <button className={`toc-link${activeSection === 'setup' ? ' active' : ''}`} onClick={() => scrollTo('setup')}>Setup</button>
         <button className={`toc-link${activeSection === 'generate' ? ' active' : ''}`} onClick={() => scrollTo('generate')}>Generate from Commits</button>
         <button className={`toc-link${activeSection === 'automation' ? ' active' : ''}`} onClick={() => scrollTo('automation')}>Automation</button>
+        <button className={`toc-link${activeSection === 'github' ? ' active' : ''}`} onClick={() => scrollTo('github')}>GitHub</button>
+        <button className={`toc-link${activeSection === 'bitbucket' ? ' active' : ''}`} onClick={() => scrollTo('bitbucket')}>Bitbucket</button>
         <button className={`toc-link${activeSection === 'scopes' ? ' active' : ''}`} onClick={() => scrollTo('scopes')}>Token Scopes</button>
       </nav>
     </>

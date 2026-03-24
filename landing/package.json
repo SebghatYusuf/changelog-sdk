@@ -4,7 +4,7 @@
   "private": true,
   "description": "Example Vite + React app for changelog-sdk landing and docs",
   "scripts": {
-    "dev": "vite --port 3000",
+    "dev": "vite --port 3002",
     "build": "vite build",
     "start": "vite preview --port 3000",
     "export": "vite build && rsync -a --delete --exclude='.git' dist/ ../site/"

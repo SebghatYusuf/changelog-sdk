@@ -2,6 +2,7 @@ import {
   getQuery,
   getRouterParam,
   readBody,
+  readRawBody,
   type EventHandler,
   type H3Event,
 } from 'h3'
@@ -199,10 +200,12 @@ export function createNuxtChangelogHandlers(options: NuxtAdapterOptions = {}): N
 
     async processRepoWebhook(event) {
       const service = withService(event)
-      const body = await readBody(event)
+      const rawBody = (await readRawBody(event, 'utf8')) || ''
+      const body = rawBody ? JSON.parse(rawBody) : {}
       return service.processRepoWebhook({
         headers: event.node.req.headers as Record<string, string | string[] | undefined>,
         body,
+        rawBody,
       })
     },
   }
