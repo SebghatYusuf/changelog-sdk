@@ -11,6 +11,7 @@ interface RepoSettingsModelFields {
   tokenIv: string | null
   tokenTag: string | null
   enabled: boolean
+  lastProcessedCommitSha: string | null
 }
 
 const repoSettingsSchema = new Schema<RepoSettingsModelFields>(
@@ -63,6 +64,11 @@ const repoSettingsSchema = new Schema<RepoSettingsModelFields>(
       type: Boolean,
       required: true,
       default: false,
+    },
+    lastProcessedCommitSha: {
+      type: String,
+      default: null,
+      trim: true,
     },
   },
   {

@@ -24,6 +24,7 @@ import {
   updateRepoSettings as updateRepoSettingsAction,
   previewRepoCommits as previewRepoCommitsAction,
   generateChangelogFromCommits as generateChangelogFromCommitsAction,
+  processRepoWebhook as processRepoWebhookAction,
 } from '../../next/actions'
 
 export async function createChangelog(input: unknown) {
@@ -116,4 +117,8 @@ export async function previewRepoCommits(input: unknown) {
 
 export async function generateChangelogFromCommits(input: unknown) {
   return generateChangelogFromCommitsAction(input)
+}
+
+export async function processRepoWebhook(input: unknown) {
+  return processRepoWebhookAction(input)
 }

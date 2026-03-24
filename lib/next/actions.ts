@@ -129,3 +129,8 @@ export async function generateChangelogFromCommits(input: unknown) {
   logAction('generateChangelogFromCommits', input)
   return getActions().generateChangelogFromCommits(input)
 }
+
+export async function processRepoWebhook(input: unknown) {
+  logAction('processRepoWebhook')
+  return getActions().processRepoWebhook(input)
+}

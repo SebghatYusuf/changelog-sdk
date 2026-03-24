@@ -367,6 +367,15 @@ export default handlers.enhance
 
 All handlers return the same response shapes as the Next.js server actions.
 
+For automatic release-note generation from branch merges, add a webhook route:
+
+```ts
+// server/api/changelog/webhooks/repo.post.ts
+import { createNuxtChangelogHandlers } from 'changelog-sdk/nuxt'
+const handlers = createNuxtChangelogHandlers()
+export default handlers.processRepoWebhook
+```
+
 **Full list of available handlers:**
 
 | Handler | Method | Description |
@@ -389,6 +398,7 @@ All handlers return the same response shapes as the Next.js server actions.
 | `getChangelogSettings` | GET | Fetch feed/publishing settings |
 | `updateChangelogSettings` | POST | Update feed/publishing settings |
 | `getLatestPublishedVersion` | GET | Get the latest published semver |
+| `processRepoWebhook` | POST | Process a GitHub `push` or Bitbucket `repo:push` event and auto-create a changelog for the watched branch |
 
 ### 4) Use the Vue UI
 
@@ -518,6 +528,8 @@ for (const [name, router] of Object.entries(routers)) {
 ### 5) CSRF header (custom clients)
 
 The Express adapter enables CSRF protection by default. SDK clients send the header automatically. If you build your own client, read the `changelog-csrf` cookie and send it as `x-csrf-token` on `POST`, `PATCH`, `PUT`, and `DELETE` requests.
+
+Webhook requests to `/api/changelog/webhooks/repo` bypass CSRF so GitHub and Bitbucket can post directly.
 
 ## Vue 3 Quick Start
 
@@ -750,6 +762,16 @@ const commits = await previewRepoCommits({ since: '2025-01-01', until: '2025-01-
 const draft = await generateChangelogFromCommits({ since: '2025-01-01', until: '2025-01-07', limit: 50 })
 ```
 
+Automatic generation is also available from provider webhook events on the configured branch.
+
+- The webhook URL is your app's public domain plus the SDK route path: `https://your-domain.com/api/changelog/webhooks/repo`.
+- Example production URL: `https://app.example.com/api/changelog/webhooks/repo`
+- Example local-dev URL with a tunnel: `https://abc123.ngrok-free.app/api/changelog/webhooks/repo`
+- GitHub: in repository settings, create a `push` webhook and set its Payload URL to that full public URL.
+- Bitbucket: in repository settings, create a `repo:push` webhook and set its URL to that full public URL.
+- The SDK uses the push payload commit history, ignores duplicate deliveries by branch head SHA, bumps the latest semver by one patch, and writes a new changelog record automatically.
+- New automatic records follow the existing `autoPublish` setting, so they are created as `draft` or `published` without manual authoring.
+
 ### Authentication
 
 ```ts
@@ -805,6 +827,22 @@ const adapter = createNextChangelogAdapter({
 
 // adapter.actions exposes all server action functions
 const result = await adapter.actions.createChangelog({ ... })
+```
+
+To receive repository webhooks in Next.js, add a route handler and forward the request into the adapter:
+
+```ts
+// app/api/changelog/webhooks/repo/route.ts
+import { createNextChangelogAdapter } from 'changelog-sdk/next'
+
+const adapter = createNextChangelogAdapter()
+
+export async function POST(request: Request) {
+  const body = await request.json()
+  const headers = Object.fromEntries(request.headers.entries())
+  const result = await adapter.actions.processRepoWebhook({ headers, body })
+  return Response.json(result)
+}
 ```
 
 ### Nuxt adapter

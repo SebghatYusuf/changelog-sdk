@@ -15,6 +15,9 @@ export interface ChangelogEntry {
   tags: ChangelogTag[]
   aiGenerated: boolean
   rawNotes?: string
+  sourceCommitSha?: string
+  sourceBranch?: string
+  sourceProvider?: RepoProviderKind
   createdAt: Date
   updatedAt: Date
 }
@@ -27,6 +30,9 @@ export interface CreateChangelogInput {
   tags: ChangelogTag[]
   rawNotes?: string
   aiGenerated?: boolean
+  sourceCommitSha?: string
+  sourceBranch?: string
+  sourceProvider?: RepoProviderKind
 }
 
 export interface UpdateChangelogInput {
@@ -132,6 +138,7 @@ export interface RepoSettingsInput {
   token?: string
   enabled?: boolean
   clearToken?: boolean
+  lastProcessedCommitSha?: string
 }
 
 export interface PersistedRepoSettings {
@@ -142,6 +149,7 @@ export interface PersistedRepoSettings {
   branch: string
   token: string
   enabled: boolean
+  lastProcessedCommitSha: string
 }
 
 export interface RepoSettingsView {
@@ -166,6 +174,19 @@ export interface GenerateChangelogFromCommitsOutput {
   content: string
   tags: ChangelogTag[]
   commits: RepoCommit[]
+}
+
+export interface RepoWebhookProcessResult {
+  success: boolean
+  handled: boolean
+  ignored?: boolean
+  reason?: string
+  data?: {
+    entry: ChangelogEntry
+    headCommitSha: string
+    commitsProcessed: number
+  }
+  error?: string
 }
 
 export type { AIProviderKind }

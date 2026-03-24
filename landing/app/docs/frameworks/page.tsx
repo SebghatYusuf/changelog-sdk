@@ -162,7 +162,12 @@ export default handlers.previewRepoCommits
 // server/api/changelog/admin/repo-generate.post.ts
 import { createNuxtChangelogHandlers } from 'changelog-sdk/nuxt'
 const handlers = createNuxtChangelogHandlers()
-export default handlers.generateChangelogFromCommits`
+export default handlers.generateChangelogFromCommits
+
+// server/api/changelog/webhooks/repo.post.ts
+import { createNuxtChangelogHandlers } from 'changelog-sdk/nuxt'
+const handlers = createNuxtChangelogHandlers()
+export default handlers.processRepoWebhook`
 
 const NUXT_OPTIONS = `// server/api/_changelog.ts (optional shared helper)
 import { createNuxtChangelogHandlers } from 'changelog-sdk/nuxt'
@@ -497,6 +502,15 @@ export default function FrameworksPage() {
             </div>
             <div>
               CSRF protection is enabled by default. SDK clients automatically send <code className="docs-code-inline">x-csrf-token</code>. If you roll a custom client, read the <code className="docs-code-inline">changelog-csrf</code> cookie and send it in that header for state-changing requests.
+            </div>
+          </div>
+
+          <div className="docs-callout">
+            <div className="docs-callout-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            </div>
+            <div>
+              Repository webhook delivery to <code className="docs-code-inline">/api/changelog/webhooks/repo</code> bypasses CSRF so GitHub and Bitbucket can trigger automatic changelog generation for the configured branch.
             </div>
           </div>
         </section>

@@ -79,7 +79,10 @@ export default handlers.updateRepoSettings
 export default handlers.previewRepoCommits
 
 // server/api/changelog/admin/repo-generate.post.ts
-export default handlers.generateChangelogFromCommits`
+export default handlers.generateChangelogFromCommits
+
+// server/api/changelog/webhooks/repo.post.ts
+export default handlers.processRepoWebhook`
 
 const NUXT_SETUP = `import { createNuxtChangelogHandlers } from 'changelog-sdk/nuxt'
 export const handlers = createNuxtChangelogHandlers()`

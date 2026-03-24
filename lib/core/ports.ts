@@ -25,6 +25,7 @@ export interface ChangelogRepository {
   remove(id: string): Promise<boolean>
   findBySlug(slug: string): Promise<ChangelogEntry | null>
   findById(id: string): Promise<ChangelogEntry | null>
+  findBySourceCommitSha(sourceCommitSha: string): Promise<ChangelogEntry | null>
   listPublished(input: { page: number; limit: number; tags?: ChangelogTag[]; search?: string }): Promise<FeedResponse>
   listAdmin(input: { page: number; limit: number }): Promise<FeedResponse>
   listVersions(excludeId?: string): Promise<string[]>

@@ -27,6 +27,7 @@ export {
   updateRepoSettings,
   previewRepoCommits,
   generateChangelogFromCommits,
+  processRepoWebhook,
 } from './actions'
 
 export { authMiddleware } from './middleware'

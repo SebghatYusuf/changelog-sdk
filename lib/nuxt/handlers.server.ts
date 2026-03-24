@@ -30,6 +30,7 @@ export interface NuxtHandlers {
   updateRepoSettings: EventHandler
   previewRepoCommits: EventHandler
   generateChangelogFromCommits: EventHandler
+  processRepoWebhook: EventHandler
 }
 
 function parseNumber(value: unknown, fallback: number): number {
@@ -194,6 +195,15 @@ export function createNuxtChangelogHandlers(options: NuxtAdapterOptions = {}): N
       const service = withService(event)
       const body = await readBody(event)
       return service.generateChangelogFromCommits(body)
+    },
+
+    async processRepoWebhook(event) {
+      const service = withService(event)
+      const body = await readBody(event)
+      return service.processRepoWebhook({
+        headers: event.node.req.headers as Record<string, string | string[] | undefined>,
+        body,
+      })
     },
   }
 }
