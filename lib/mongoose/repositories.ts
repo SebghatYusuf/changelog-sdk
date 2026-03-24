@@ -46,6 +46,9 @@ function toChangelogEntry(doc: any): ChangelogEntry {
     tags: doc.tags,
     aiGenerated: Boolean(doc.aiGenerated),
     rawNotes: doc.rawNotes ?? undefined,
+    sourceCommitSha: doc.sourceCommitSha ?? undefined,
+    sourceBranch: doc.sourceBranch ?? undefined,
+    sourceProvider: doc.sourceProvider ?? undefined,
     createdAt: new Date(doc.createdAt ?? doc.date),
     updatedAt: new Date(doc.updatedAt ?? doc.date),
   }
@@ -94,6 +97,13 @@ export function createMongooseChangelogRepository(): ChangelogRepository {
     async findById(id: string) {
       await connectDB()
       const doc = await Changelog.findById(id).lean()
+      if (!doc) return null
+      return toChangelogEntry(doc)
+    },
+
+    async findBySourceCommitSha(sourceCommitSha: string) {
+      await connectDB()
+      const doc = await Changelog.findOne({ sourceCommitSha }).lean()
       if (!doc) return null
       return toChangelogEntry(doc)
     },
@@ -285,6 +295,7 @@ const DEFAULT_REPO_SETTINGS: PersistedRepoSettings = {
   branch: 'main',
   token: '',
   enabled: false,
+  lastProcessedCommitSha: '',
 }
 
 function normalizeRepoSettings(input: Partial<PersistedRepoSettings>): PersistedRepoSettings {
@@ -296,6 +307,7 @@ function normalizeRepoSettings(input: Partial<PersistedRepoSettings>): Persisted
     branch: input.branch || DEFAULT_REPO_SETTINGS.branch,
     token: input.token || '',
     enabled: typeof input.enabled === 'boolean' ? input.enabled : DEFAULT_REPO_SETTINGS.enabled,
+    lastProcessedCommitSha: input.lastProcessedCommitSha || '',
   }
 }
 
@@ -326,6 +338,7 @@ export function createMongooseRepoSettingsRepository(): RepoSettingsRepository {
         branch: settings.branch || DEFAULT_REPO_SETTINGS.branch,
         token,
         enabled: settings.enabled,
+        lastProcessedCommitSha: settings.lastProcessedCommitSha || '',
       })
     },
 
@@ -353,6 +366,7 @@ export function createMongooseRepoSettingsRepository(): RepoSettingsRepository {
         branch: input.branch || DEFAULT_REPO_SETTINGS.branch,
         token,
         enabled: typeof input.enabled === 'boolean' ? input.enabled : DEFAULT_REPO_SETTINGS.enabled,
+        lastProcessedCommitSha: input.lastProcessedCommitSha ?? existing?.lastProcessedCommitSha ?? '',
       })
 
       const encrypted: { encrypted: string | null; iv: string | null; tag: string | null } = normalized.token
@@ -372,6 +386,7 @@ export function createMongooseRepoSettingsRepository(): RepoSettingsRepository {
           tokenIv: encrypted.iv,
           tokenTag: encrypted.tag,
           enabled: normalized.enabled,
+          lastProcessedCommitSha: normalized.lastProcessedCommitSha || null,
         },
         { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
       )

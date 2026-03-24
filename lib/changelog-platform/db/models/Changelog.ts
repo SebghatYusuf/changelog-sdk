@@ -15,6 +15,9 @@ interface ChangelogModelFields {
   tags: ChangelogTag[]
   aiGenerated: boolean
   rawNotes: string | null
+  sourceCommitSha: string | null
+  sourceBranch: string | null
+  sourceProvider: 'git' | 'bitbucket' | null
 }
 
 const changelogSchema = new Schema<ChangelogModelFields>(
@@ -62,6 +65,21 @@ const changelogSchema = new Schema<ChangelogModelFields>(
       type: String,
       default: null,
     },
+    sourceCommitSha: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    sourceBranch: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    sourceProvider: {
+      type: String,
+      enum: ['git', 'bitbucket', null],
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -73,6 +91,7 @@ const changelogSchema = new Schema<ChangelogModelFields>(
 changelogSchema.index({ slug: 1 })
 changelogSchema.index({ status: 1, date: -1 })
 changelogSchema.index({ tags: 1 })
+changelogSchema.index({ sourceCommitSha: 1 }, { unique: true, sparse: true })
 
 function slugifyTitle(title: string): string {
   return title

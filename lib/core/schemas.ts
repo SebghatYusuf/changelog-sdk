@@ -16,6 +16,9 @@ export const ChangelogEntrySchema = z.object({
   tags: z.array(ChangelogTagEnum),
   aiGenerated: z.boolean(),
   rawNotes: z.string().optional(),
+  sourceCommitSha: z.string().optional(),
+  sourceBranch: z.string().optional(),
+  sourceProvider: RepoProviderEnum.optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })
@@ -28,6 +31,9 @@ export const CreateChangelogSchema = z.object({
   tags: z.array(ChangelogTagEnum).min(1, 'At least one tag is required'),
   rawNotes: z.string().optional(),
   aiGenerated: z.boolean().default(false),
+  sourceCommitSha: z.string().optional(),
+  sourceBranch: z.string().optional(),
+  sourceProvider: RepoProviderEnum.optional(),
 })
 
 export const UpdateChangelogSchema = z.object({
@@ -92,6 +98,7 @@ export const RepoSettingsSchema = z.object({
   token: z.string().optional(),
   enabled: z.boolean().optional().default(true),
   clearToken: z.boolean().optional(),
+  lastProcessedCommitSha: z.string().optional(),
 })
 
 export const RepoCommitQuerySchema = z.object({

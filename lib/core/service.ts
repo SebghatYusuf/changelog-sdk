@@ -15,6 +15,7 @@ import {
 import type {
   AIModelOption,
   ChangelogEntry,
+  ChangelogTag,
   ChangelogSettingsInput,
   EnhanceChangelogOutput,
   FeedResponse,
@@ -25,6 +26,7 @@ import type {
   RepoCommitQuery,
   RepoSettingsInput,
   RepoSettingsView,
+  RepoWebhookProcessResult,
 } from './types'
 import type {
   AIProviderPort,
@@ -244,6 +246,13 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
     return summary.slice(0, 160)
   }
 
+  function incrementPatchVersion(version: string): string {
+    const normalized = normalizeSemver(version)
+    const parsed = parseSemver(normalized)
+    if (!parsed) return '1.0.0'
+    return `${parsed[0]}.${parsed[1]}.${parsed[2] + 1}`
+  }
+
   function classifyCommit(message: string): { tag: ChangelogEntry['tags'][number]; summary: string } {
     const summary = summarizeCommit(message)
     const lower = summary.toLowerCase()
@@ -273,6 +282,145 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
     }
 
     return { tag: 'Improvements', summary }
+  }
+
+  function groupCommits(commits: RepoCommit[]): Map<ChangelogTag, string[]> {
+    const grouped = new Map<ChangelogTag, string[]>()
+    for (const commit of commits) {
+      const { tag, summary } = classifyCommit(commit.message)
+      const bucket = grouped.get(tag) || []
+      bucket.push(summary)
+      grouped.set(tag, bucket)
+    }
+    return grouped
+  }
+
+  function getOrderedTags(grouped: Map<ChangelogTag, string[]>): ChangelogTag[] {
+    const orderedTags: ChangelogTag[] = ['Breaking', 'Security', 'Features', 'Improvements', 'Fixes', 'Performance', 'Docs']
+    return orderedTags.filter((tag) => grouped.has(tag))
+  }
+
+  function renderCommitSections(grouped: Map<ChangelogTag, string[]>): string {
+    const orderedTags: ChangelogTag[] = ['Breaking', 'Security', 'Features', 'Improvements', 'Fixes', 'Performance', 'Docs']
+    const sections: string[] = []
+
+    for (const tag of orderedTags) {
+      const items = grouped.get(tag)
+      if (!items || items.length === 0) continue
+      const lines = items.map((item) => `- ${item}`)
+      sections.push(`## ${tag}\n${lines.join('\n')}`)
+    }
+
+    return sections.join('\n\n')
+  }
+
+  function buildRawNotes(commits: RepoCommit[]): string {
+    return commits.map((commit) => `- ${commit.id.slice(0, 7)} ${summarizeCommit(commit.message)}`).join('\n')
+  }
+
+  async function getNextAutomaticVersion(): Promise<string> {
+    const versions = await deps.changelogRepository.listVersions()
+    let highest: string | null = null
+
+    for (const version of versions) {
+      const normalized = normalizeSemver(version)
+      if (!parseSemver(normalized)) continue
+      if (!highest || compareSemver(normalized, highest) > 0) {
+        highest = normalized
+      }
+    }
+
+    if (!highest) return '1.0.0'
+    return incrementPatchVersion(highest)
+  }
+
+  function getAutoTitle(branch: string, commits: RepoCommit[]): string {
+    const primary = summarizeCommit(commits[0]?.message || '')
+    if (primary) {
+      return `${branch}: ${primary}`.slice(0, 200)
+    }
+    return `Release notes for ${branch}`.slice(0, 200)
+  }
+
+  function parseGithubPushEvent(
+    branch: string,
+    headers: Record<string, string | undefined>,
+    body: any
+  ): { headCommitSha: string; commits: RepoCommit[] } | null {
+    const event = headers['x-github-event']?.toLowerCase()
+    if (event !== 'push') return null
+    if (String(body?.ref || '') !== `refs/heads/${branch}`) return null
+    if (body?.deleted) return null
+
+    const commits = Array.isArray(body?.commits)
+      ? body.commits.map((item: any) => ({
+          id: String(item?.id || ''),
+          message: String(item?.message || ''),
+          summary: summarizeCommit(String(item?.message || '')),
+          author: String(item?.author?.name || ''),
+          date: String(item?.timestamp || ''),
+          url: item?.url ? String(item.url) : undefined,
+        }))
+      : []
+
+    const headCommitSha = String(body?.after || '')
+    if (!headCommitSha || commits.length === 0) return null
+
+    return { headCommitSha, commits }
+  }
+
+  function parseBitbucketPushEvent(
+    branch: string,
+    headers: Record<string, string | undefined>,
+    body: any
+  ): { headCommitSha: string; commits: RepoCommit[] } | null {
+    const event = headers['x-event-key']?.toLowerCase()
+    if (event !== 'repo:push') return null
+
+    const changes = Array.isArray(body?.push?.changes) ? body.push.changes : []
+    for (const change of changes) {
+      const newBranch = String(change?.new?.name || '')
+      if (newBranch !== branch) continue
+
+      const commits = Array.isArray(change?.commits)
+        ? change.commits.map((item: any) => ({
+            id: String(item?.hash || ''),
+            message: String(item?.message || ''),
+            summary: summarizeCommit(String(item?.message || '')),
+            author: String(item?.author?.user?.display_name || item?.author?.raw || ''),
+            date: String(item?.date || ''),
+            url: item?.links?.html?.href ? String(item.links.html.href) : undefined,
+          }))
+        : []
+
+      const headCommitSha = String(change?.new?.target?.hash || '')
+      if (!headCommitSha || commits.length === 0) return null
+      return { headCommitSha, commits }
+    }
+
+    return null
+  }
+
+  function parseWebhookPayload(
+    settings: PersistedRepoSettings,
+    input: unknown
+  ): { headCommitSha: string; commits: RepoCommit[] } | null {
+    const payload = (input && typeof input === 'object' ? input : {}) as {
+      headers?: Record<string, string | string[] | undefined>
+      body?: unknown
+    }
+    const headerEntries = Object.entries(payload.headers || {}).map(([key, value]) => [
+      key.toLowerCase(),
+      Array.isArray(value) ? value[0] : value,
+    ])
+    const headers = Object.fromEntries(headerEntries) as Record<string, string | undefined>
+    const body = payload.body
+
+    if (settings.provider === 'bitbucket') {
+      return parseBitbucketPushEvent(settings.branch, headers, body)
+    }
+
+    return parseGithubPushEvent(settings.branch, headers, body)
   }
 
   function ensureRepoDeps(context: ChangelogServiceDeps): asserts context is ChangelogServiceDeps & {
@@ -710,31 +858,8 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
           return { success: false, error: 'No commits found for the selected range' }
         }
 
-        const grouped = new Map<ChangelogEntry['tags'][number], string[]>()
-        for (const commit of commits) {
-          const { tag, summary } = classifyCommit(commit.message)
-          const bucket = grouped.get(tag) || []
-          bucket.push(summary)
-          grouped.set(tag, bucket)
-        }
-
-        const orderedTags: ChangelogEntry['tags'][number][] = [
-          'Breaking',
-          'Security',
-          'Features',
-          'Improvements',
-          'Fixes',
-          'Performance',
-          'Docs',
-        ]
-
-        const sections: string[] = []
-        for (const tag of orderedTags) {
-          const items = grouped.get(tag)
-          if (!items || items.length === 0) continue
-          const lines = items.map((item) => `- ${item}`)
-          sections.push(`## ${tag}\n${lines.join('\n')}`)
-        }
+        const grouped = groupCommits(commits)
+        const orderedTags = getOrderedTags(grouped)
 
         let title = 'Release notes'
         if (sinceDate || untilDate) {
@@ -749,13 +874,91 @@ export function createChangelogService(deps: ChangelogServiceDeps) {
           success: true,
           data: {
             title,
-            content: sections.join('\n\n'),
-            tags: orderedTags.filter((tag) => grouped.has(tag)),
+            content: renderCommitSections(grouped),
+            tags: orderedTags,
             commits: commits.slice(0, limit),
           },
         }
       } catch (error) {
         return { success: false, error: wrapError(error, 'Failed to generate changelog from commits') }
+      }
+    },
+
+    async processRepoWebhook(input: unknown): Promise<RepoWebhookProcessResult> {
+      try {
+        ensureRepoDeps(deps)
+        const settings = await deps.repoSettingsRepository.get()
+
+        if (!settings.enabled) {
+          return { success: true, handled: false, ignored: true, reason: 'Repository integration is disabled' }
+        }
+
+        const payload = parseWebhookPayload(settings, input)
+        if (!payload) {
+          return { success: true, handled: false, ignored: true, reason: 'Webhook did not match the configured branch or provider event' }
+        }
+
+        if (payload.headCommitSha === settings.lastProcessedCommitSha) {
+          return { success: true, handled: false, ignored: true, reason: 'Branch head already processed' }
+        }
+
+        const existing = await deps.changelogRepository.findBySourceCommitSha(payload.headCommitSha)
+        if (existing) {
+          await deps.repoSettingsRepository.save({ ...settings, lastProcessedCommitSha: payload.headCommitSha })
+          return {
+            success: true,
+            handled: false,
+            ignored: true,
+            reason: 'Changelog already exists for this branch head',
+            data: {
+              entry: existing,
+              headCommitSha: payload.headCommitSha,
+              commitsProcessed: payload.commits.length,
+            },
+          }
+        }
+
+        const commits = payload.commits.filter((commit) => {
+          const summary = summarizeCommit(commit.message).toLowerCase()
+          const isMerge = /\bmerge\b/.test(summary)
+          return !isMerge
+        })
+
+        if (commits.length === 0) {
+          await deps.repoSettingsRepository.save({ ...settings, lastProcessedCommitSha: payload.headCommitSha })
+          return { success: true, handled: false, ignored: true, reason: 'No non-merge commits found in webhook payload' }
+        }
+
+        const grouped = groupCommits(commits)
+        const nextVersion = await getNextAutomaticVersion()
+        const changelogSettings = await deps.settingsRepository.get()
+        const entry = await deps.changelogRepository.create({
+          title: getAutoTitle(settings.branch, commits),
+          content: renderCommitSections(grouped),
+          version: nextVersion,
+          status: changelogSettings.autoPublish ? 'published' : 'draft',
+          tags: getOrderedTags(grouped),
+          rawNotes: buildRawNotes(commits),
+          aiGenerated: false,
+          sourceCommitSha: payload.headCommitSha,
+          sourceBranch: settings.branch,
+          sourceProvider: settings.provider,
+        })
+
+        await deps.repoSettingsRepository.save({ ...settings, lastProcessedCommitSha: payload.headCommitSha })
+        await deps.cacheInvalidation?.revalidateChangelog()
+
+        return {
+          success: true,
+          handled: true,
+          data: {
+            entry,
+            headCommitSha: payload.headCommitSha,
+            commitsProcessed: commits.length,
+          },
+        }
+      } catch (error) {
+        return { success: false, handled: false, error: wrapError(error, 'Failed to process repository webhook') }
       }
     },
 

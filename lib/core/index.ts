@@ -23,6 +23,7 @@ export type {
   RepoSettingsInput,
   RepoSettingsView,
   GenerateChangelogFromCommitsOutput,
+  RepoWebhookProcessResult,
   PersistedAISettings,
   PersistedChangelogSettings,
   PersistedRepoSettings,

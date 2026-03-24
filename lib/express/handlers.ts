@@ -81,6 +81,7 @@ export interface ExpressHandlers {
   updateRepoSettings: RequestHandler
   previewRepoCommits: RequestHandler
   generateChangelogFromCommits: RequestHandler
+  processRepoWebhook: RequestHandler
 }
 
 interface ExpressAdapterResolvedDeps {
@@ -329,15 +330,29 @@ export function createExpressChangelogHandlers(options: ExpressAdapterOptions = 
       const service = createService(req, res, deps)
       res.json(await service.generateChangelogFromCommits(req.body))
     },
+
+    async processRepoWebhook(req, res) {
+      const deps = depsAtSetup || resolveDeps(options, options.envOverrides)
+      const service = createService(req, res, deps)
+      res.json(
+        await service.processRepoWebhook({
+          headers: req.headers as Record<string, string | string[] | undefined>,
+          body: req.body,
+        })
+      )
+    },
   }
 }
 
 export function createExpressChangelogRouter(options: ExpressAdapterOptions = {}): Router {
   const router = express.Router()
   const bodyLimit = options.bodyLimit ?? '1mb'
+  const handlers = createExpressChangelogHandlers(options)
+
   router.use(securityHeaders(options.securityHeaders))
   router.use(express.json({ limit: bodyLimit }))
   router.use(express.urlencoded({ limit: bodyLimit, extended: false }))
+  router.post('/webhooks/repo', handlers.processRepoWebhook)
   router.use(csrfProtection(options.csrf))
 
   const loginLimiter = createRateLimiter({
@@ -346,8 +361,6 @@ export function createExpressChangelogRouter(options: ExpressAdapterOptions = {}
     keyPrefix: 'changelog:login',
     ...(options.rateLimit || {}),
   })
-
-  const handlers = createExpressChangelogHandlers(options)
 
   router.get('/feed', handlers.getPublishedFeed)
   router.get('/entries/:slug', handlers.getEntryBySlug)
@@ -414,4 +427,3 @@ export function createMultipleChangelogRouters(
   }
   return routers
 }
-

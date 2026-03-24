@@ -2,7 +2,7 @@
 
 import { useActiveSection } from '../../_components/useActiveSection'
 
-const SECTION_IDS = ['repo-guide', 'setup', 'generate', 'scopes'] as const
+const SECTION_IDS = ['repo-guide', 'setup', 'generate', 'automation', 'scopes'] as const
 
 export default function RepoGuidePage() {
   const activeSection = useActiveSection(SECTION_IDS)
@@ -21,6 +21,9 @@ export default function RepoGuidePage() {
           <p className="docs-p">
             Connect GitHub or Bitbucket repositories and generate clean release notes from commit history. Tokens are stored encrypted in MongoDB using <code className="docs-code-inline">CHANGELOG_ENCRYPTION_KEY</code>.
           </p>
+          <p className="docs-p">
+            You can use the manual generator in the admin editor or enable automatic changelog creation when new commits land on a watched branch.
+          </p>
         </section>
 
         <section id="setup" className="docs-section">
@@ -38,6 +41,20 @@ export default function RepoGuidePage() {
             <li>Open the commit generator modal in the admin editor</li>
             <li>Select a date range to keep the draft concise</li>
             <li>Optionally enable AI polish for standardized formatting</li>
+          </ul>
+        </section>
+
+        <section id="automation" className="docs-section">
+          <h2 className="docs-h2">Automatic Release Notes</h2>
+          <p className="docs-p">
+            The SDK can also create changelog entries automatically from repository push events on your configured target branch.
+          </p>
+          <ul className="docs-ul">
+            <li>Set the repository branch in <code className="docs-code-inline">/changelog/admin/repo</code></li>
+            <li>Use your app&apos;s public base URL plus <code className="docs-code-inline">/api/changelog/webhooks/repo</code> as the webhook URL, for example <code className="docs-code-inline">https://app.example.com/api/changelog/webhooks/repo</code></li>
+            <li>In GitHub, add a repository webhook for the <code className="docs-code-inline">push</code> event and paste that full URL as the Payload URL. In Bitbucket, add a webhook for <code className="docs-code-inline">repo:push</code> and paste the same full URL.</li>
+            <li>Each new branch head is processed once, so duplicate webhook deliveries do not create duplicate changelog rows</li>
+            <li>The SDK groups commit history into sections, bumps the latest semantic version by one patch, and saves the new changelog as <code className="docs-code-inline">draft</code> or <code className="docs-code-inline">published</code> based on <code className="docs-code-inline">autoPublish</code></li>
           </ul>
         </section>
 
@@ -61,6 +78,7 @@ export default function RepoGuidePage() {
         <button className={`toc-link${activeSection === 'repo-guide' ? ' active' : ''}`} onClick={() => scrollTo('repo-guide')}>Overview</button>
         <button className={`toc-link${activeSection === 'setup' ? ' active' : ''}`} onClick={() => scrollTo('setup')}>Setup</button>
         <button className={`toc-link${activeSection === 'generate' ? ' active' : ''}`} onClick={() => scrollTo('generate')}>Generate from Commits</button>
+        <button className={`toc-link${activeSection === 'automation' ? ' active' : ''}`} onClick={() => scrollTo('automation')}>Automation</button>
         <button className={`toc-link${activeSection === 'scopes' ? ' active' : ''}`} onClick={() => scrollTo('scopes')}>Token Scopes</button>
       </nav>
     </>

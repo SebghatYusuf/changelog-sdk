@@ -104,6 +104,7 @@ export function createNextChangelogAdapter(options: NextAdapterOptions = {}) {
       updateRepoSettings: service.updateRepoSettings,
       previewRepoCommits: service.previewRepoCommits,
       generateChangelogFromCommits: service.generateChangelogFromCommits,
+      processRepoWebhook: service.processRepoWebhook,
     },
   }
 }
