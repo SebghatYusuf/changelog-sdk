@@ -588,6 +588,126 @@ body {
 }
 .docs-callout-icon { color: var(--primary); flex-shrink: 0; margin-top: 1px; }
 
+.docs-step-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+  align-items: stretch;
+}
+
+.docs-step-card,
+.docs-vendor-card {
+  background: linear-gradient(180deg, rgba(17, 21, 53, 0.9), rgba(11, 14, 41, 0.95));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+}
+
+.docs-step-card {
+  padding: 1.1rem 1.1rem 1rem;
+  min-width: 0;
+}
+
+.docs-step-number {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-dim);
+  border: 1px solid rgba(0, 220, 130, 0.25);
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 0.85rem;
+}
+
+.docs-step-title {
+  font-size: 1rem;
+  line-height: 1.3;
+  color: var(--text-main);
+  font-weight: 700;
+  margin-bottom: 0.45rem;
+}
+
+.docs-step-body,
+.docs-step-copy,
+.docs-step-example,
+.docs-vendor-path {
+  color: var(--text-muted);
+  font-size: 0.94rem;
+  line-height: 1.7;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.docs-step-example {
+  margin-top: 0.7rem;
+}
+
+.docs-step-card .docs-code-inline,
+.docs-step-copy .docs-code-inline,
+.docs-step-example .docs-code-inline,
+.docs-vendor-path .docs-code-inline {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.docs-vendor-card {
+  overflow: hidden;
+  margin: 1rem 0 1.25rem;
+}
+
+.docs-vendor-path {
+  padding: 0.9rem 1.1rem;
+  background: rgba(0, 220, 130, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.docs-step-list {
+  padding: 0.5rem 1.1rem 0.75rem;
+}
+
+.docs-step-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.9rem;
+  align-items: start;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.docs-step-row:last-child {
+  border-bottom: none;
+}
+
+.docs-step-badge {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.docs-step-copy {
+  min-width: 0;
+}
+
 /* ─── API Reference ──────────────────────────────────────── */
 .api-card {
   background: var(--surface);
@@ -614,6 +734,7 @@ body {
   .hero-grid { grid-template-columns: 1fr; gap: 3rem; }
   .features-grid { grid-template-columns: 1fr 1fr; }
   .steps-grid { grid-template-columns: 1fr; gap: 3rem; }
+  .docs-step-grid { grid-template-columns: 1fr; }
   .docs-layout { grid-template-columns: 240px 1fr; }
   .docs-toc { display: none; }
 }

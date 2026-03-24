@@ -8,6 +8,7 @@ export default function RegisterForm({ basePath }: { basePath?: string }) {
   const api = useChangelogApi()
   const [error, setError] = useState('')
   const [canRegister, setCanRegister] = useState<boolean | null>(null)
+  const [canRegisterError, setCanRegisterError] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -17,11 +18,21 @@ export default function RegisterForm({ basePath }: { basePath?: string }) {
 
     api.canRegister()
       .then((result) => {
-        if (mounted && result.success && result.data) {
+        if (!mounted) return
+        if (result.success && result.data) {
           setCanRegister(result.data.canRegister)
+          setCanRegisterError('')
+          return
         }
+
+        setCanRegister(false)
+        setCanRegisterError(result.error || 'Failed to load registration availability.')
       })
-      .catch(() => undefined)
+      .catch(() => {
+        if (!mounted) return
+        setCanRegister(false)
+        setCanRegisterError('Failed to load registration availability.')
+      })
 
     return () => {
       mounted = false
@@ -68,7 +79,19 @@ export default function RegisterForm({ basePath }: { basePath?: string }) {
           </div>
         )}
 
-        {canRegister === false && (
+        {canRegister === null && (
+          <div className="cl-alert">
+            <div className="cl-alert-description">Checking whether admin registration is available...</div>
+          </div>
+        )}
+
+        {canRegisterError && (
+          <div className="cl-alert cl-alert-error">
+            <div className="cl-alert-description">{canRegisterError}</div>
+          </div>
+        )}
+
+        {canRegister === false && !canRegisterError && (
           <div className="cl-alert cl-alert-error">
             <div className="cl-alert-description">
               Registration is currently disabled. Ask the site owner to set CHANGELOG_ALLOW_ADMIN_REGISTRATION=true.

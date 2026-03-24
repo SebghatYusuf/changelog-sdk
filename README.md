@@ -764,14 +764,45 @@ const draft = await generateChangelogFromCommits({ since: '2025-01-01', until: '
 
 Automatic generation is also available from provider webhook events on the configured branch.
 
-- The webhook URL is your app's public domain plus the SDK route path: `https://your-domain.com/api/changelog/webhooks/repo`.
-- Example production URL: `https://app.example.com/api/changelog/webhooks/repo`
-- Example local-dev URL with a tunnel: `https://abc123.ngrok-free.app/api/changelog/webhooks/repo`
-- Reuse your existing `CHANGELOG_SESSION_SECRET` as the GitHub or Bitbucket webhook secret so each delivery is HMAC-verified by the SDK.
-- GitHub: in repository settings, create a `push` webhook and set its Payload URL to that full public URL.
-- Bitbucket: in repository settings, create a `repo:push` webhook and set its URL to that full public URL.
-- The SDK uses the push payload commit history, ignores duplicate deliveries by branch head SHA, bumps the latest semver by one patch, and writes a new changelog record automatically.
-- New automatic records follow the existing `autoPublish` setting, so they are created as `draft` or `published` without manual authoring.
+Before you start:
+
+1. Decide which branch should generate release notes, for example `main`.
+2. Save that branch in `/changelog/admin/repo`.
+3. Work out your public webhook URL. It is your deployed app domain plus `/api/changelog/webhooks/repo`.
+   Example: `https://app.example.com/api/changelog/webhooks/repo`
+4. Reuse your existing `CHANGELOG_SESSION_SECRET` as the webhook secret in GitHub or Bitbucket.
+
+GitHub setup:
+
+1. Open the repository on GitHub.
+2. Go to `Settings` -> `Webhooks`.
+3. Select `Add webhook`.
+4. Set `Payload URL` to your full webhook URL, for example `https://app.example.com/api/changelog/webhooks/repo`.
+5. Set `Content type` to `application/json`.
+6. Set `Secret` to the same value as `CHANGELOG_SESSION_SECRET`.
+7. Choose `Let me select individual events` and enable only `Pushes`.
+8. Save the webhook.
+9. Merge or push a change into the watched branch.
+
+Bitbucket Cloud setup:
+
+1. Open the repository in Bitbucket Cloud.
+2. Go to `Repository settings` -> `Webhooks`.
+3. Select `Add webhook`.
+4. Set `URL` to your full webhook URL, for example `https://app.example.com/api/changelog/webhooks/repo`.
+5. Set `Secret` to the same value as `CHANGELOG_SESSION_SECRET`.
+6. Enable the `Repository push` trigger.
+7. Save the webhook.
+8. Merge or push a change into the watched branch.
+
+What happens after setup:
+
+1. The SDK verifies the webhook signature.
+2. The SDK checks that the payload matches the configured repository and branch.
+3. The SDK groups commit history into changelog sections.
+4. The SDK bumps the latest semantic version by one patch.
+5. The SDK saves a new changelog record as `draft` or `published` based on `autoPublish`.
+6. Duplicate deliveries for the same branch head are ignored.
 
 ### Authentication
 

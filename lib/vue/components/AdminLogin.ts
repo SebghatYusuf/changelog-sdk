@@ -13,7 +13,8 @@ export const AdminLogin = defineComponent({
   },
   setup(props) {
     const api = createChangelogApi({ baseUrl: props.baseUrl, apiBasePath: props.apiBasePath })
-    const canRegister = ref(false)
+    const canRegister = ref<boolean | null>(null)
+    const canRegisterError = ref('')
     const email = ref('')
     const password = ref('')
     const loading = ref(false)
@@ -23,9 +24,17 @@ export const AdminLogin = defineComponent({
       .then((result) => {
         if (result.success && result.data) {
           canRegister.value = result.data.canRegister
+          canRegisterError.value = ''
+          return
         }
+
+        canRegister.value = false
+        canRegisterError.value = result.error || 'Failed to load registration availability.'
       })
-      .catch(() => undefined)
+      .catch(() => {
+        canRegister.value = false
+        canRegisterError.value = 'Failed to load registration availability.'
+      })
 
     const onSubmit = async () => {
       if (!email.value) {
@@ -70,7 +79,17 @@ export const AdminLogin = defineComponent({
           ),
         ]),
         h('div', { class: 'cl-card-content cl-login-card-content' }, [
-          props.mode === 'register' && !canRegister.value
+          canRegister.value === null
+            ? h('div', { class: 'cl-alert' }, [
+                h('div', { class: 'cl-alert-description' }, 'Checking whether admin registration is available...'),
+              ])
+            : null,
+          canRegisterError.value
+            ? h('div', { class: 'cl-alert cl-alert-error' }, [
+                h('div', { class: 'cl-alert-description' }, canRegisterError.value),
+              ])
+            : null,
+          props.mode === 'register' && canRegister.value === false && !canRegisterError.value
             ? h('div', { class: 'cl-alert cl-alert-error' }, [
                 h(
                   'div',
@@ -88,7 +107,7 @@ export const AdminLogin = defineComponent({
               class: 'cl-input',
               placeholder: 'Enter admin email',
               value: email.value,
-              disabled: props.mode === 'register' && !canRegister.value,
+              disabled: props.mode === 'register' && canRegister.value !== true,
               onInput: (event: Event) => {
                 email.value = (event.target as HTMLInputElement).value
               },
@@ -103,7 +122,7 @@ export const AdminLogin = defineComponent({
               class: 'cl-input',
               placeholder: 'Enter account password',
               value: password.value,
-              disabled: props.mode === 'register' && !canRegister.value,
+              disabled: props.mode === 'register' && canRegister.value !== true,
               onInput: (event: Event) => {
                 password.value = (event.target as HTMLInputElement).value
               },
@@ -114,7 +133,7 @@ export const AdminLogin = defineComponent({
             {
               type: 'submit',
               class: 'cl-btn cl-btn-primary cl-login-submit',
-              disabled: loading.value || (props.mode === 'register' && !canRegister.value),
+              disabled: loading.value || (props.mode === 'register' && canRegister.value !== true),
               onClick: (event: Event) => {
                 event.preventDefault()
                 onSubmit()
