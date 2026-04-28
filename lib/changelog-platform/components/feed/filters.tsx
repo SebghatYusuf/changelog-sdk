@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Check, Search } from 'lucide-react'
 import { ChangelogTag } from '../../types/changelog'
+import { buildChangelogPath } from '../paths'
 
 /**
  * Filters Component for Public Feed
@@ -13,6 +14,7 @@ import { ChangelogTag } from '../../types/changelog'
 interface FiltersProps {
   initialSearch?: string
   initialTags?: ChangelogTag[]
+  basePath?: string
   onChange?: (search: string, tags: ChangelogTag[]) => void
 }
 
@@ -26,15 +28,15 @@ const ALL_TAGS: ChangelogTag[] = [
   'Docs',
 ]
 
-function buildUrl(pathname: string, search: string, tags: ChangelogTag[]): string {
+function buildUrl(basePath: string | undefined, search: string, tags: ChangelogTag[]): string {
   const params = new URLSearchParams()
   if (search.trim()) params.set('search', search.trim())
   if (tags.length > 0) params.set('tags', tags.join(','))
   const qs = params.toString()
-  return pathname + (qs ? `?${qs}` : '')
+  return buildChangelogPath(basePath) + (qs ? `?${qs}` : '')
 }
 
-export default function Filters({ initialSearch = '', initialTags = [], onChange }: FiltersProps) {
+export default function Filters({ initialSearch = '', initialTags = [], basePath, onChange }: FiltersProps) {
   const [search, setSearch] = useState(initialSearch)
   const [selectedTags, setSelectedTags] = useState<ChangelogTag[]>(initialTags)
 
@@ -59,10 +61,9 @@ export default function Filters({ initialSearch = '', initialTags = [], onChange
   }, [initialSearch, initialTags])
 
   const navigateWithFilters = useCallback((newSearch: string, newTags: ChangelogTag[]) => {
-    const pathname = window.location.pathname
-    const nextUrl = buildUrl(pathname, newSearch, newTags)
+    const nextUrl = buildUrl(basePath, newSearch, newTags)
     window.history.replaceState({}, '', nextUrl)
-  }, [])
+  }, [basePath])
 
   const handleToggleTag = useCallback((tag: ChangelogTag) => {
     if (searchDebounce.current) clearTimeout(searchDebounce.current)

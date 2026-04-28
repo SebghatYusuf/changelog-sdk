@@ -5,6 +5,10 @@ import { ChangelogManager } from 'changelog-sdk/vue'
 
 const route = useRoute()
 
+const props = defineProps({
+  basePath: { type: String, default: '/changelog' },
+})
+
 const params = computed(() => {
   const raw = route.params.route
   if (Array.isArray(raw)) return { route: raw }
@@ -26,5 +30,5 @@ const searchParams = computed(() => {
 </script>
 
 <template>
-  <ChangelogManager :params="params" :search-params="searchParams" />
+  <ChangelogManager :params="params" :search-params="searchParams" :base-path="basePath" />
 </template>

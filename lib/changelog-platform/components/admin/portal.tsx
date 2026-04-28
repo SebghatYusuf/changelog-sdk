@@ -78,6 +78,7 @@ export default function AdminPortal({ section, editId, preset, basePath }: Admin
                     : buildChangelogPath(basePath, 'admin', item.id)
                 }
                 className={`cl-admin-nav-item ${activeSection === item.id ? 'is-active' : ''}`}
+                aria-current={activeSection === item.id ? 'page' : undefined}
               >
                 <item.icon className="cl-admin-nav-icon" aria-hidden="true" />
                 <span className="cl-admin-nav-body">

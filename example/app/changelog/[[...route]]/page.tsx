@@ -21,5 +21,11 @@ export default function ChangelogPage(props: ChangelogPageProps) {
 
 async function ChangelogPageContent({ params, searchParams }: ChangelogPageProps) {
   const [resolvedParams, resolvedSearchParams] = await Promise.all([params, searchParams])
-  return <ChangelogManager params={resolvedParams} searchParams={resolvedSearchParams} />
+  return (
+    <ChangelogManager
+      params={resolvedParams}
+      searchParams={resolvedSearchParams}
+      basePath="/changelog"
+    />
+  )
 }

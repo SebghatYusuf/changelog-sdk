@@ -144,31 +144,31 @@ export const AdminPortal = defineComponent({
           h('aside', { class: 'cl-admin-sidebar' }, [
             h('nav', { class: 'cl-admin-nav' }, [
               h('p', { class: 'cl-admin-nav-label' }, 'Navigation'),
-              h('a', { href: buildChangelogPath(props.basePath, 'admin'), class: `cl-admin-nav-item ${activeSection === 'publish' ? 'is-active' : ''}` }, [
+              h('a', { href: buildChangelogPath(props.basePath, 'admin'), class: `cl-admin-nav-item ${activeSection === 'publish' ? 'is-active' : ''}`, 'aria-current': activeSection === 'publish' ? 'page' : undefined }, [
                 h('span', { class: 'cl-admin-nav-body' }, [
                   h('span', { class: 'cl-admin-nav-title' }, 'Publishing'),
                   h('span', { class: 'cl-admin-nav-description' }, 'Create and manage entries'),
                 ]),
               ]),
-              h('a', { href: buildChangelogPath(props.basePath, 'admin', 'ai'), class: `cl-admin-nav-item ${activeSection === 'ai' ? 'is-active' : ''}` }, [
+              h('a', { href: buildChangelogPath(props.basePath, 'admin', 'ai'), class: `cl-admin-nav-item ${activeSection === 'ai' ? 'is-active' : ''}`, 'aria-current': activeSection === 'ai' ? 'page' : undefined }, [
                 h('span', { class: 'cl-admin-nav-body' }, [
                   h('span', { class: 'cl-admin-nav-title' }, 'AI Settings'),
                   h('span', { class: 'cl-admin-nav-description' }, 'Provider, model, runtime'),
                 ]),
               ]),
-              h('a', { href: buildChangelogPath(props.basePath, 'admin', 'changelog-settings'), class: `cl-admin-nav-item ${activeSection === 'changelog-settings' ? 'is-active' : ''}` }, [
+              h('a', { href: buildChangelogPath(props.basePath, 'admin', 'changelog-settings'), class: `cl-admin-nav-item ${activeSection === 'changelog-settings' ? 'is-active' : ''}`, 'aria-current': activeSection === 'changelog-settings' ? 'page' : undefined }, [
                 h('span', { class: 'cl-admin-nav-body' }, [
                   h('span', { class: 'cl-admin-nav-title' }, 'Feed Settings'),
                   h('span', { class: 'cl-admin-nav-description' }, 'Feed and publishing defaults'),
                 ]),
               ]),
-              h('a', { href: buildChangelogPath(props.basePath, 'admin', 'repo'), class: `cl-admin-nav-item ${activeSection === 'repo' ? 'is-active' : ''}` }, [
+              h('a', { href: buildChangelogPath(props.basePath, 'admin', 'repo'), class: `cl-admin-nav-item ${activeSection === 'repo' ? 'is-active' : ''}`, 'aria-current': activeSection === 'repo' ? 'page' : undefined }, [
                 h('span', { class: 'cl-admin-nav-body' }, [
                   h('span', { class: 'cl-admin-nav-title' }, 'Repository'),
                   h('span', { class: 'cl-admin-nav-description' }, 'Connect commits to changelogs'),
                 ]),
               ]),
-              h('a', { href: buildChangelogPath(props.basePath, 'admin', 'presets'), class: `cl-admin-nav-item ${activeSection === 'presets' ? 'is-active' : ''}` }, [
+              h('a', { href: buildChangelogPath(props.basePath, 'admin', 'presets'), class: `cl-admin-nav-item ${activeSection === 'presets' ? 'is-active' : ''}`, 'aria-current': activeSection === 'presets' ? 'page' : undefined }, [
                 h('span', { class: 'cl-admin-nav-body' }, [
                   h('span', { class: 'cl-admin-nav-title' }, 'Presets'),
                   h('span', { class: 'cl-admin-nav-description' }, 'Reusable templates'),

@@ -28,7 +28,9 @@ export default function Pagination({ currentPage, hasMore, total, basePath, onPa
 
     const params = new URLSearchParams(window.location.search)
     params.set('page', String(nextPage))
-    window.location.href = `${buildChangelogPath(basePath)}?${params.toString()}`
+    const nextUrl = `${buildChangelogPath(basePath)}?${params.toString()}`
+    window.history.pushState({}, '', nextUrl)
+    window.dispatchEvent(new Event('popstate'))
   }
 
   const handleNextPage = () => {

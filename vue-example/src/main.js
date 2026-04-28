@@ -31,7 +31,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', component: HomePage },
-    { path: '/changelog/:route(.*)*', component: ChangelogPage },
+    { path: '/changelog/:route(.*)*', component: ChangelogPage, props: { basePath: '/changelog' } },
   ],
 })
 

@@ -137,10 +137,11 @@ export default function ChangelogFeed({
         </div>
       </div>
 
-      <div className="cl-feed-filters">
+        <div className="cl-feed-filters">
         <Filters
           initialSearch={search}
           initialTags={tags}
+          basePath={basePath}
           onChange={handleFiltersChange}
         />
       </div>
