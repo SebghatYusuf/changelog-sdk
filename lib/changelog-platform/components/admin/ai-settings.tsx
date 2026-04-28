@@ -5,6 +5,7 @@ import type { AIModelOption, AIProviderKind } from '../../types/changelog'
 import { DEFAULT_AI_MODELS } from '../../ai/constants'
 import { useChangelogApi } from '../../api/context'
 import { useToast } from '../toast/provider'
+import Select from '../ui/select'
 
 interface SettingsState {
   provider: AIProviderKind
@@ -147,19 +148,17 @@ export default function AISettingsPanel() {
 
       <div className="cl-card-content cl-admin-form-body">
         <div className="cl-form-group">
-          <label className="cl-form-label" htmlFor="ai-provider">
-            Provider
-          </label>
-          <select
+          <Select
+            label="Provider"
             id="ai-provider"
-            className="cl-select"
             value={state.provider}
-            onChange={(e) => onProviderChange(e.target.value as AIProviderKind)}
-          >
-            <option value="openai">OpenAI</option>
-            <option value="gemini">Google Gemini</option>
-            <option value="ollama">Ollama</option>
-          </select>
+            onChange={(val) => onProviderChange(val as AIProviderKind)}
+            options={[
+              { value: 'openai', label: 'OpenAI' },
+              { value: 'gemini', label: 'Google Gemini' },
+              { value: 'ollama', label: 'Ollama' },
+            ]}
+          />
         </div>
 
         {(state.provider === 'openai' || state.provider === 'gemini') ? (
@@ -189,26 +188,22 @@ export default function AISettingsPanel() {
         ) : null}
 
         <div className="cl-form-group">
-          <label className="cl-form-label" htmlFor="ai-model">
-            Model
-          </label>
           <div className="cl-ai-model-row">
-            <select
-              id="ai-model"
-              className="cl-select"
-              value={state.model}
-              onChange={(e) => setState((prev) => ({ ...prev, model: e.target.value }))}
-            >
-              {models.length > 0 ? (
-                models.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.name}
-                  </option>
-                ))
-              ) : (
-                <option value={state.model}>{state.model || DEFAULT_AI_MODELS[state.provider]}</option>
-              )}
-            </select>
+            <div className="cl-custom-select-wrapper" style={{ flex: 1 }}>
+              <Select
+                label="Model"
+                id="ai-model"
+                value={state.model}
+                onChange={(val) => setState((prev) => ({ ...prev, model: val }))}
+                searchable
+                options={
+                  models.length > 0
+                    ? models.map((m) => ({ value: m.id, label: m.name }))
+                    : [{ value: state.model, label: state.model || DEFAULT_AI_MODELS[state.provider] }]
+                }
+                placeholder="Select a model"
+              />
+            </div>
 
             <button
               type="button"

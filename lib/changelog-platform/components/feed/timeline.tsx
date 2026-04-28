@@ -148,11 +148,25 @@ export default function ChangelogFeed({
 
       <div className="cl-timeline cl-feed-timeline">
         {loading ? (
-          <div className="cl-card cl-feed-empty-card">
-            <div className="cl-card-content cl-feed-empty-content">
-              <div className="cl-spinner" />
-              <p className="cl-p cl-feed-empty-title">Loading updates...</p>
-            </div>
+          <div className="cl-skeleton-shell">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="cl-skeleton-card">
+                <div className="cl-skeleton-header">
+                  <div className="cl-skeleton-line cl-skeleton-line-sm" />
+                  <div className="cl-skeleton-line cl-skeleton-line-full" />
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div className="cl-skeleton-line cl-skeleton-line-xs" />
+                    <div className="cl-skeleton-line cl-skeleton-line-xs" />
+                    <div className="cl-skeleton-line cl-skeleton-line-xs" />
+                  </div>
+                </div>
+                <div className="cl-skeleton-content">
+                  <div className="cl-skeleton-line cl-skeleton-line-full" />
+                  <div className="cl-skeleton-line cl-skeleton-line-full" />
+                  <div className="cl-skeleton-line cl-skeleton-line-sm" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="cl-card cl-feed-empty-card">

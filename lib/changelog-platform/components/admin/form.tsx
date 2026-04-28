@@ -6,6 +6,7 @@ import { ChangelogEntry, ChangelogTag, RepoCommit, RepoSettingsView } from '../.
 import { useChangelogApi } from '../../api/context'
 import { useToast } from '../toast/provider'
 import Tooltip from '../tooltip/tooltip'
+import Select from '../ui/select'
 import { buildChangelogPath } from '../paths'
 
 /**
@@ -601,18 +602,16 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
         </div>
 
         <div className="cl-form-group">
-          <label className="cl-form-label" htmlFor="status">
-            Status
-          </label>
-          <select
-            name="status"
+          <Select
+            label="Status"
+            id="status"
             value={statusValue}
-            onChange={(e) => setStatusValue(e.target.value as 'draft' | 'published')}
-            className="cl-select"
-          >
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-          </select>
+            onChange={(val) => setStatusValue(val as 'draft' | 'published')}
+            options={[
+              { value: 'draft', label: 'Draft' },
+              { value: 'published', label: 'Published' },
+            ]}
+          />
         </div>
 
         <div className="cl-form-actions">
@@ -721,18 +720,16 @@ export default function CreateForm({ initialEntry, preset, basePath }: CreateFor
                   />
                 </div>
                 <div className="cl-modal-field">
-                  <label className="cl-form-label" htmlFor="commit-merges">
-                    Include merges
-                  </label>
-                  <select
+                  <Select
+                    label="Include merges"
                     id="commit-merges"
-                    className="cl-select"
                     value={includeMerges ? 'yes' : 'no'}
-                    onChange={(e) => setIncludeMerges(e.target.value === 'yes')}
-                  >
-                    <option value="no">No</option>
-                    <option value="yes">Yes</option>
-                  </select>
+                    onChange={(val) => setIncludeMerges(val === 'yes')}
+                    options={[
+                      { value: 'no', label: 'No' },
+                      { value: 'yes', label: 'Yes' },
+                    ]}
+                  />
                 </div>
               </div>
 

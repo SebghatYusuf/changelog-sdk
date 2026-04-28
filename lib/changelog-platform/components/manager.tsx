@@ -182,8 +182,10 @@ function AdminAuthWrapper({ children, basePath }: { children: ReactNode; basePat
 function LoadingFallback() {
   return (
     <div className="cl-loading-screen">
-      <div className="cl-spinner" />
-      <span className="cl-loading-label">Loading...</span>
+      <div className="cl-loading-pulse-ring">
+        <div className="cl-spinner cl-spinner-lg" />
+      </div>
+      <span className="cl-loading-label">Loading changelog...</span>
     </div>
   )
 }

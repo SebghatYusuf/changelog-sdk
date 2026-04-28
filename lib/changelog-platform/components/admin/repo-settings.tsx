@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { RepoProviderKind, RepoSettingsView } from '../../types/changelog'
 import { useChangelogApi } from '../../api/context'
 import { useToast } from '../toast/provider'
+import Select from '../ui/select'
 
 interface RepoSettingsState {
   provider: RepoProviderKind
@@ -143,18 +144,16 @@ export default function RepoSettingsPanel() {
         {!loading ? (
           <>
             <div className="cl-form-group">
-              <label className="cl-form-label" htmlFor="repo-provider">
-                Provider
-              </label>
-              <select
+              <Select
+                label="Provider"
                 id="repo-provider"
-                className="cl-select"
                 value={state.provider}
-                onChange={(e) => setState((prev) => ({ ...prev, provider: e.target.value as RepoProviderKind }))}
-              >
-                <option value="git">Git (GitHub)</option>
-                <option value="bitbucket">Bitbucket</option>
-              </select>
+                onChange={(val) => setState((prev) => ({ ...prev, provider: val as RepoProviderKind }))}
+                options={[
+                  { value: 'git', label: 'Git (GitHub)' },
+                  { value: 'bitbucket', label: 'Bitbucket' },
+                ]}
+              />
             </div>
 
             {state.provider === 'git' ? (
@@ -235,34 +234,30 @@ export default function RepoSettingsPanel() {
 
             {state.hasToken ? (
               <div className="cl-form-group">
-                <label className="cl-form-label" htmlFor="repo-clear-token">
-                  Clear token
-                </label>
-                <select
+                <Select
+                  label="Clear token"
                   id="repo-clear-token"
-                  className="cl-select"
                   value={state.clearToken ? 'yes' : 'no'}
-                  onChange={(e) => setState((prev) => ({ ...prev, clearToken: e.target.value === 'yes' }))}
-                >
-                  <option value="no">Keep existing token</option>
-                  <option value="yes">Remove token</option>
-                </select>
+                  onChange={(val) => setState((prev) => ({ ...prev, clearToken: val === 'yes' }))}
+                  options={[
+                    { value: 'no', label: 'Keep existing token' },
+                    { value: 'yes', label: 'Remove token' },
+                  ]}
+                />
               </div>
             ) : null}
 
             <div className="cl-form-group">
-              <label className="cl-form-label" htmlFor="repo-enabled">
-                Integration status
-              </label>
-              <select
+              <Select
+                label="Integration status"
                 id="repo-enabled"
-                className="cl-select"
                 value={state.enabled ? 'enabled' : 'disabled'}
-                onChange={(e) => setState((prev) => ({ ...prev, enabled: e.target.value === 'enabled' }))}
-              >
-                <option value="disabled">Disabled</option>
-                <option value="enabled">Enabled</option>
-              </select>
+                onChange={(val) => setState((prev) => ({ ...prev, enabled: val === 'enabled' }))}
+                options={[
+                  { value: 'disabled', label: 'Disabled' },
+                  { value: 'enabled', label: 'Enabled' },
+                ]}
+              />
             </div>
 
             <button type="button" className="cl-btn cl-btn-primary cl-admin-submit" onClick={onSave} disabled={saving}>

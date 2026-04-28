@@ -91,7 +91,7 @@ export default function AdminPortal({ section, editId, preset, basePath }: Admin
         </aside>
 
         {/* Main content */}
-        <main className="cl-admin-content">
+        <main className="cl-admin-content cl-nav-transition" key={activeSection}>
           {activeSection === 'publish' ? (
             <PublishSection preset={preset} basePath={basePath} />
           ) : activeSection === 'ai' ? (

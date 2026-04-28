@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useChangelogApi } from '../../api/context'
 import { useToast } from '../toast/provider'
+import Select from '../ui/select'
 
 interface SettingsState {
   defaultFeedPageSize: number
@@ -115,18 +116,16 @@ export default function ChangelogSettingsPanel() {
             </div>
 
             <div className="cl-form-group">
-              <label className="cl-form-label" htmlFor="auto-publish">
-                Auto-publish new entries
-              </label>
-              <select
+              <Select
+                label="Auto-publish new entries"
                 id="auto-publish"
-                className="cl-select"
                 value={state.autoPublish ? 'enabled' : 'disabled'}
-                onChange={(e) => setState((prev) => ({ ...prev, autoPublish: e.target.value === 'enabled' }))}
-              >
-                <option value="disabled">Disabled</option>
-                <option value="enabled">Enabled</option>
-              </select>
+                onChange={(val) => setState((prev) => ({ ...prev, autoPublish: val === 'enabled' }))}
+                options={[
+                  { value: 'disabled', label: 'Disabled' },
+                  { value: 'enabled', label: 'Enabled' },
+                ]}
+              />
             </div>
 
             <button type="button" className="cl-btn cl-btn-primary cl-admin-submit" onClick={onSave} disabled={saving}>

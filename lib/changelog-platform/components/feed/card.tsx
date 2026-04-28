@@ -1,3 +1,6 @@
+'use client'
+
+import { useCallback } from 'react'
 import { ChangelogEntry } from '../../types/changelog'
 import Markdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
@@ -22,34 +25,48 @@ export default function ChangelogCard({ entry, basePath }: ChangelogCardProps) {
     minute: '2-digit',
   })
 
+  const navigateToDetail = useCallback(() => {
+    window.location.href = buildChangelogPath(basePath, entry.slug)
+  }, [basePath, entry.slug])
+
   return (
-    <article className="cl-card cl-entry-card">
-      <a href={buildChangelogPath(basePath, entry.slug)} className="cl-entry-link" aria-label={`Open changelog entry ${entry.title}`}>
-        <div className="cl-card-header cl-entry-header">
-          <div className="cl-entry-meta">
-            <span className="cl-entry-version">v{entry.version}</span>
-            <time className="cl-entry-date" dateTime={entryDate.toISOString()}>{dateFormatter.format(entryDate)}</time>
-            {entry.aiGenerated && <span className="cl-badge cl-badge-secondary cl-entry-ai">AI Enhanced</span>}
-          </div>
-
-          <h3 className="cl-card-title cl-entry-title">{entry.title}</h3>
-
-          <div className="cl-entry-tags">
-            {entry.tags.map((tag) => (
-              <span key={tag} className="cl-entry-tag">
-                {tag}
-              </span>
-            ))}
-          </div>
+    <article
+      className="cl-card cl-entry-card"
+      role="link"
+      tabIndex={0}
+      aria-label={`Open changelog entry ${entry.title}`}
+      onClick={navigateToDetail}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          navigateToDetail()
+        }
+      }}
+    >
+      <div className="cl-card-header cl-entry-header">
+        <div className="cl-entry-meta">
+          <span className="cl-entry-version">v{entry.version}</span>
+          <time className="cl-entry-date" dateTime={entryDate.toISOString()}>{dateFormatter.format(entryDate)}</time>
+          {entry.aiGenerated && <span className="cl-badge cl-badge-secondary cl-entry-ai">AI Enhanced</span>}
         </div>
 
-        <div className="cl-card-content cl-entry-content">
-          <div className="cl-markdown cl-markdown-preview cl-markdown-strong">
-            <Markdown rehypePlugins={[rehypeSanitize]}>{entry.content}</Markdown>
-          </div>
-          <span className="cl-entry-readmore">Read full update →</span>
+        <h3 className="cl-card-title cl-entry-title">{entry.title}</h3>
+
+        <div className="cl-entry-tags">
+          {entry.tags.map((tag) => (
+            <span key={tag} className="cl-entry-tag">
+              {tag}
+            </span>
+          ))}
         </div>
-      </a>
+      </div>
+
+      <div className="cl-card-content cl-entry-content">
+        <div className="cl-markdown cl-markdown-preview cl-markdown-strong">
+          <Markdown rehypePlugins={[rehypeSanitize]}>{entry.content}</Markdown>
+        </div>
+        <span className="cl-entry-readmore">Read full update →</span>
+      </div>
     </article>
   )
 }
